@@ -1,0 +1,47 @@
+import { Link } from 'react-router-dom';
+import { CATEGORIES } from '../constants';
+import { motion } from 'motion/react';
+
+export default function CategorySection() {
+  return (
+    <section className="py-8 md:py-20 bg-white dark:bg-neutral-950">
+      <div className="max-w-7xl mx-auto px-4 lg:px-12">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-lg font-bold text-gray-900">Popular Categories</h2>
+          <Link to="/shop" className="text-sm font-bold text-orange-500 hover:text-orange-600 dark:text-orange-400">See All</Link>
+        </div>
+
+        {/* Horizontal Scroll on Mobile, Grid on Desktop */}
+        <div className="flex md:grid md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-8 overflow-x-auto pb-4 md:pb-0 scrollbar-hide snap-x">
+          {CATEGORIES.map((category, index) => (
+            <motion.div
+              key={category.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.05 }}
+              className="snap-start shrink-0"
+            >
+              <Link
+                to={`/shop?category=${encodeURIComponent(category.name)}`}
+                className="group flex flex-col items-center gap-3 w-24 md:w-auto"
+              >
+                <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl overflow-hidden bg-orange-50 dark:bg-orange-950/30 group-hover:bg-orange-100 dark:bg-orange-900/40 transition-colors flex items-center justify-center p-2">
+                  <img
+                    src={category.image}
+                    alt={category.name}
+                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                <h3 className="text-[11px] md:text-sm font-bold text-gray-700 text-center group-hover:text-orange-600 dark:text-orange-400 transition-colors truncate w-full">
+                  {category.name}
+                </h3>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
