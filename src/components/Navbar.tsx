@@ -39,7 +39,7 @@ export default function Navbar() {
           {/* Logo & Search Bar */}
           <div className="flex items-center w-full md:w-auto gap-4">
             <Link to="/" className="flex items-center shrink-0">
-              <span className="text-2xl font-black tracking-tighter text-orange-600 dark:text-orange-400">ZANTRO</span>
+              <span className="flex items-center gap-2 text-2xl font-black tracking-tighter text-orange-600 dark:text-orange-400"><img src="/favicon.png" alt="Zantro" className="h-8 w-8 object-contain" />ZANTRO</span>
             </Link>
             
             {/* Search Bar - Prominent like Alibaba/Taobao */}
