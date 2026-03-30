@@ -1,7 +1,6 @@
 import Hero from '../components/Hero';
 import CategorySection from '../components/CategorySection';
 import ProductCard from '../components/ProductCard';
-import ReviewSection from '../components/ReviewSection';
 import { useProducts } from '../ProductContext';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
@@ -109,7 +108,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <ReviewSection />
     </div>
   );
 }
