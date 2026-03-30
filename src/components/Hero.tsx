@@ -7,9 +7,9 @@ const SLIDES = [
   {
     id: 1,
     title: "MEGA SALE",
-    subtitle: "Up to 70% Off",
-    description: "DIBAI Minimalist Grey Backpack - Limited Time Offer",
-    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=1920&h=1080",
+    subtitle: "Up to 69% Off",
+    description: "Notebook Calculator",
+    image: "https://i.imgur.com/bXJQgag.jpg",
     color: "from-orange-500 to-red-600",
   },
   {
@@ -17,7 +17,7 @@ const SLIDES = [
     title: "NEW ARRIVALS",
     subtitle: "Spring 2026",
     description: "Jeep Spirit Waterproof Jacket - Discover the latest urban style essentials.",
-    image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=1920&h=1080",
+    image: "https://i.imgur.com/ANUDasq.jpg",
     color: "from-blue-500 to-indigo-600",
   },
   {
@@ -25,7 +25,7 @@ const SLIDES = [
     title: "TECH ESSENTIALS",
     subtitle: "Innovation Week",
     description: "720° Adjustable Metal Stand - Transform your workspace with Zantro.",
-    image: "https://images.unsplash.com/photo-1586105251261-72a756657311?auto=format&fit=crop&q=80&w=1920&h=1080",
+    image: "https://i.imgur.com/0DCfwPt.jpg",
     color: "from-purple-500 to-pink-600",
   },
 ];
