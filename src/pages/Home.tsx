@@ -67,7 +67,8 @@ useEffect(() => {
       <CategorySection />
 
       {/* Flash Sale Section */}
-{flashSaleEnabled && flashSaleProducts.length > 0 && <section className="py-8 md:py-16">
+{flashSaleEnabled && flashSaleProducts.length > 0 && (
+<section className="py-8 md:py-16">
         <div className="max-w-7xl mx-auto px-4 lg:px-12">
           <div className="bg-white dark:bg-neutral-950 rounded-3xl p-6 md:p-10 shadow-sm dark:shadow-none border border-orange-100 dark:border-orange-900/50 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50 dark:bg-orange-950/30 rounded-full -translate-y-1/2 translate-x-1/2 -z-0" />
@@ -100,6 +101,7 @@ useEffect(() => {
           </div>
         </div>
       </section>
+)}
 
       {/* Featured Products - 2 Column Mobile Grid */}
       <section className="py-8 md:py-20">
