@@ -21,13 +21,16 @@ export default function AdminDashboard() {
 
   // New Product Form State
   const [newProduct, setNewProduct] = useState({
-    name: '',
-    price: '',
-    discount: '',
-    description: '',
-    category: CATEGORIES[0]?.name || 'Fashion',
-    image: ''
-  });
+  name: '',
+  price: '',
+  discount: '',
+  description: '',
+  category: CATEGORIES[0]?.name || 'Fashion',
+  image: '',
+  rating: '',
+  soldCount: '',
+  reviewCount: ''
+});
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
@@ -241,24 +244,30 @@ export default function AdminDashboard() {
       const primaryImage = newProduct.image || uploadedImages[0] || 'https://via.placeholder.com/400';
 
       await addProduct({
-        name: newProduct.name,
-        price: Number(newProduct.price),
-        discount: newProduct.discount ? Number(newProduct.discount) : undefined,
-        description: newProduct.description,
-        category: newProduct.category,
-        image: primaryImage,
-        images: uploadedImages.length > 0 ? uploadedImages : undefined,
-        video: uploadedVideo
-      });
+  name: newProduct.name,
+  price: Number(newProduct.price),
+  discount: newProduct.discount ? Number(newProduct.discount) : undefined,
+  description: newProduct.description,
+  category: newProduct.category,
+  image: primaryImage,
+  images: uploadedImages.length > 0 ? uploadedImages : undefined,
+  video: uploadedVideo,
+  rating: newProduct.rating ? Number(newProduct.rating) : 5,
+  soldCount: newProduct.soldCount ? Number(newProduct.soldCount) : 0,
+  reviewCount: newProduct.reviewCount ? Number(newProduct.reviewCount) : 0
+});
       toast.success('Product added successfully!');
       setNewProduct({
-        name: '',
-        price: '',
-        discount: '',
-        description: '',
-        category: CATEGORIES[0]?.name || 'Fashion',
-        image: ''
-      });
+  name: '',
+  price: '',
+  discount: '',
+  description: '',
+  category: CATEGORIES[0]?.name || 'Fashion',
+  image: '',
+  rating: '',
+  soldCount: '',
+  reviewCount: ''
+});
       setImageFiles([]);
       setVideoFile(null);
       if (imageInputRef.current) imageInputRef.current.value = '';
@@ -704,6 +713,32 @@ export default function AdminDashboard() {
                           className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none"
                           placeholder="Image URL"
                         />
+						<div className="flex gap-2">
+  <input
+    type="number"
+    min="0" max="5" step="0.1"
+    value={editProductData.rating || ''}
+    onChange={(e) => setEditProductData({...editProductData, rating: e.target.value})}
+    className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none"
+    placeholder="Rating (0-5)"
+  />
+  <input
+    type="number"
+    min="0"
+    value={editProductData.soldCount || ''}
+    onChange={(e) => setEditProductData({...editProductData, soldCount: e.target.value})}
+    className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none"
+    placeholder="Sold Count"
+  />
+  <input
+    type="number"
+    min="0"
+    value={editProductData.reviewCount || ''}
+    onChange={(e) => setEditProductData({...editProductData, reviewCount: e.target.value})}
+    className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none"
+    placeholder="Review Count"
+  />
+</div>
                         <textarea
                           value={editProductData.description}
                           onChange={(e) => setEditProductData({...editProductData, description: e.target.value})}
@@ -925,6 +960,49 @@ export default function AdminDashboard() {
                   <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">
                     <FileText size={14} /> Description
                   </label>
+				  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div className="space-y-2">
+    <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">
+      ⭐ Rating (0-5)
+    </label>
+    <input
+      type="number"
+      min="0"
+      max="5"
+      step="0.1"
+      value={newProduct.rating}
+      onChange={(e) => setNewProduct({...newProduct, rating: e.target.value})}
+      placeholder="e.g., 4.8"
+      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors"
+    />
+  </div>
+  <div className="space-y-2">
+    <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">
+      🛒 Sold Count
+    </label>
+    <input
+      type="number"
+      min="0"
+      value={newProduct.soldCount}
+      onChange={(e) => setNewProduct({...newProduct, soldCount: e.target.value})}
+      placeholder="e.g., 1200"
+      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors"
+    />
+  </div>
+  <div className="space-y-2">
+    <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">
+      💬 Review Count
+    </label>
+    <input
+      type="number"
+      min="0"
+      value={newProduct.reviewCount}
+      onChange={(e) => setNewProduct({...newProduct, reviewCount: e.target.value})}
+      placeholder="e.g., 120"
+      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors"
+    />
+  </div>
+</div>
                   <textarea 
                     required
                     rows={4}

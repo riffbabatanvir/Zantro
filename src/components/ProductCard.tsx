@@ -43,7 +43,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
               <Star key={i} size={10} fill={i < 4 ? "currentColor" : "none"} />
             ))}
           </div>
-          <span className="text-[10px] text-gray-400">1.2k+ sold</span>
+          <span className="text-[10px] text-gray-400">{product.soldCount ? (product.soldCount >= 1000 ? (product.soldCount / 1000).toFixed(1) + 'k+' : product.soldCount) : '0'} sold</span>
         </div>
 
         <div className="flex flex-col gap-2 pt-2">

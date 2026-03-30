@@ -115,7 +115,7 @@ export default function ProductDetail() {
                     <Star key={i} size={12} fill={i < 4 ? "currentColor" : "none"} />
                   ))}
                 </div>
-                <span className="text-xs text-gray-400 font-bold">4.8 (120 reviews)</span>
+                <span className="text-xs text-gray-400 font-bold">{product.rating || 5} ({product.reviewCount || 0} reviews)</span>
               </div>
               
               <h1 className="text-2xl md:text-5xl font-black tracking-tight text-gray-900 mb-4 leading-tight">
