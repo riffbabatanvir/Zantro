@@ -5,7 +5,8 @@ import { fileURLToPath } from 'url';
 import { MongoClient, ObjectId } from 'mongodb';
 import { PRODUCTS } from './src/constants.js';
 import multer from 'multer';
-import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
+import { Readable } from 'stream';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,6 +15,13 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+
+// Cloudinary setup
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'di4byoc2w',
+  api_key: process.env.CLOUDINARY_API_KEY || '783818254271344',
+  api_secret: process.env.CLOUDINARY_API_SECRET || 'aln4avRCPy61woO7Acj5Up7ogIw',
+});
 
 // MongoDB setup
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://Zantro:aSmjatd84Z61NY4k@cluster0.vphqqr7.mongodb.net/?appName=Cluster0';
@@ -34,38 +42,42 @@ async function connectDB() {
   }
 }
 
-// Set up uploads directory
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR);
+// Use memory storage - we'll stream to Cloudinary
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Helper to upload buffer to Cloudinary
+function uploadToCloudinary(buffer: Buffer, filename: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: 'zantro', public_id: `${Date.now()}-${filename}` },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result!.secure_url);
+      }
+    );
+    Readable.from(buffer).pipe(uploadStream);
+  });
 }
-
-app.use('/uploads', express.static(UPLOADS_DIR));
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, UPLOADS_DIR);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + '-' + file.originalname);
-  }
-});
-
-const upload = multer({ storage });
 
 // Auth helper
 const isAdmin = (req: any) => req.headers.authorization === 'Bearer admin-secret-token';
 
-// Upload
-app.post('/api/upload', upload.array('files', 10), (req, res) => {
+// Upload - now goes to Cloudinary
+app.post('/api/upload', upload.array('files', 10), async (req, res) => {
   if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
   if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
     return res.status(400).json({ error: 'No files uploaded' });
   }
-  const files = req.files as Express.Multer.File[];
-  const urls = files.map(file => `/uploads/${file.filename}`);
-  res.json({ urls });
+  try {
+    const files = req.files as Express.Multer.File[];
+    const urls = await Promise.all(
+      files.map(file => uploadToCloudinary(file.buffer, file.originalname))
+    );
+    res.json({ urls });
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    res.status(500).json({ error: 'Upload failed' });
+  }
 });
 
 // Products
