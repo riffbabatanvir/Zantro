@@ -16,6 +16,7 @@ import { ThemeProvider } from './ThemeContext';
 import { Toaster } from 'sonner';
 
 import AdminDashboard from './pages/AdminDashboard';
+import About from './pages/About';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -44,6 +45,7 @@ export default function App() {
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/admin" element={<AdminDashboard />} />
+				<Route path="/about" element={<About />} />
               </Routes>
             </main>
             <Footer />
