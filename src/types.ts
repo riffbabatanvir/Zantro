@@ -9,6 +9,9 @@ export interface Product {
   images?: string[];
   video?: string;
   rating: number;
+  soldCount?: number;
+  reviewCount?: number;
+  isFlashSale?: boolean;
   reviews: Review[];
 }
 

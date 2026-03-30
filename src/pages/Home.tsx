@@ -10,7 +10,15 @@ import { useState, useEffect } from 'react';
 export default function Home() {
   const { products } = useProducts();
   const featuredProducts = products.slice(0, 8);
-  const flashSaleProducts = products.slice(4, 8);
+  const flashSaleProducts = products.filter(p => p.isFlashSale);
+const [flashSaleEnabled, setFlashSaleEnabled] = useState(true);
+
+useEffect(() => {
+  fetch('/api/settings/flashsale')
+    .then(r => r.json())
+    .then(data => setFlashSaleEnabled(data.enabled))
+    .catch(() => {});
+}, []);
 
   // Countdown Logic
   const [timeLeft, setTimeLeft] = useState({
@@ -59,7 +67,7 @@ export default function Home() {
       <CategorySection />
 
       {/* Flash Sale Section */}
-      <section className="py-8 md:py-16">
+{flashSaleEnabled && flashSaleProducts.length > 0 && <section className="py-8 md:py-16">
         <div className="max-w-7xl mx-auto px-4 lg:px-12">
           <div className="bg-white dark:bg-neutral-950 rounded-3xl p-6 md:p-10 shadow-sm dark:shadow-none border border-orange-100 dark:border-orange-900/50 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50 dark:bg-orange-950/30 rounded-full -translate-y-1/2 translate-x-1/2 -z-0" />
