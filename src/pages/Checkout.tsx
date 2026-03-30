@@ -34,10 +34,10 @@ export default function Checkout() {
   };
 
   const cryptoAddresses = [
-    { name: 'BTC (Bitcoin)', address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh' },
-    { name: 'ETH (Ethereum)', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F' },
-    { name: 'USDT (TRC20)', address: 'TXLAQ63Xg1N4veA52Z5q9p1x2e3m4n5o6p' },
-    { name: 'SOL (Solana)', address: 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH' }
+    { name: 'BTC (Bitcoin)', address: '147hzwvR68sxcJUfkMEpSRxTwd9hqNpeq7' },
+    { name: 'ETH (Ethereum)', address: '0x26c8d840e121e49d9657b1e4ec04cfffe1fb2b8c' },
+    { name: 'USDT (TRC20)', address: 'TXNYecJoTbgj6QeUGU8Vyjmb6y8u2Cc2rP' },
+    { name: 'SOL (Solana)', address: '72ucZBSshMHfAyHXKGdUyxuoTtLGRerwDJSjupZuMVpX' }
   ];
 
   if (cart.length === 0 && !isSuccess) {
