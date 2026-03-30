@@ -4,27 +4,27 @@ import { motion } from 'motion/react';
 const REVIEWS = [
   {
     id: 1,
-    name: "Alex Thompson",
-    role: "Tech Enthusiast",
-    content: "The DIBAI Minimalist Backpack is a game changer. The build quality is unmatched, and it actually lives up to the waterproof hype. Best purchase this year!",
+    name: "Leo D Caprio",
+    role: "Hollywood",
+    content: "Zantro থেকে কেনা এই ফ্যানহুয়াবুয়ু অরেঞ্জ ব্যাকপ্যাকটি একদম স্টাইলিশ ও আকর্ষণীয়। Zantro-এর সার্ভিস নিয়ে আমি খুবই সন্তুষ্ট। তারা সত্যিই হাই-কোয়ালিটি প্রোডাক্ট সংগ্রহ করে এবং ক্রেতাদের জন্য সুন্দর স্টাইলিশ ডিজাইনের ব্যাগ নিয়ে আসে। প্যাকেজিং থেকে শুরু করে ডেলিভারি পর্যন্ত তাদের সার্ভিস ছিল দ্রুত ও নির্ভরযোগ্য। যারা স্টাইলিশ এবং প্র্যাকটিক্যাল ব্যাকপ্যাক খুঁজছেন, তাদের জন্য Zantro অবশ্যই একটা ভালো চয়েস।",
     rating: 5,
-    avatar: "https://i.pravatar.cc/150?u=alex"
+    avatar: "https://imgur.com/a/0MV4JFR"
   },
   {
     id: 2,
-    name: "Elena Rodriguez",
-    role: "Graphic Designer",
-    content: "I've been using the Jeep Spirit Jacket for my daily commute. It's stylish, durable, and handles the rain perfectly. Highly recommended for professionals.",
+    name: "Deepika",
+    role: "Bollywood",
+    content: "Zantro থেকে পাওয়া এই হট পিঙ্ক ক্রস-হ্যাল্টার নেট বডিস্যুটটি একদম স্টাইলিশ। Zantro আবারও প্রমাণ করেছে যে তারা স্টাইলিশ ও ট্রেন্ডি প্রোডাক্ট সংগ্রহ করে ক্রেতাদের জন্য নিয়ে আসে। তাদের কালেকশনে এমন বোল্ড ও কোয়ালিটি আইটেম থাকায় অনেকেই খুশি হন। ডেলিভারি ও প্রোডাক্টের কোয়ালিটি নিয়ে Zantro-এর উপর আস্থা রাখা যায়।",
     rating: 5,
-    avatar: "https://i.pravatar.cc/150?u=elena"
+    avatar: "https://imgur.com/a/hLpVzzg"
   },
   {
     id: 3,
-    name: "David Chen",
-    role: "Fitness Coach",
-    content: "The 720° Metal Stand is exactly what I needed for my desk. Sturdy build and the rotation is smooth. Great value for the price.",
+    name: "Hrithik",
+    role: "Bollywood",
+    content: "Zantro থেকে কেনা এই কালো-সাদা ওয়াটারপ্রুফ রাইডিং জ্যাকেটটি বৃষ্টিতে দারুণ কাজের। স্টর্ম-প্রুফ ওয়াটারপ্রুফ ফ্যাব্রিক, ভেন্টিলেশন সিস্টেম এবং রিফ্লেক্টিভ স্ট্রিপস থাকায় বৃষ্টির মধ্যেও নিরাপদে ও আরামে রাইড করা যায়। ডিজাইন স্টাইলিশ এবং ফিটিং ভালো। Zantro আবারও ভালো প্রোডাক্ট নিয়ে এসেছে। তাদের কোয়ালিটি ও নির্ভরযোগ্য সার্ভিসের জন্য ধন্যবাদ। বৃষ্টির দিনে বাইকারদের জন্য এটি চমৎকার চয়েস।",
     rating: 4,
-    avatar: "https://i.pravatar.cc/150?u=david"
+    avatar: "https://imgur.com/a/2eyQllQ"
   }
 ];
 
