@@ -109,36 +109,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Newsletter */}
-      <section className="py-16 md:py-32 bg-orange-600 text-white">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-2xl mx-auto"
-          >
-            <h2 className="text-sm font-black uppercase tracking-[0.4em] text-white/60 mb-6">Join the Club</h2>
-            <h3 className="text-3xl md:text-5xl font-black tracking-tighter mb-10">Get 20% off your first order.</h3>
-            
-            <form className="flex flex-col md:flex-row gap-4 max-w-md mx-auto">
-              <input 
-                type="email" 
-                placeholder="Your email address" 
-                className="flex-1 bg-white/10 dark:bg-neutral-950/10 border-2 border-white/20 rounded-full py-4 px-6 text-sm focus:outline-none focus:border-white transition-colors placeholder:text-white/40"
-              />
-              <button 
-                type="submit" 
-                className="bg-white dark:bg-neutral-950 text-orange-600 dark:text-orange-400 px-8 py-4 rounded-full text-sm font-black hover:bg-orange-50 dark:bg-orange-950/30 transition-colors shadow-lg"
-              >
-                SUBSCRIBE
-              </button>
-            </form>
-          </motion.div>
-        </div>
-      </section>
-
       <ReviewSection />
     </div>
   );
