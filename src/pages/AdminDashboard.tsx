@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Lock, LogOut, Package, CreditCard, MapPin, Phone, Mail, User, ShoppingCart, Clock, TrendingUp, CheckCircle, Banknote, XCircle, Trash2, MessageSquare, PlusCircle, Image as ImageIcon, Tag, FileText, DollarSign, Percent, Video, Upload, Edit2, Save, Zap, Users, Globe, Monitor, Smartphone, Tablet } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProducts } from '../ProductContext';
+import { useCategoryImages } from '../useCategoryImages';
 import { CATEGORIES } from '../constants';
 
 export default function AdminDashboard() {
@@ -13,7 +14,7 @@ export default function AdminDashboard() {
   const [messages, setMessages] = useState<any[]>([]);
   const [visitors, setVisitors] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories'>('orders');
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
 
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
@@ -58,6 +59,43 @@ export default function AdminDashboard() {
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+
+  // Category images
+  const { images: categoryImages, refetch: refetchCategoryImages } = useCategoryImages();
+  const [catEditId, setCatEditId] = useState<string | null>(null);
+  const [catUrlInput, setCatUrlInput] = useState('');
+  const [catUploadFile, setCatUploadFile] = useState<File | null>(null);
+  const [isSavingCat, setIsSavingCat] = useState(false);
+  const catFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSaveCategoryImage = async (categoryId: string) => {
+    setIsSavingCat(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      let finalUrl = catUrlInput;
+      if (catUploadFile) {
+        const formData = new FormData();
+        formData.append('files', catUploadFile);
+        const res = await fetch('/api/upload', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData });
+        if (!res.ok) { toast.error('Upload failed'); setIsSavingCat(false); return; }
+        const data = await res.json();
+        finalUrl = data.urls[0];
+      }
+      if (!finalUrl) { toast.error('Please enter a URL or upload a file'); setIsSavingCat(false); return; }
+      await fetch(`/api/categories/${categoryId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ image: finalUrl }),
+      });
+      await refetchCategoryImages();
+      toast.success('Category image updated!');
+      setCatEditId(null);
+      setCatUrlInput('');
+      setCatUploadFile(null);
+      if (catFileInputRef.current) catFileInputRef.current.value = '';
+    } catch { toast.error('Failed to save'); }
+    finally { setIsSavingCat(false); }
+  };
 
   // Edit mode upload state
   const [editImageFiles, setEditImageFiles] = useState<File[]>([]);
@@ -346,12 +384,12 @@ export default function AdminDashboard() {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-lg flex-wrap gap-1">
-              {(['orders', 'messages', 'products', 'visitors'] as const).map(tab => (
+              {(['orders', 'messages', 'products', 'categories', 'visitors'] as const).map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
                   className={`px-4 py-2 rounded-md text-[11px] font-medium uppercase tracking-widest transition-all ${
                     activeTab === tab ? 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white'
                   }`}>
-                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </button>
               ))}
             </div>
@@ -527,6 +565,81 @@ export default function AdminDashboard() {
               </div>
             )}
           </>
+        
+        ) : activeTab === 'categories' ? (
+          <div className="max-w-4xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 md:p-8 shadow-sm">
+              <div className="flex items-center gap-3 mb-8 border-b border-black/5 dark:border-white/5 pb-4">
+                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center"><ImageIcon size={20} /></div>
+                <div>
+                  <h2 className="text-xl font-medium text-black dark:text-white">Category Images</h2>
+                  <p className="text-xs text-black/40 dark:text-white/40 mt-1">Change the icon pictures shown on the home page</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {CATEGORIES.map(cat => {
+                  const currentImg = categoryImages[cat.id] || cat.image;
+                  const isEditing = catEditId === cat.id;
+                  return (
+                    <div key={cat.id} className="bg-gray-50 dark:bg-neutral-950 rounded-xl border border-black/5 dark:border-white/5 p-4 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 rounded-xl overflow-hidden bg-orange-50 dark:bg-orange-950/30 shrink-0">
+                          <img src={currentImg} alt={cat.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-black dark:text-white truncate">{cat.name}</p>
+                          {categoryImages[cat.id] && (
+                            <span className="text-[9px] font-bold text-orange-500 uppercase tracking-widest">Custom image</span>
+                          )}
+                        </div>
+                      </div>
+                      {isEditing ? (
+                        <div className="space-y-2">
+                          <input
+                            type="url"
+                            placeholder="Paste image URL..."
+                            value={catUrlInput}
+                            onChange={e => setCatUrlInput(e.target.value)}
+                            className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:border-orange-500 outline-none"
+                          />
+                          <p className="text-[10px] text-black/30 dark:text-white/30 text-center">— or —</p>
+                          <input
+                            type="file" accept="image/*" ref={catEditId === cat.id ? catFileInputRef : undefined}
+                            onChange={e => { if (e.target.files?.[0]) { setCatUploadFile(e.target.files[0]); setCatUrlInput(''); } }}
+                            className="w-full text-xs file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100"
+                          />
+                          {catUploadFile && <p className="text-[10px] text-orange-500 truncate">{catUploadFile.name}</p>}
+                          <div className="flex gap-2 pt-1">
+                            <button
+                              onClick={() => handleSaveCategoryImage(cat.id)}
+                              disabled={isSavingCat}
+                              className="flex-1 flex items-center justify-center gap-1 bg-orange-600 text-white py-1.5 rounded-lg text-xs font-bold hover:bg-orange-700 transition-colors disabled:opacity-50"
+                            >
+                              <Save size={12} /> {isSavingCat ? 'Saving...' : 'Save'}
+                            </button>
+                            <button
+                              onClick={() => { setCatEditId(null); setCatUrlInput(''); setCatUploadFile(null); }}
+                              className="flex-1 flex items-center justify-center gap-1 bg-gray-200 dark:bg-neutral-800 text-black dark:text-white py-1.5 rounded-lg text-xs font-bold hover:bg-gray-300 transition-colors"
+                            >
+                              <XCircle size={12} /> Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => { setCatEditId(cat.id); setCatUrlInput(categoryImages[cat.id] || ''); setCatUploadFile(null); }}
+                          className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold text-black/40 dark:text-white/40 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors border border-dashed border-black/10 dark:border-white/10"
+                        >
+                          <Edit2 size={12} /> Change Image
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </div>
         ) : activeTab === 'visitors' ? (
           <>
             {/* Visitor Stats */}

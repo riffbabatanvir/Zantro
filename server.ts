@@ -178,6 +178,24 @@ app.delete('/api/messages/:id', async (req, res) => {
   }
 });
 
+// Category images
+app.get('/api/categories', async (req, res) => {
+  const doc = await db.collection('settings').findOne({ key: 'categoryImages' });
+  res.json(doc ? doc.images : {});
+});
+
+app.patch('/api/categories/:id', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const { id } = req.params;
+  const { image } = req.body;
+  await db.collection('settings').updateOne(
+    { key: 'categoryImages' },
+    { $set: { [`images.${id}`]: image } },
+    { upsert: true }
+  );
+  res.json({ id, image });
+});
+
 // Flash Sale settings
 app.get('/api/settings/flashsale', async (req, res) => {
   const setting = await db.collection('settings').findOne({ key: 'flashsale' });
