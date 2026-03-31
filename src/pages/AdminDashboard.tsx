@@ -232,6 +232,7 @@ export default function AdminDashboard() {
         description: editProductData.description,
         category: editProductData.category,
         image: editProductData.image,
+        images: editProductData.images || [],
         rating: editProductData.rating ? Number(editProductData.rating) : undefined,
         soldCount: editProductData.soldCount ? Number(editProductData.soldCount) : undefined,
         reviewCount: editProductData.reviewCount ? Number(editProductData.reviewCount) : undefined,
@@ -646,6 +647,40 @@ export default function AdminDashboard() {
                         </div>
                         <textarea value={editProductData.description} onChange={(e) => setEditProductData({...editProductData, description: e.target.value})}
                           className="w-full md:col-span-2 bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none resize-none" placeholder="Description" rows={2} />
+                        {/* Image Gallery Manager */}
+                        {editProductData.images && editProductData.images.length > 0 && (
+                          <div className="md:col-span-2">
+                            <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">
+                              Product Images — hover &amp; click <strong>✕</strong> to delete
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {editProductData.images.map((url: string, idx: number) => (
+                                <div key={idx} className="relative group w-16 h-16 rounded-lg overflow-hidden border-2 border-black/10 dark:border-white/10"
+                                  style={{ borderColor: editProductData.image === url ? '#f97316' : undefined }}>
+                                  <img src={url} alt={`img-${idx}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const updatedImages = editProductData.images.filter((_: string, i: number) => i !== idx);
+                                      const newPrimary = editProductData.image === url ? (updatedImages[0] || '') : editProductData.image;
+                                      setEditProductData({ ...editProductData, images: updatedImages, image: newPrimary });
+                                    }}
+                                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
+                                    title="Delete this image"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                  {editProductData.image === url && (
+                                    <span className="absolute bottom-0 left-0 right-0 bg-orange-500 text-white text-[7px] text-center font-bold uppercase py-0.5">Main</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-[9px] text-black/30 dark:text-white/30 mt-1">
+                              The image with an orange border is the main/thumbnail. Deleting it auto-sets the next one as main.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -682,7 +717,7 @@ export default function AdminDashboard() {
                             title="Toggle Flash Sale">
                             <Zap size={10} /> Flash
                           </button>
-                          <button onClick={() => { setEditingProduct(product.id); setEditProductData({ name: product.name, price: product.price, discount: product.discount || '', description: product.description, category: product.category, image: product.image, rating: product.rating || '', soldCount: (product as any).soldCount || '', reviewCount: (product as any).reviewCount || '' }); }}
+                          <button onClick={() => { setEditingProduct(product.id); setEditProductData({ name: product.name, price: product.price, discount: product.discount || '', description: product.description, category: product.category, image: product.image, images: (product as any).images || [], rating: product.rating || '', soldCount: (product as any).soldCount || '', reviewCount: (product as any).reviewCount || '' }); }}
                             className="p-2 text-black/40 dark:text-white/40 hover:text-orange-600 dark:hover:text-orange-400 transition-colors rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20" title="Edit Product">
                             <Edit2 size={16} />
                           </button>
