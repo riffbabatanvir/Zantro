@@ -5,8 +5,8 @@ export const CATEGORIES: Category[] = [
   { id: '2',  name: "Women's Clothing",         image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '3',  name: "Kids' Clothing",           image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '4',  name: "Lingerie",               image: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&q=80&w=400&h=400' },
-  { id: '5',  name: 'Electronics & Gadgets',    image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=400&h=400' },
-  { id: '6',  name: 'Accessories',              image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=400&h=400' },
+  { id: '5',  name: 'Fashion',                  image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=400&h=400' },
+  { id: '6',  name: 'Gadgets & Accessories',    image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '7',  name: 'Home & Living',            image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '8',  name: 'Toys & Accessories',       image: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '9',  name: 'Miscellaneous',            image: 'https://images.unsplash.com/photo-1553481187-be93c21490a9?auto=format&fit=crop&q=80&w=400&h=400' },
@@ -19,12 +19,12 @@ export const CATEGORY_GROUPS = [
     categories: ["Men's Clothing", "Women's Clothing", "Kids' Clothing", "Lingerie"],
   },
   {
-    label: 'Electronics & Gadgets',
-    categories: ['Electronics & Gadgets'],
+    label: 'Fashion',
+    categories: ['Fashion'],
   },
   {
-    label: 'Accessories',
-    categories: ['Accessories'],
+    label: 'Gadgets & Accessories',
+    categories: ['Gadgets & Accessories'],
   },
   {
     label: 'Home & Living',
