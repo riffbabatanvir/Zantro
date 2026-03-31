@@ -209,22 +209,55 @@ export default function Checkout() {
                   )}
 
                   {(paymentMethod === 'bkash' || paymentMethod === 'nagad') && (
-                    <motion.div 
-                      key="mobile-money"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="flex flex-col items-center justify-center p-8 border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-neutral-900 rounded-xl"
-                    >
-                      <div className="w-32 h-32 bg-white p-2 rounded-lg shadow-sm mb-4">
-                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${paymentMethod}_payment_dummy`} alt={`${paymentMethod} QR`} className="w-full h-full" />
-                      </div>
-                      <p className="text-[11px] uppercase tracking-widest text-black/60 dark:text-white/60 text-center">
-                        Scan with {paymentMethod === 'bkash' ? 'bKash' : 'Nagad'} App to pay
-                      </p>
-                      <p className="text-xs font-medium mt-2 text-black dark:text-white">Amount: ৳{finalTotal.toFixed(2)}</p>
-                    </motion.div>
-                  )}
+  <motion.div
+    key="mobile-money"
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -10 }}
+    className="flex flex-col items-center justify-center p-8 border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-neutral-900 rounded-xl"
+  >
+    {paymentMethod === 'bkash' ? (
+      <>
+        <div className="w-48 h-48 bg-white p-2 rounded-lg shadow-sm mb-4">
+          <img src="https://res.cloudinary.com/di4byoc2w/image/upload/v1774930027/Image_20260331100303_170_72_ixlgcn.jpg" alt="bKash QR" className="w-full h-full object-contain" />
+        </div>
+        <p className="text-[11px] uppercase tracking-widest text-black/60 dark:text-white/60 text-center mb-3">
+          Scan with bKash App to pay
+        </p>
+        <div className="flex items-center gap-3 bg-white dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2">
+          <span className="text-sm font-bold text-black dark:text-white">01922929033</span>
+          <button
+            type="button"
+            onClick={() => copyToClipboard('01922929033')}
+            className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-pink-500 hover:text-pink-600 transition-colors"
+          >
+            <Copy size={12} /> Copy
+          </button>
+        </div>
+      </>
+    ) : (
+      <>
+        <p className="text-sm text-black/60 dark:text-white/60 text-center mb-3">
+          Send money to
+        </p>
+        <div className="flex items-center gap-3 bg-white dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2">
+          <span className="text-sm font-bold text-black dark:text-white">01922929033</span>
+          <button
+            type="button"
+            onClick={() => copyToClipboard('01922929033')}
+            className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-orange-500 hover:text-orange-600 transition-colors"
+          >
+            <Copy size={12} /> Copy
+          </button>
+        </div>
+        <p className="text-[11px] uppercase tracking-widest text-black/60 dark:text-white/60 text-center mt-3">
+          via Nagad App
+        </p>
+      </>
+    )}
+    <p className="text-xs font-medium mt-4 text-black dark:text-white">Amount: ৳{finalTotal.toFixed(2)}</p>
+  </motion.div>
+)}
 
                   {paymentMethod === 'crypto' && (
                     <motion.div 
