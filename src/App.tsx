@@ -17,6 +17,7 @@ import { Toaster } from 'sonner';
 
 import AdminDashboard from './pages/AdminDashboard';
 import About from './pages/About';
+import FAQ from './pages/FAQ';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -46,6 +47,7 @@ export default function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/admin" element={<AdminDashboard />} />
 				<Route path="/about" element={<About />} />
+				<Route path="/faq" element={<FAQ />} />
               </Routes>
             </main>
             <Footer />
