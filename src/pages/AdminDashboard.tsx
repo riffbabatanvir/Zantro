@@ -327,6 +327,69 @@ export default function AdminDashboard() {
     }
   };
 
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  const filteredOrders = orders.filter(o => {
+    if (!dateFrom && !dateTo) return true;
+    const orderDate = new Date(o.createdAt);
+    if (dateFrom && orderDate < new Date(dateFrom)) return false;
+    if (dateTo && orderDate > new Date(dateTo + 'T23:59:59')) return false;
+    return true;
+  });
+
+  const exportOrdersToCSV = () => {
+    const rows = [
+      ['Order ID', 'Date', 'Status', 'Customer', 'Email', 'Phone', 'Address', 'Region', 'Payment', 'Items', 'Total']
+    ];
+    filteredOrders.forEach(o => {
+      const items = o.items?.map((i: any) => `${i.name} x${i.quantity}`).join(' | ') || '';
+      rows.push([
+        o.id.slice(-6),
+        new Date(o.createdAt).toLocaleDateString(),
+        o.status || 'pending',
+        o.customerInfo?.fullName || '',
+        o.customerInfo?.email || '',
+        o.customerInfo?.phone || '',
+        o.customerInfo?.address || '',
+        o.customerInfo?.region === 'patuakhali' ? 'Inside Patuakhali' : 'Outside Patuakhali',
+        o.paymentMethod || '',
+        items,
+        o.finalTotal?.toFixed(2) || '0'
+      ]);
+    });
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Orders exported!');
+  };
+
+  const exportVisitorsToCSV = () => {
+    const rows = [
+      ['IP', 'Country', 'City', 'Device', 'Browser', 'Visits', 'First Seen', 'Last Seen', 'Last Page', 'Status']
+    ];
+    visitors.forEach(v => {
+      rows.push([
+        v.ip, v.country, v.city, v.device, v.browser,
+        v.visitCount,
+        new Date(v.firstSeen).toLocaleDateString(),
+        new Date(v.lastSeen).toLocaleDateString(),
+        v.lastPage,
+        v.isOnline ? 'Online' : 'Offline'
+      ]);
+    });
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `visitors_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Visitors exported!');
+  };
+
   const totalOrders = orders.length;
   const pendingOrders = orders.filter(o => o.status === 'pending' || !o.status).length;
   const validOrders = orders.filter(o => o.status !== 'cancelled');
@@ -421,13 +484,38 @@ export default function AdminDashboard() {
               </div>
             </div>
 
+            {/* Date Filter + Export */}
+            <div className="flex flex-wrap items-center gap-3 mb-6 p-4 bg-white dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 shrink-0">From</label>
+                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+                  className="bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none" />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 shrink-0">To</label>
+                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
+                  className="bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none" />
+              </div>
+              <button onClick={() => { setDateFrom(''); setDateTo(''); }}
+                className="px-3 py-2 text-xs text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white border border-black/10 dark:border-white/10 rounded-lg transition-colors">
+                Clear
+              </button>
+              <div className="ml-auto flex items-center gap-3">
+                <span className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">{filteredOrders.length} orders</span>
+                <button onClick={exportOrdersToCSV}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-green-700 transition-colors">
+                  📥 Export Excel
+                </button>
+              </div>
+            </div>
+
             {isLoading ? (
               <div className="text-center py-20 text-black/40 dark:text-white/40">Loading orders...</div>
-            ) : orders.length === 0 ? (
-              <div className="text-center py-20"><Package size={48} className="mx-auto text-black/20 dark:text-white/20 mb-4" /><p className="text-black/40 dark:text-white/40">No orders found yet.</p></div>
+            ) : filteredOrders.length === 0 ? (
+              <div className="text-center py-20"><Package size={48} className="mx-auto text-black/20 dark:text-white/20 mb-4" /><p className="text-black/40 dark:text-white/40">{orders.length === 0 ? 'No orders found yet.' : 'No orders match the selected date range.'}</p></div>
             ) : (
               <div className="grid gap-6">
-                {orders.map((order) => (
+                {filteredOrders.map((order) => (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={order.id}
                     className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 shadow-sm">
                     <div className="flex flex-col lg:flex-row justify-between gap-6">
@@ -662,13 +750,17 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Refresh button */}
-            <div className="flex justify-end mb-4">
+            {/* Refresh + Export buttons */}
+            <div className="flex justify-end gap-3 mb-4">
               <button
                 onClick={() => { const token = localStorage.getItem('adminToken'); if (token) fetchVisitors(token); }}
                 className="px-4 py-2 bg-black/5 dark:bg-white/5 text-black/60 dark:text-white/60 rounded-lg text-xs font-medium uppercase tracking-widest hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
               >
                 🔄 Refresh
+              </button>
+              <button onClick={exportVisitorsToCSV}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-green-700 transition-colors">
+                📥 Export Excel
               </button>
             </div>
 
