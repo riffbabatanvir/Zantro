@@ -59,6 +59,13 @@ export default function AdminDashboard() {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
+  // Edit mode upload state
+  const [editImageFiles, setEditImageFiles] = useState<File[]>([]);
+  const [editVideoFile, setEditVideoFile] = useState<File | null>(null);
+  const [isUploadingEdit, setIsUploadingEdit] = useState(false);
+  const editImageInputRef = useRef<HTMLInputElement>(null);
+  const editVideoInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (token) {
@@ -224,22 +231,55 @@ export default function AdminDashboard() {
   };
 
   const handleUpdateProduct = async (id: string) => {
+    setIsUploadingEdit(true);
     try {
+      const token = localStorage.getItem('adminToken');
+      let newImageUrls: string[] = [];
+      let newVideoUrl: string | undefined = undefined;
+
+      // Upload new images if any selected
+      if (editImageFiles.length > 0) {
+        const formData = new FormData();
+        editImageFiles.forEach(file => formData.append('files', file));
+        const res = await fetch('/api/upload', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData });
+        if (res.ok) { const data = await res.json(); newImageUrls = data.urls; }
+        else { toast.error('Image upload failed'); setIsUploadingEdit(false); return; }
+      }
+
+      // Upload new video if selected
+      if (editVideoFile) {
+        const formData = new FormData();
+        formData.append('files', editVideoFile);
+        const res = await fetch('/api/upload', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData });
+        if (res.ok) { const data = await res.json(); newVideoUrl = data.urls[0]; }
+        else { toast.error('Video upload failed'); setIsUploadingEdit(false); return; }
+      }
+
+      // Merge new images with existing ones
+      const mergedImages = [...(editProductData.images || []), ...newImageUrls];
+      const primaryImage = mergedImages[0] || editProductData.image || '';
+
       await updateProduct(id, {
         name: editProductData.name,
         price: Number(editProductData.price),
         discount: editProductData.discount ? Number(editProductData.discount) : undefined,
         description: editProductData.description,
         category: editProductData.category,
-        image: editProductData.image,
-        images: editProductData.images || [],
+        image: primaryImage,
+        images: mergedImages,
+        video: newVideoUrl !== undefined ? newVideoUrl : editProductData.video,
         rating: editProductData.rating ? Number(editProductData.rating) : undefined,
         soldCount: editProductData.soldCount ? Number(editProductData.soldCount) : undefined,
         reviewCount: editProductData.reviewCount ? Number(editProductData.reviewCount) : undefined,
       });
       toast.success('Product updated successfully!');
       setEditingProduct(null);
+      setEditImageFiles([]);
+      setEditVideoFile(null);
+      if (editImageInputRef.current) editImageInputRef.current.value = '';
+      if (editVideoInputRef.current) editVideoInputRef.current.value = '';
     } catch { toast.error('Failed to update product'); }
+    finally { setIsUploadingEdit(false); }
   };
 
   const handleDeleteProduct = async (id: string) => {
@@ -681,6 +721,52 @@ export default function AdminDashboard() {
                             </p>
                           </div>
                         )}
+
+                        {/* Add new images */}
+                        <div className="md:col-span-2 space-y-1">
+                          <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 flex items-center gap-1">
+                            <Upload size={11} /> Add More Images
+                          </p>
+                          <input
+                            type="file" multiple accept="image/*" ref={editImageInputRef}
+                            onChange={(e) => { if (e.target.files) setEditImageFiles(Array.from(e.target.files)); }}
+                            className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:border-orange-500 outline-none file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100"
+                          />
+                          {editImageFiles.length > 0 && (
+                            <p className="text-[10px] text-orange-500 font-medium">{editImageFiles.length} new image(s) will be uploaded on Save</p>
+                          )}
+                        </div>
+
+                        {/* Video manager */}
+                        <div className="md:col-span-2 space-y-1">
+                          <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 flex items-center gap-1">
+                            <Video size={11} /> {editProductData.video ? 'Replace Video' : 'Add Video'}
+                          </p>
+                          {editProductData.video && !editVideoFile && (
+                            <div className="flex items-center gap-3 p-2 bg-white dark:bg-neutral-900 rounded-lg border border-black/10 dark:border-white/10">
+                              <video src={editProductData.video} className="w-16 h-12 object-cover rounded" muted />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[10px] text-black/60 dark:text-white/60 truncate">Current video</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setEditProductData({ ...editProductData, video: undefined })}
+                                className="p-1.5 text-red-400 hover:text-red-600 transition-colors rounded"
+                                title="Remove video"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          )}
+                          <input
+                            type="file" accept="video/*" ref={editVideoInputRef}
+                            onChange={(e) => { if (e.target.files && e.target.files[0]) setEditVideoFile(e.target.files[0]); }}
+                            className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:border-orange-500 outline-none file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100"
+                          />
+                          {editVideoFile && (
+                            <p className="text-[10px] text-orange-500 font-medium">{editVideoFile.name} — will be uploaded on Save</p>
+                          )}
+                        </div>
                       </div>
                     ) : (
                       <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -701,11 +787,11 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end mt-4 md:mt-0">
                       {editingProduct === product.id ? (
                         <>
-                          <button onClick={() => handleUpdateProduct(product.id)}
-                            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-medium hover:bg-orange-700 transition-colors">
-                            <Save size={14} /> Save
+                          <button onClick={() => handleUpdateProduct(product.id)} disabled={isUploadingEdit}
+                            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-medium hover:bg-orange-700 transition-colors disabled:opacity-50">
+                            <Save size={14} /> {isUploadingEdit ? 'Saving...' : 'Save'}
                           </button>
-                          <button onClick={() => setEditingProduct(null)}
+                          <button onClick={() => { setEditingProduct(null); setEditImageFiles([]); setEditVideoFile(null); if (editImageInputRef.current) editImageInputRef.current.value = ''; if (editVideoInputRef.current) editVideoInputRef.current.value = ''; }}
                             className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-neutral-800 text-black dark:text-white rounded-lg text-xs font-medium hover:bg-gray-300 dark:hover:bg-neutral-700 transition-colors">
                             <XCircle size={14} /> Cancel
                           </button>
@@ -717,7 +803,7 @@ export default function AdminDashboard() {
                             title="Toggle Flash Sale">
                             <Zap size={10} /> Flash
                           </button>
-                          <button onClick={() => { setEditingProduct(product.id); setEditProductData({ name: product.name, price: product.price, discount: product.discount || '', description: product.description, category: product.category, image: product.image, images: (product as any).images || [], rating: product.rating || '', soldCount: (product as any).soldCount || '', reviewCount: (product as any).reviewCount || '' }); }}
+                          <button onClick={() => { setEditingProduct(product.id); setEditProductData({ name: product.name, price: product.price, discount: product.discount || '', description: product.description, category: product.category, image: product.image, images: (product as any).images || [], video: (product as any).video || undefined, rating: product.rating || '', soldCount: (product as any).soldCount || '', reviewCount: (product as any).reviewCount || '' }); setEditImageFiles([]); setEditVideoFile(null); if (editImageInputRef.current) editImageInputRef.current.value = ''; if (editVideoInputRef.current) editVideoInputRef.current.value = ''; }}
                             className="p-2 text-black/40 dark:text-white/40 hover:text-orange-600 dark:hover:text-orange-400 transition-colors rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20" title="Edit Product">
                             <Edit2 size={16} />
                           </button>
