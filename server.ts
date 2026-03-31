@@ -7,9 +7,6 @@ import { PRODUCTS } from './src/constants.js';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
-import FAQ from './pages/FAQ';
-// add route:
-<Route path="/faq" element={<FAQ />} />
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
