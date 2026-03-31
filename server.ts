@@ -33,7 +33,6 @@ async function connectDB() {
   db = client.db('zantro');
   console.log('Connected to MongoDB');
 
-  // Seed products if empty
   const productsCol = db.collection('products');
   const count = await productsCol.countDocuments();
   if (count === 0) {
@@ -42,10 +41,8 @@ async function connectDB() {
   }
 }
 
-// Use memory storage - we'll stream to Cloudinary
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Helper to upload buffer to Cloudinary
 function uploadToCloudinary(buffer: Buffer, filename: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
@@ -59,10 +56,15 @@ function uploadToCloudinary(buffer: Buffer, filename: string): Promise<string> {
   });
 }
 
-// Auth helper
 const isAdmin = (req: any) => req.headers.authorization === 'Bearer admin-secret-token';
 
-// Upload - now goes to Cloudinary
+function getIP(req: any): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) return (forwarded as string).split(',')[0].trim();
+  return req.socket?.remoteAddress || 'unknown';
+}
+
+// Upload
 app.post('/api/upload', upload.array('files', 10), async (req, res) => {
   if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
   if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
@@ -70,9 +72,7 @@ app.post('/api/upload', upload.array('files', 10), async (req, res) => {
   }
   try {
     const files = req.files as Express.Multer.File[];
-    const urls = await Promise.all(
-      files.map(file => uploadToCloudinary(file.buffer, file.originalname))
-    );
+    const urls = await Promise.all(files.map(file => uploadToCloudinary(file.buffer, file.originalname)));
     res.json({ urls });
   } catch (error) {
     console.error('Cloudinary upload error:', error);
@@ -175,6 +175,101 @@ app.delete('/api/messages/:id', async (req, res) => {
     res.json({ success: true });
   } catch {
     res.status(404).json({ error: 'Message not found' });
+  }
+});
+
+// Flash Sale settings
+app.get('/api/settings/flashsale', async (req, res) => {
+  const setting = await db.collection('settings').findOne({ key: 'flashsale' });
+  res.json({ enabled: setting ? setting.enabled : true });
+});
+
+app.post('/api/settings/flashsale', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const { enabled } = req.body;
+  await db.collection('settings').updateOne(
+    { key: 'flashsale' },
+    { $set: { key: 'flashsale', enabled } },
+    { upsert: true }
+  );
+  res.json({ enabled });
+});
+
+// ─── Visitor Tracking ────────────────────────────────────────────────────────
+
+app.post('/api/visitors/track', async (req, res) => {
+  try {
+    const ip = getIP(req);
+    const { userAgent, page } = req.body;
+    const ua = userAgent || '';
+
+    let device = 'Desktop';
+    if (/mobile/i.test(ua)) device = 'Mobile';
+    else if (/tablet|ipad/i.test(ua)) device = 'Tablet';
+
+    let browser = 'Unknown';
+    if (/chrome/i.test(ua) && !/edg/i.test(ua)) browser = 'Chrome';
+    else if (/firefox/i.test(ua)) browser = 'Firefox';
+    else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = 'Safari';
+    else if (/edg/i.test(ua)) browser = 'Edge';
+    else if (/opera|opr/i.test(ua)) browser = 'Opera';
+
+    let country = 'Unknown';
+    let city = 'Unknown';
+    try {
+      const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=country,city,status`);
+      const geoData = await geoRes.json() as any;
+      if (geoData.status === 'success') {
+        country = geoData.country || 'Unknown';
+        city = geoData.city || 'Unknown';
+      }
+    } catch {}
+
+    const now = new Date().toISOString();
+    const existing = await db.collection('visitors').findOne({ ip });
+
+    if (existing) {
+      await db.collection('visitors').updateOne(
+        { ip },
+        {
+          $set: { lastSeen: now, device, browser, country, city, lastPage: page || '/' },
+          $inc: { visitCount: 1 }
+        }
+      );
+    } else {
+      await db.collection('visitors').insertOne({
+        ip, device, browser, country, city,
+        lastPage: page || '/',
+        firstSeen: now, lastSeen: now, visitCount: 1,
+      });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Visitor tracking error:', error);
+    res.json({ success: false });
+  }
+});
+
+app.get('/api/visitors', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const visitors = await db.collection('visitors').find({}).sort({ lastSeen: -1 }).toArray();
+  const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  res.json(visitors.map((v: any) => ({
+    ...v,
+    id: v._id.toString(),
+    isOnline: v.lastSeen > fiveMinAgo,
+  })));
+});
+
+app.delete('/api/visitors/:id', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const { id } = req.params;
+  try {
+    await db.collection('visitors').deleteOne({ _id: new ObjectId(id) });
+    res.json({ success: true });
+  } catch {
+    res.status(404).json({ error: 'Visitor not found' });
   }
 });
 
