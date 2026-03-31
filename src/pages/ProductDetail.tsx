@@ -25,10 +25,15 @@ export default function ProductDetail() {
 
   const allMedia = useMemo(() => {
     if (!product) return [];
-    const media: { type: 'image' | 'video', url: string }[] = [{ type: 'image', url: product.image }];
-    if (product.images) {
-      product.images.forEach(img => media.push({ type: 'image', url: img }));
+    const seen = new Set<string>();
+    const media: { type: 'image' | 'video', url: string }[] = [];
+    const addImage = (url: string) => {
+      if (url && !seen.has(url)) { seen.add(url); media.push({ type: 'image', url }); }
+    };
+    if (product.images && product.images.length > 0) {
+      product.images.forEach(addImage);
     }
+    addImage(product.image);
     if (product.video) {
       media.push({ type: 'video', url: product.video });
     }
