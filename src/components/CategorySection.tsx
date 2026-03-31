@@ -7,12 +7,12 @@ export default function CategorySection() {
     <section className="py-8 md:py-20 bg-white dark:bg-neutral-950">
       <div className="max-w-7xl mx-auto px-4 lg:px-12">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-lg font-bold text-gray-900">Popular Categories</h2>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Shop by Category</h2>
           <Link to="/shop" className="text-sm font-bold text-orange-500 hover:text-orange-600 dark:text-orange-400">See All</Link>
         </div>
 
-        {/* Horizontal Scroll on Mobile, Grid on Desktop */}
-        <div className="flex md:grid md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-8 overflow-x-auto pb-4 md:pb-0 scrollbar-hide snap-x">
+        {/* Horizontal scroll on mobile, wrap grid on desktop */}
+        <div className="flex md:grid md:grid-cols-5 lg:grid-cols-9 gap-4 md:gap-6 overflow-x-auto pb-4 md:pb-0 scrollbar-hide snap-x">
           {CATEGORIES.map((category, index) => (
             <motion.div
               key={category.id}
@@ -24,17 +24,17 @@ export default function CategorySection() {
             >
               <Link
                 to={`/shop?category=${encodeURIComponent(category.name)}`}
-                className="group flex flex-col items-center gap-3 w-24 md:w-auto"
+                className="group flex flex-col items-center gap-3 w-20 md:w-auto"
               >
-                <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl overflow-hidden bg-orange-50 dark:bg-orange-950/30 group-hover:bg-orange-100 dark:bg-orange-900/40 transition-colors flex items-center justify-center p-2">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden bg-orange-50 dark:bg-orange-950/30 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/40 transition-colors flex items-center justify-center p-2">
                   <img
                     src={category.image}
                     alt={category.name}
-                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 rounded-xl"
                     referrerPolicy="no-referrer"
                   />
                 </div>
-                <h3 className="text-[11px] md:text-sm font-bold text-gray-700 text-center group-hover:text-orange-600 dark:text-orange-400 transition-colors truncate w-full">
+                <h3 className="text-[10px] md:text-[11px] font-bold text-gray-700 dark:text-gray-300 text-center group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors leading-tight w-full line-clamp-2">
                   {category.name}
                 </h3>
               </Link>
