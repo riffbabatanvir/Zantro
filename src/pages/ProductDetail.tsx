@@ -98,6 +98,27 @@ export default function ProductDetail() {
   const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
   const originalPrice = product.discount ? product.price / (1 - product.discount / 100) : product.price * 1.5;
   const discountPercent = product.discount ? product.discount : 33;
+  const isAdmin = !!localStorage.getItem('adminToken');
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!window.confirm('Delete this review?')) return;
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`/api/products/${id}/reviews/${reviewId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setLocalReviews(prev => prev.filter((r: any) => r.id !== reviewId));
+        toast.success('Review deleted');
+      } else {
+        toast.error('Failed to delete review');
+      }
+    } catch {
+      toast.error('Failed to delete review');
+    }
+  };
+
   const stock = (product as any).stock;
   const isLowStock = stock !== undefined && stock > 0 && stock <= 5;
   const isOutOfStock = stock !== undefined && stock === 0;
@@ -305,7 +326,15 @@ export default function ProductDetail() {
                         ))}
                       </div>
                     </div>
-                    <p className="text-xs text-gray-400">{new Date(review.date).toLocaleDateString()}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-gray-400">{new Date(review.date).toLocaleDateString()}</p>
+                      {isAdmin && (
+                        <button onClick={() => handleDeleteReview(review.id)}
+                          className="p-1 text-gray-300 hover:text-red-500 transition-colors rounded" title="Delete review">
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{review.comment}</p>
                 </div>

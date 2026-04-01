@@ -52,7 +52,8 @@ export default function AdminDashboard() {
   const [newProduct, setNewProduct] = useState({
     name: '', price: '', discount: '', description: '',
     category: CATEGORIES[0]?.name || 'Fashion',
-    image: '', rating: '', soldCount: '', reviewCount: ''
+    image: '', rating: '', soldCount: '', reviewCount: '', stock: '',
+    sizes: '', colors: ''
   });
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -319,10 +320,15 @@ export default function AdminDashboard() {
         video: uploadedVideo,
         rating: newProduct.rating ? Number(newProduct.rating) : 5,
         soldCount: newProduct.soldCount ? Number(newProduct.soldCount) : 0,
-        reviewCount: newProduct.reviewCount ? Number(newProduct.reviewCount) : 0
+        reviewCount: newProduct.reviewCount ? Number(newProduct.reviewCount) : 0,
+        stock: newProduct.stock !== '' ? Number(newProduct.stock) : undefined,
+        variants: [
+          ...(newProduct.sizes.trim() ? [{ type: 'size', options: newProduct.sizes.split(',').map((s: string) => s.trim()).filter(Boolean) }] : []),
+          ...(newProduct.colors.trim() ? [{ type: 'color', options: newProduct.colors.split(',').map((s: string) => s.trim()).filter(Boolean) }] : []),
+        ] as any,
       });
       toast.success('Product added successfully!');
-      setNewProduct({ name: '', price: '', discount: '', description: '', category: CATEGORIES[0]?.name || 'Fashion', image: '', rating: '', soldCount: '', reviewCount: '' });
+      setNewProduct({ name: '', price: '', discount: '', description: '', category: CATEGORIES[0]?.name || 'Fashion', image: '', rating: '', soldCount: '', reviewCount: '', stock: '', sizes: '', colors: '' });
       setImageFiles([]); setVideoFile(null);
       if (imageInputRef.current) imageInputRef.current.value = '';
       if (videoInputRef.current) videoInputRef.current.value = '';
@@ -371,6 +377,11 @@ export default function AdminDashboard() {
         rating: editProductData.rating ? Number(editProductData.rating) : undefined,
         soldCount: editProductData.soldCount ? Number(editProductData.soldCount) : undefined,
         reviewCount: editProductData.reviewCount ? Number(editProductData.reviewCount) : undefined,
+        stock: editProductData.stock !== '' && editProductData.stock !== undefined ? Number(editProductData.stock) : undefined,
+        variants: [
+          ...(editProductData.sizes && editProductData.sizes.trim() ? [{ type: 'size', options: editProductData.sizes.split(',').map((s: string) => s.trim()).filter(Boolean) }] : []),
+          ...(editProductData.colors && editProductData.colors.trim() ? [{ type: 'color', options: editProductData.colors.split(',').map((s: string) => s.trim()).filter(Boolean) }] : []),
+        ] as any,
       });
       toast.success('Product updated successfully!');
       setEditingProduct(null);
@@ -1048,6 +1059,28 @@ export default function AdminDashboard() {
                         </div>
                         <textarea value={editProductData.description} onChange={(e) => setEditProductData({...editProductData, description: e.target.value})}
                           className="w-full md:col-span-2 bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none resize-none" placeholder="Description" rows={2} />
+                        {/* Stock & Variants */}
+                        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="space-y-1">
+                            <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">📦 Stock</p>
+                            <input type="number" min="0" placeholder="Unlimited if blank" value={editProductData.stock ?? ''}
+                              onChange={e => setEditProductData({...editProductData, stock: e.target.value})}
+                              className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-orange-500 outline-none" />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">📐 Sizes</p>
+                            <input type="text" placeholder="S, M, L, XL" value={editProductData.sizes || ''}
+                              onChange={e => setEditProductData({...editProductData, sizes: e.target.value})}
+                              className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-orange-500 outline-none" />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">🎨 Colors</p>
+                            <input type="text" placeholder="Red, Blue, Black" value={editProductData.colors || ''}
+                              onChange={e => setEditProductData({...editProductData, colors: e.target.value})}
+                              className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-orange-500 outline-none" />
+                          </div>
+                        </div>
+
                         {/* Image Gallery Manager */}
                         {editProductData.images && editProductData.images.length > 0 && (
                           <div className="md:col-span-2">
@@ -1164,7 +1197,7 @@ export default function AdminDashboard() {
                             title="Toggle Flash Sale">
                             <Zap size={10} /> Flash
                           </button>
-                          <button onClick={() => { setEditingProduct(product.id); setEditProductData({ name: product.name, price: product.price, discount: product.discount || '', description: product.description, category: product.category, image: product.image, images: (product as any).images || [], video: (product as any).video || undefined, rating: product.rating || '', soldCount: (product as any).soldCount || '', reviewCount: (product as any).reviewCount || '' }); setEditImageFiles([]); setEditVideoFile(null); if (editImageInputRef.current) editImageInputRef.current.value = ''; if (editVideoInputRef.current) editVideoInputRef.current.value = ''; }}
+                          <button onClick={() => { setEditingProduct(product.id); setEditProductData({ name: product.name, price: product.price, discount: product.discount || '', description: product.description, category: product.category, image: product.image, images: (product as any).images || [], video: (product as any).video || undefined, rating: product.rating || '', soldCount: (product as any).soldCount || '', reviewCount: (product as any).reviewCount || '', stock: (product as any).stock ?? '', sizes: ((product as any).variants?.find((v: any) => v.type === 'size')?.options || []).join(', '), colors: ((product as any).variants?.find((v: any) => v.type === 'color')?.options || []).join(', ') }); setEditImageFiles([]); setEditVideoFile(null); if (editImageInputRef.current) editImageInputRef.current.value = ''; if (editVideoInputRef.current) editVideoInputRef.current.value = ''; }}
                             className="p-2 text-black/40 dark:text-white/40 hover:text-orange-600 dark:hover:text-orange-400 transition-colors rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20" title="Edit Product">
                             <Edit2 size={16} />
                           </button>
@@ -1254,6 +1287,24 @@ export default function AdminDashboard() {
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">💬 Review Count</label>
                     <input type="number" min="0" value={newProduct.reviewCount} onChange={(e) => setNewProduct({...newProduct, reviewCount: e.target.value})} placeholder="e.g., 120"
+                      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">📦 Stock Quantity</label>
+                    <input type="number" min="0" value={newProduct.stock} onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})} placeholder="e.g., 50 (leave blank = unlimited)"
+                      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">📐 Sizes (comma separated)</label>
+                    <input type="text" value={newProduct.sizes} onChange={(e) => setNewProduct({...newProduct, sizes: e.target.value})} placeholder="e.g., S, M, L, XL"
+                      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">🎨 Colors (comma separated)</label>
+                    <input type="text" value={newProduct.colors} onChange={(e) => setNewProduct({...newProduct, colors: e.target.value})} placeholder="e.g., Red, Blue, Black"
                       className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors" />
                   </div>
                 </div>

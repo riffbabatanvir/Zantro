@@ -20,43 +20,46 @@ useEffect(() => {
     .catch(() => {});
 }, []);
 
-  // Countdown Logic
-  const [timeLeft, setTimeLeft] = useState({
-    hours: 2,
-    minutes: 45,
-    seconds: 12
-  });
+  // Countdown Logic — persists end time in localStorage so it survives page reloads
+  const SALE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+  const getSaleEndTime = () => {
+    try {
+      const stored = localStorage.getItem('zantro_flash_sale_end');
+      if (stored) {
+        const end = Number(stored);
+        if (end > Date.now()) return end;
+      }
+    } catch {}
+    const end = Date.now() + SALE_DURATION_MS;
+    try { localStorage.setItem('zantro_flash_sale_end', String(end)); } catch {}
+    return end;
+  };
+
+  const calcTimeLeft = (endTime: number) => {
+    const diff = Math.max(0, endTime - Date.now());
+    return {
+      hours: Math.floor(diff / 3600000),
+      minutes: Math.floor((diff % 3600000) / 60000),
+      seconds: Math.floor((diff % 60000) / 1000),
+    };
+  };
+
+  const [saleEndTime] = useState(getSaleEndTime);
+  const [timeLeft, setTimeLeft] = useState(() => calcTimeLeft(saleEndTime));
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        let { hours, minutes, seconds } = prev;
-        
-        if (seconds > 0) {
-          seconds--;
-        } else {
-          if (minutes > 0) {
-            minutes--;
-            seconds = 59;
-          } else {
-            if (hours > 0) {
-              hours--;
-              minutes = 59;
-              seconds = 59;
-            } else {
-              // Reset or stop
-              hours = 2;
-              minutes = 45;
-              seconds = 12;
-            }
-          }
-        }
-        return { hours, minutes, seconds };
-      });
+      const left = calcTimeLeft(saleEndTime);
+      setTimeLeft(left);
+      if (left.hours === 0 && left.minutes === 0 && left.seconds === 0) {
+        // Reset for another 24h
+        const newEnd = Date.now() + SALE_DURATION_MS;
+        try { localStorage.setItem('zantro_flash_sale_end', String(newEnd)); } catch {}
+      }
     }, 1000);
-
     return () => clearInterval(timer);
-  }, []);
+  }, [saleEndTime]);
 
   const formatTime = (num: number) => num.toString().padStart(2, '0');
 
