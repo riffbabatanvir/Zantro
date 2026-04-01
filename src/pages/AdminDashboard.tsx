@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Lock, LogOut, Package, CreditCard, MapPin, Phone, Mail, User, ShoppingCart, Clock, TrendingUp, CheckCircle, Banknote, XCircle, Trash2, MessageSquare, PlusCircle, Image as ImageIcon, Tag, FileText, DollarSign, Percent, Video, Upload, Edit2, Save, Zap, Users, Globe, Monitor, Smartphone, Tablet } from 'lucide-react';
+import { Lock, LogOut, Package, CreditCard, MapPin, Phone, Mail, User, ShoppingCart, Clock, TrendingUp, CheckCircle, Banknote, XCircle, Trash2, MessageSquare, PlusCircle, Image as ImageIcon, Tag, FileText, DollarSign, Percent, Video, Upload, Edit2, Save, Zap, Users, Globe, Monitor, Smartphone, Tablet, Truck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProducts } from '../ProductContext';
 import { useCategoryImages } from '../useCategoryImages';
@@ -294,6 +294,19 @@ export default function AdminDashboard() {
       });
       if (res.ok) { setOrders(orders.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o)); toast.success('Order cancelled successfully'); }
       else toast.error('Failed to cancel order');
+    } catch { toast.error('An error occurred'); }
+  };
+
+  const handleUpdateStatus = async (orderId: string, status: string) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ status })
+      });
+      if (res.ok) { setOrders(orders.map(o => o.id === orderId ? { ...o, status } : o)); toast.success(`Order marked as ${status}`); }
+      else toast.error('Failed to update order status');
     } catch { toast.error('An error occurred'); }
   };
 
@@ -640,7 +653,9 @@ export default function AdminDashboard() {
                             <div className="flex items-center gap-3">
                               <span className="text-[10px] font-bold uppercase tracking-widest text-black/60 dark:text-white/60 bg-black/5 dark:bg-white/10 px-2 py-1 rounded">Order #{order.id.slice(-6)}</span>
                               <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded ${
-                                order.status === 'confirmed' ? 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30' :
+                                order.status === 'confirmed' ? 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30' :
+                                order.status === 'shipped' ? 'text-purple-600 bg-purple-100 dark:text-purple-400 dark:bg-purple-900/30' :
+                                order.status === 'delivered' ? 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30' :
                                 order.status === 'cancelled' ? 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30' :
                                 'text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-900/30'}`}>
                                 {order.status || 'pending'}
@@ -672,32 +687,37 @@ export default function AdminDashboard() {
                                 <p className="text-black/60 dark:text-white/60">Exp: {order.cardInfo.expiry}</p>
                               </div>
                             )}
-                            {(!order.status || order.status === 'pending') && (
-                              <div className="pt-4 mt-4 border-t border-black/5 dark:border-white/5 space-y-2">
+                            {/* Status Controls */}
+                            <div className="pt-4 mt-4 border-t border-black/5 dark:border-white/5 space-y-2">
+                              {(!order.status || order.status === 'pending') && (
                                 <button onClick={() => handleConfirmOrder(order.id)}
                                   className="w-full flex items-center justify-center gap-2 bg-black dark:bg-white text-white dark:text-black py-2.5 rounded-lg text-[11px] font-medium uppercase tracking-widest hover:bg-black/80 dark:hover:bg-white/80 transition-colors">
                                   <CheckCircle size={14} /> Confirm Order
                                 </button>
+                              )}
+                              {order.status === 'confirmed' && (
+                                <button onClick={() => handleUpdateStatus(order.id, 'shipped')}
+                                  className="w-full flex items-center justify-center gap-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 py-2.5 rounded-lg text-[11px] font-medium uppercase tracking-widest hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
+                                  <Truck size={14} /> Mark as Shipped
+                                </button>
+                              )}
+                              {order.status === 'shipped' && (
+                                <button onClick={() => handleUpdateStatus(order.id, 'delivered')}
+                                  className="w-full flex items-center justify-center gap-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 py-2.5 rounded-lg text-[11px] font-medium uppercase tracking-widest hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
+                                  <CheckCircle size={14} /> Mark as Delivered
+                                </button>
+                              )}
+                              {(order.status !== 'delivered' && order.status !== 'cancelled') && (
                                 <button onClick={() => handleCancelOrder(order.id)}
                                   className="w-full flex items-center justify-center gap-2 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 py-2.5 rounded-lg text-[11px] font-medium uppercase tracking-widest hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors">
                                   <XCircle size={14} /> Cancel Order
                                 </button>
-                              </div>
-                            )}
-                            <div className={`pt-4 mt-4 border-t border-black/5 dark:border-white/5 ${(!order.status || order.status === 'pending') ? 'hidden' : ''}`}>
+                              )}
                               <button onClick={() => handleDeleteOrder(order.id)}
                                 className="w-full flex items-center justify-center gap-2 text-black/40 dark:text-white/40 hover:text-red-600 dark:hover:text-red-400 py-2.5 rounded-lg text-[11px] font-medium uppercase tracking-widest transition-colors">
                                 <Trash2 size={14} /> Delete Order
                               </button>
                             </div>
-                            {(!order.status || order.status === 'pending') && (
-                              <div className="pt-2">
-                                <button onClick={() => handleDeleteOrder(order.id)}
-                                  className="w-full flex items-center justify-center gap-2 text-black/40 dark:text-white/40 hover:text-red-600 dark:hover:text-red-400 py-2.5 rounded-lg text-[11px] font-medium uppercase tracking-widest transition-colors">
-                                  <Trash2 size={14} /> Delete Order
-                                </button>
-                              </div>
-                            )}
                           </div>
                         </div>
                       </div>
