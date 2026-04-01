@@ -13,7 +13,7 @@ import Contact from './pages/Contact';
 import { CartProvider } from './CartContext';
 import { ProductProvider } from './ProductContext';
 import { ThemeProvider } from './ThemeContext';
-import { WishlistProvider } from './WishlistContext';
+import { Toaster } from 'sonner';
 
 import AdminDashboard from './pages/AdminDashboard';
 import About from './pages/About';
@@ -36,7 +36,6 @@ export default function App() {
     <ThemeProvider>
       <Router>
         <ProductProvider>
-          <WishlistProvider>
           <CartProvider>
             <ScrollToTop />
             <div className="flex flex-col min-h-screen font-sans selection:bg-orange-100 dark:selection:bg-orange-900/40 selection:text-orange-600 dark:selection:text-orange-400 bg-orange-50/30 dark:bg-neutral-950 text-black dark:text-white transition-colors duration-300">
@@ -63,7 +62,6 @@ export default function App() {
             <FloatingCart onCartClick={() => setCartOpen(true)} />
           </div>
           </CartProvider>
-          </WishlistProvider>
         </ProductProvider>
       </Router>
     </ThemeProvider>

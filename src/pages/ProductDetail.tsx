@@ -6,7 +6,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'motion/react';
 import ProductCard from '../components/ProductCard';
 import { toast } from 'sonner';
-import { useWishlist } from '../WishlistContext';
+import { useWishlist } from '../useWishlist';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -241,27 +241,6 @@ export default function ProductDetail() {
               <p className="text-sm md:text-lg text-gray-500 leading-relaxed font-medium">
                 {product.description}
               </p>
-
-              {/* Share + Wishlist */}
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={() => toggleWishlist(product.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 text-sm font-bold transition-all ${
-                    wishlisted
-                      ? 'border-red-400 bg-red-50 dark:bg-red-900/20 text-red-500'
-                      : 'border-gray-200 dark:border-neutral-700 text-gray-500 hover:border-red-300'
-                  }`}
-                >
-                  <Heart size={15} className={wishlisted ? 'fill-red-500 text-red-500' : ''} />
-                  {wishlisted ? 'Wishlisted' : 'Wishlist'}
-                </button>
-                <button
-                  onClick={handleShare}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 dark:border-neutral-700 text-sm font-bold text-gray-500 hover:border-orange-300 dark:hover:border-orange-600 transition-all"
-                >
-                  <Share2 size={15} /> Share
-                </button>
-              </div>
             </div>
 
             <div className="space-y-6 mb-12">
