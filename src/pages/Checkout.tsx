@@ -12,6 +12,7 @@ export default function Checkout() {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [placedOrderId, setPlacedOrderId] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
   const [region, setRegion] = useState('patuakhali');
   const [formData, setFormData] = useState({
@@ -87,7 +88,7 @@ export default function Checkout() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)
       });
-      if (res.ok) { setIsSuccess(true); clearCart(); }
+      if (res.ok) { const data = await res.json(); setPlacedOrderId(data.id || ''); setIsSuccess(true); clearCart(); }
       else toast.error('Failed to process order');
     } catch { toast.error('An error occurred'); }
     finally { setIsProcessing(false); }
@@ -98,7 +99,26 @@ export default function Checkout() {
       <div className="min-h-screen bg-white dark:bg-neutral-950 flex flex-col items-center justify-center p-6">
         <CheckCircle2 size={48} className="text-green-500 mb-6" />
         <h2 className="text-4xl font-light tracking-tight text-black dark:text-white mb-4">Order Confirmed</h2>
-        <p className="text-sm text-black/40 dark:text-white/40 uppercase tracking-widest mb-12">Thank you for your purchase</p>
+        <p className="text-sm text-black/40 dark:text-white/40 uppercase tracking-widest mb-6">Thank you for your purchase</p>
+        {placedOrderId && (
+          <div className="mb-8 flex flex-col items-center gap-3">
+            <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Your Order ID</p>
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl px-4 py-3">
+              <span className="font-mono text-sm font-bold text-gray-800 dark:text-gray-200 select-all">{placedOrderId}</span>
+              <button
+                onClick={() => { navigator.clipboard.writeText(placedOrderId); toast.success('Order ID copied!'); }}
+                className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                title="Copy Order ID"
+              >
+                <Copy size={14} />
+              </button>
+            </div>
+            <p className="text-[10px] text-black/30 dark:text-white/30 text-center">Save this ID to track your order</p>
+            <Link to={`/order-tracking`} className="text-[11px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400 hover:underline">
+              Track Order →
+            </Link>
+          </div>
+        )}
         <Link to="/shop" className="text-[11px] font-medium uppercase tracking-[0.2em] text-black dark:text-white border-b border-black dark:border-white pb-1 hover:text-black/60 transition-all">
           Continue Shopping
         </Link>

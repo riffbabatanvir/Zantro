@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Star, ShoppingCart, Check, Heart } from 'lucide-react';
 import { Product } from '../types';
 import { useCart } from '../CartContext';
-import { useWishlist } from '../useWishlist';
+import { useWishlist } from '../WishlistContext';
 import { motion } from 'motion/react';
 
 export default function ProductCard({ product }: { product: Product; key?: string | number }) {
