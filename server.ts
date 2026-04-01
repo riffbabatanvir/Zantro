@@ -37,12 +37,22 @@ async function connectDB() {
   }
 }
 
-const upload = multer({ storage: multer.memoryStorage() });
+// 50 MB limit for videos
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
 
 function uploadToCloudinary(buffer: Buffer, filename: string): Promise<string> {
+  // Detect resource type by extension
+  const ext = filename.split('.').pop()?.toLowerCase() || '';
+  const isVideo = ['mp4', 'mov', 'avi', 'webm', 'mkv', 'wmv', 'flv', 'm4v'].includes(ext);
+  const resourceType = isVideo ? 'video' : 'image';
+
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
-      { folder: 'zantro', public_id: `${Date.now()}-${filename}` },
+      {
+        folder: 'zantro',
+        public_id: `${Date.now()}-${filename.replace(/\.[^/.]+$/, '')}`,
+        resource_type: resourceType,
+      },
       (error, result) => {
         if (error) reject(error);
         else resolve(result!.secure_url);
