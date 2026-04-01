@@ -14,12 +14,58 @@ export default function Shop() {
   const searchQuery = searchParams.get('q') || '';
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ 'Clothing & Apparel': true });
 
-  const filteredProducts = useMemo(() => products.filter((product) => {
-    const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter;
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          product.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  }), [products, categoryFilter, searchQuery]);
+  // Price range state
+  const [minInput, setMinInput] = useState('');
+  const [maxInput, setMaxInput] = useState('');
+  const [appliedMin, setAppliedMin] = useState<number | null>(null);
+  const [appliedMax, setAppliedMax] = useState<number | null>(null);
+
+  // Sort state
+  const [sortBy, setSortBy] = useState('Popularity');
+
+  const applyPriceFilter = () => {
+    setAppliedMin(minInput !== '' ? Number(minInput) : null);
+    setAppliedMax(maxInput !== '' ? Number(maxInput) : null);
+  };
+
+  const clearPriceFilter = () => {
+    setMinInput('');
+    setMaxInput('');
+    setAppliedMin(null);
+    setAppliedMax(null);
+  };
+
+  const filteredProducts = useMemo(() => {
+    let result = products.filter((product) => {
+      const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter;
+      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            product.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesMin = appliedMin === null || product.price >= appliedMin;
+      const matchesMax = appliedMax === null || product.price <= appliedMax;
+      return matchesCategory && matchesSearch && matchesMin && matchesMax;
+    });
+
+    // Sort
+    switch (sortBy) {
+      case 'Price: Low to High':
+        result = [...result].sort((a, b) => a.price - b.price);
+        break;
+      case 'Price: High to Low':
+        result = [...result].sort((a, b) => b.price - a.price);
+        break;
+      case 'Top Rated':
+        result = [...result].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
+      case 'Newest':
+        result = [...result].reverse();
+        break;
+      default:
+        // Popularity — sort by soldCount descending
+        result = [...result].sort((a, b) => ((b as any).soldCount || 0) - ((a as any).soldCount || 0));
+    }
+
+    return result;
+  }, [products, categoryFilter, searchQuery, appliedMin, appliedMax, sortBy]);
 
   const clearSearch = () => {
     const newParams = new URLSearchParams(searchParams);
@@ -32,6 +78,8 @@ export default function Shop() {
 
   const setCategory = (name: string) =>
     setSearchParams(name === 'All' ? {} : { category: name });
+
+  const priceFilterActive = appliedMin !== null || appliedMax !== null;
 
   return (
     <div className="bg-transparent min-h-screen">
@@ -83,7 +131,6 @@ export default function Shop() {
                     );
                   }
 
-                  // Group with sub-categories (Clothing & Apparel)
                   const anyActive = group.categories.includes(categoryFilter);
                   return (
                     <div key={group.label}>
@@ -121,14 +168,42 @@ export default function Shop() {
                 })}
               </div>
 
+              {/* Price Range — desktop only */}
               <div className="mt-8 hidden md:block">
-                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Price Range</h3>
-                <div className="space-y-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">Price Range (৳)</h3>
+                  {priceFilterActive && (
+                    <button onClick={clearPriceFilter} className="text-[10px] font-bold text-orange-500 hover:text-orange-600 flex items-center gap-1">
+                      <X size={10} /> Clear
+                    </button>
+                  )}
+                </div>
+                <div className="space-y-3">
                   <div className="flex gap-2">
-                    <input type="number" placeholder="Min" className="w-full bg-gray-50 dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-lg p-2 text-xs outline-none focus:border-orange-500" />
-                    <input type="number" placeholder="Max" className="w-full bg-gray-50 dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-lg p-2 text-xs outline-none focus:border-orange-500" />
+                    <input
+                      type="number" placeholder="Min" min="0" value={minInput}
+                      onChange={e => setMinInput(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && applyPriceFilter()}
+                      className="w-full bg-gray-50 dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-lg p-2 text-xs outline-none focus:border-orange-500 transition-colors"
+                    />
+                    <input
+                      type="number" placeholder="Max" min="0" value={maxInput}
+                      onChange={e => setMaxInput(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && applyPriceFilter()}
+                      className="w-full bg-gray-50 dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-lg p-2 text-xs outline-none focus:border-orange-500 transition-colors"
+                    />
                   </div>
-                  <button className="w-full bg-gray-900 text-white py-2 rounded-lg text-xs font-bold hover:bg-black transition-colors">Apply</button>
+                  {priceFilterActive && (
+                    <p className="text-[10px] text-orange-500 font-bold">
+                      Filtering: {appliedMin !== null ? `৳${appliedMin}` : '৳0'} — {appliedMax !== null ? `৳${appliedMax}` : 'any'}
+                    </p>
+                  )}
+                  <button
+                    onClick={applyPriceFilter}
+                    className="w-full bg-gray-900 dark:bg-white text-white dark:text-black py-2 rounded-lg text-xs font-bold hover:bg-black dark:hover:bg-gray-100 transition-colors"
+                  >
+                    Apply
+                  </button>
                 </div>
               </div>
             </div>
@@ -140,12 +215,18 @@ export default function Shop() {
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
                   {categoryFilter === 'All' ? 'Everything' : categoryFilter}
+                  <span className="ml-2 text-sm font-medium text-gray-400">({filteredProducts.length})</span>
                 </h2>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Sort:</span>
-                  <select className="bg-transparent text-xs font-bold text-gray-900 dark:text-white outline-none cursor-pointer">
+                  <select
+                    value={sortBy}
+                    onChange={e => setSortBy(e.target.value)}
+                    className="bg-transparent text-xs font-bold text-gray-900 dark:text-white outline-none cursor-pointer"
+                  >
                     <option>Popularity</option>
                     <option>Newest</option>
+                    <option>Top Rated</option>
                     <option>Price: Low to High</option>
                     <option>Price: High to Low</option>
                   </select>
@@ -173,6 +254,11 @@ export default function Shop() {
             ) : (
               <div className="py-24 text-center bg-white dark:bg-neutral-950 rounded-3xl border border-dashed border-gray-200 dark:border-neutral-700">
                 <p className="text-sm text-gray-400 font-bold italic uppercase tracking-widest">No products found</p>
+                {priceFilterActive && (
+                  <button onClick={clearPriceFilter} className="mt-4 text-xs font-bold text-orange-500 hover:underline">
+                    Clear price filter
+                  </button>
+                )}
               </div>
             )}
           </main>
