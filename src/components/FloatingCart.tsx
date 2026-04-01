@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useCart } from '../CartContext';
 import { motion, AnimatePresence } from 'motion/react';
 
-export default function FloatingCart() {
+export default function FloatingCart({ onCartClick }: { onCartClick?: () => void }) {
   const { totalItems } = useCart();
   const location = useLocation();
 
@@ -21,8 +21,8 @@ export default function FloatingCart() {
         exit={{ opacity: 0, scale: 0.8, y: 20 }}
         className="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-[70]"
       >
-        <Link
-          to="/cart"
+        <button
+          onClick={onCartClick}
           className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-orange-600 text-white rounded-full shadow-[0_8px_30px_rgba(234,88,12,0.4)] hover:bg-orange-700 hover:scale-105 transition-all active:scale-95 relative"
         >
           <ShoppingCart size={18} className="md:w-5 md:h-5" strokeWidth={2.5} />
@@ -31,7 +31,7 @@ export default function FloatingCart() {
               {totalItems}
             </span>
           )}
-        </Link>
+        </button>
       </motion.div>
     </AnimatePresence>
   );

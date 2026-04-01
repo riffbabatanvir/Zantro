@@ -23,6 +23,7 @@ export default function Footer() {
               <li><Link to="/admin" className="hover:text-black dark:text-white transition-colors">Admin Dashboard</Link></li>
               <li><Link to="/about" className="hover:text-black dark:text-white transition-colors">About</Link></li>
 			  <li><Link to="/faq" className="hover:text-black dark:text-white transition-colors">FAQ</Link></li>
+			  <li><Link to="/order-tracking" className="hover:text-black dark:text-white transition-colors">Track Order</Link></li>
             </ul>
           </div>
 

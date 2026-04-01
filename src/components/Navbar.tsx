@@ -6,7 +6,7 @@ import { useTheme } from '../ThemeContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { useProducts } from '../ProductContext';
 
-export default function Navbar() {
+export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
@@ -160,11 +160,11 @@ export default function Navbar() {
             <button onClick={toggleTheme} className="text-gray-600 hover:text-orange-600 dark:text-gray-400 dark:hover:text-orange-400 transition-colors">
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <Link to="/cart" className="relative group flex items-center gap-2 bg-gray-50 dark:bg-neutral-900 px-4 py-2 rounded-full border border-gray-100 dark:border-neutral-800 hover:border-orange-200 transition-all">
+            <button onClick={onCartClick} className="relative group flex items-center gap-2 bg-gray-50 dark:bg-neutral-900 px-4 py-2 rounded-full border border-gray-100 dark:border-neutral-800 hover:border-orange-200 transition-all">
               <ShoppingCart size={18} className="text-gray-600 group-hover:text-orange-600 dark:text-gray-400 dark:group-hover:text-orange-400" />
               <span className="text-sm font-bold text-gray-900 dark:text-gray-100">Cart</span>
               <span className="bg-orange-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">{totalItems}</span>
-            </Link>
+            </button>
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -172,10 +172,10 @@ export default function Navbar() {
             <button onClick={toggleTheme} className="text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <Link to="/cart" className="relative p-1.5 text-gray-600 dark:text-gray-400">
+            <button onClick={onCartClick} className="relative p-1.5 text-gray-600 dark:text-gray-400">
               <ShoppingCart size={20} />
               <span className="absolute top-0.5 right-0.5 bg-orange-500 text-white text-[7px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">{totalItems}</span>
-            </Link>
+            </button>
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
               {isMenuOpen ? <X size={20} /> : <MoreHorizontal size={20} />}
             </button>

@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useProducts } from '../ProductContext';
 import { useCategoryImages } from '../useCategoryImages';
 import { CATEGORIES } from '../constants';
+import { GRADIENT_OPTIONS } from '../components/Hero';
 
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -14,7 +15,7 @@ export default function AdminDashboard() {
   const [messages, setMessages] = useState<any[]>([]);
   const [visitors, setVisitors] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons' | 'hero' | 'announcement'>('orders');
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
 
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
@@ -124,6 +125,47 @@ export default function AdminDashboard() {
   };
 
   const [catEditId, setCatEditId] = useState<string | null>(null);
+  // Hero Slides
+  const [heroSlides, setHeroSlides] = useState<any[]>([]);
+  const [isSavingHero, setIsSavingHero] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/hero-slides').then(r => r.json()).then(data => { if (Array.isArray(data) && data.length > 0) setHeroSlides(data); }).catch(() => {});
+  }, []);
+
+  const handleSaveHeroSlides = async () => {
+    setIsSavingHero(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      await fetch('/api/hero-slides', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ slides: heroSlides }) });
+      toast.success('Hero slides saved!');
+    } catch { toast.error('Failed to save slides'); }
+    finally { setIsSavingHero(false); }
+  };
+
+  const addHeroSlide = () => setHeroSlides(prev => [...prev, { id: Date.now().toString(), title: 'NEW SLIDE', subtitle: 'Subtitle', description: 'Description here', image: '', color: 'from-orange-500 to-red-600' }]);
+  const removeHeroSlide = (id: string) => setHeroSlides(prev => prev.filter(s => s.id !== id));
+  const updateHeroSlide = (id: string, field: string, value: string) => setHeroSlides(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
+
+  // Announcement
+  const [announcement, setAnnouncement] = useState({ text: '', enabled: false, bgColor: '#ea580c' });
+  const [isSavingAnnouncement, setIsSavingAnnouncement] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/announcement').then(r => r.json()).then(data => setAnnouncement({ text: data.text || '', enabled: !!data.enabled, bgColor: data.bgColor || '#ea580c' })).catch(() => {});
+  }, []);
+
+  const handleSaveAnnouncement = async () => {
+    setIsSavingAnnouncement(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      await fetch('/api/announcement', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(announcement) });
+      toast.success('Announcement saved!');
+    } catch { toast.error('Failed to save'); }
+    finally { setIsSavingAnnouncement(false); }
+  };
+
+
   const [catUrlInput, setCatUrlInput] = useState('');
   const [catUploadFile, setCatUploadFile] = useState<File | null>(null);
   const [isSavingCat, setIsSavingCat] = useState(false);
@@ -520,12 +562,12 @@ export default function AdminDashboard() {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-lg flex-wrap gap-1">
-              {(['orders', 'messages', 'products', 'categories', 'coupons', 'visitors'] as const).map(tab => (
+              {(['orders', 'messages', 'products', 'categories', 'coupons', 'hero', 'announcement', 'visitors'] as const).map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
                   className={`px-4 py-2 rounded-md text-[11px] font-medium uppercase tracking-widest transition-all ${
                     activeTab === tab ? 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white'
                   }`}>
-                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab === 'coupons' ? 'Coupons' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab === 'coupons' ? 'Coupons' : tab === 'hero' ? 'Hero Slides' : tab === 'announcement' ? 'Banner' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </button>
               ))}
             </div>
@@ -802,6 +844,126 @@ export default function AdminDashboard() {
             </motion.div>
           </div>
         
+        
+        ) : activeTab === 'hero' ? (
+          <div className="max-w-4xl mx-auto space-y-6">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 md:p-8 shadow-sm">
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-black/5 dark:border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center"><ImageIcon size={20} /></div>
+                  <div>
+                    <h2 className="text-lg font-medium text-black dark:text-white">Hero Slides</h2>
+                    <p className="text-xs text-black/40 dark:text-white/40 mt-0.5">Edit the homepage banner slides</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={addHeroSlide} className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-neutral-800 text-black dark:text-white rounded-xl text-xs font-bold hover:bg-gray-200 transition-colors">
+                    <PlusCircle size={14} /> Add Slide
+                  </button>
+                  <button onClick={handleSaveHeroSlides} disabled={isSavingHero} className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold hover:bg-orange-700 transition-colors disabled:opacity-50">
+                    <Save size={14} /> {isSavingHero ? 'Saving...' : 'Save All'}
+                  </button>
+                </div>
+              </div>
+              {heroSlides.length === 0 && (
+                <div className="py-12 text-center text-black/30 dark:text-white/30 text-sm">No slides yet. Click "Add Slide" to create one.</div>
+              )}
+              <div className="space-y-6">
+                {heroSlides.map((slide, idx) => (
+                  <div key={slide.id} className="p-5 bg-gray-50 dark:bg-neutral-950 rounded-2xl border border-black/5 dark:border-white/5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-black/40 dark:text-white/40 uppercase tracking-widest">Slide {idx + 1}</span>
+                      <button onClick={() => removeHeroSlide(slide.id)} className="p-1.5 text-red-400 hover:text-red-600 transition-colors rounded"><Trash2 size={14} /></button>
+                    </div>
+                    {/* Preview */}
+                    <div className={`h-20 rounded-xl bg-gradient-to-r ${slide.color} flex items-center px-5 relative overflow-hidden`}>
+                      {slide.image && <img src={slide.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" referrerPolicy="no-referrer" />}
+                      <div className="relative z-10">
+                        <p className="text-white/70 text-[9px] uppercase tracking-widest font-bold">{slide.subtitle}</p>
+                        <p className="text-white font-black text-lg tracking-tight">{slide.title}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div><label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-1 block">Title</label>
+                        <input value={slide.title} onChange={e => updateHeroSlide(slide.id, 'title', e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-orange-500 outline-none" /></div>
+                      <div><label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-1 block">Subtitle</label>
+                        <input value={slide.subtitle} onChange={e => updateHeroSlide(slide.id, 'subtitle', e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-orange-500 outline-none" /></div>
+                      <div className="md:col-span-2"><label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-1 block">Description</label>
+                        <input value={slide.description} onChange={e => updateHeroSlide(slide.id, 'description', e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-orange-500 outline-none" /></div>
+                      <div className="md:col-span-2"><label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-1 block">Background Image URL</label>
+                        <input value={slide.image} onChange={e => updateHeroSlide(slide.id, 'image', e.target.value)} placeholder="https://..." className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-orange-500 outline-none" /></div>
+                      <div className="md:col-span-2"><label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-1 block">Gradient Color</label>
+                        <div className="flex flex-wrap gap-2">
+                          {GRADIENT_OPTIONS.map(g => (
+                            <button key={g.value} onClick={() => updateHeroSlide(slide.id, 'color', g.value)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all bg-gradient-to-r ${g.value} text-white ${slide.color === g.value ? 'border-black dark:border-white scale-105' : 'border-transparent'}`}>
+                              {g.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+
+        ) : activeTab === 'announcement' ? (
+          <div className="max-w-2xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-black/5 dark:border-white/5">
+                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center"><Zap size={20} /></div>
+                <div>
+                  <h2 className="text-lg font-medium text-black dark:text-white">Announcement Banner</h2>
+                  <p className="text-xs text-black/40 dark:text-white/40 mt-0.5">Show a dismissible banner at the top of your site</p>
+                </div>
+              </div>
+              {/* Live preview */}
+              {announcement.text && (
+                <div className="rounded-xl overflow-hidden">
+                  <div style={{ backgroundColor: announcement.bgColor }} className="py-2 px-4 flex items-center justify-center gap-3">
+                    <p className="text-white text-xs font-bold">{announcement.text}</p>
+                    <span className="text-white/60 text-xs">✕</span>
+                  </div>
+                  <p className="text-[10px] text-black/30 dark:text-white/30 text-center mt-1">Preview</p>
+                </div>
+              )}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-neutral-950 rounded-xl">
+                  <div>
+                    <p className="text-sm font-bold text-black dark:text-white">Show Banner</p>
+                    <p className="text-xs text-black/40 dark:text-white/40 mt-0.5">Toggle the banner on/off without deleting the text</p>
+                  </div>
+                  <button onClick={() => setAnnouncement(a => ({ ...a, enabled: !a.enabled }))}
+                    className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-colors ${announcement.enabled ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-gray-200 dark:bg-neutral-800 text-black/40 dark:text-white/40'}`}>
+                    {announcement.enabled ? 'On' : 'Off'}
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Banner Text</label>
+                  <input value={announcement.text} onChange={e => setAnnouncement(a => ({ ...a, text: e.target.value }))}
+                    placeholder="e.g. 🎉 Free shipping on all orders this weekend!"
+                    className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Background Color</label>
+                  <div className="flex items-center gap-3">
+                    <input type="color" value={announcement.bgColor} onChange={e => setAnnouncement(a => ({ ...a, bgColor: e.target.value }))}
+                      className="w-10 h-10 rounded-lg border border-black/10 cursor-pointer" />
+                    <input value={announcement.bgColor} onChange={e => setAnnouncement(a => ({ ...a, bgColor: e.target.value }))}
+                      className="flex-1 bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-mono focus:border-orange-500 outline-none" />
+                  </div>
+                </div>
+                <button onClick={handleSaveAnnouncement} disabled={isSavingAnnouncement}
+                  className="w-full py-3 bg-orange-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                  <Save size={14} /> {isSavingAnnouncement ? 'Saving...' : 'Save Announcement'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
         ) : activeTab === 'coupons' ? (
           <div className="max-w-3xl mx-auto space-y-6">
             {/* Add Coupon */}

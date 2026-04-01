@@ -1,11 +1,12 @@
 import { useParams, Link } from 'react-router-dom';
 import { useProducts } from '../ProductContext';
 import { useCart } from '../CartContext';
-import { Star, ShoppingCart, Truck, ChevronRight, Minus, Plus, Play, Send, Trash2 } from 'lucide-react';
+import { Star, ShoppingCart, Truck, ChevronRight, Minus, Plus, Play, Send, Trash2, Share2, Heart, X, ZoomIn } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'motion/react';
 import ProductCard from '../components/ProductCard';
 import { toast } from 'sonner';
+import { useWishlist } from '../useWishlist';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -95,10 +96,24 @@ export default function ProductDetail() {
     );
   }
 
+  // Zoom overlay (rendered inside return)
   const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
   const originalPrice = product.discount ? product.price / (1 - product.discount / 100) : product.price * 1.5;
   const discountPercent = product.discount ? product.discount : 33;
+  const { toggle: toggleWishlist, isWishlisted } = useWishlist();
+  const wishlisted = product ? isWishlisted(product.id) : false;
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const isAdmin = !!localStorage.getItem('adminToken');
+
+  const handleShare = () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({ title: product?.name, url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url);
+      toast.success('Link copied to clipboard!');
+    }
+  };
 
   const handleDeleteReview = async (reviewId: string) => {
     if (!window.confirm('Delete this review?')) return;
@@ -138,13 +153,28 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16 lg:gap-24 mb-16 md:mb-32">
           {/* Image Display */}
           <div className="flex flex-col gap-4">
-            <div className="bg-white dark:bg-neutral-950 md:rounded-3xl overflow-hidden shadow-sm dark:shadow-none border border-gray-100 dark:border-neutral-800">
+            {/* Zoom Modal */}
+            {zoomedImage && (
+              <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4" onClick={() => setZoomedImage(null)}>
+                <button className="absolute top-4 right-4 text-white/70 hover:text-white"><X size={28} /></button>
+                <img src={zoomedImage} alt="Zoomed" className="max-w-full max-h-full object-contain rounded-xl" referrerPolicy="no-referrer" onClick={e => e.stopPropagation()} />
+              </div>
+            )}
+
+            <div className="bg-white dark:bg-neutral-950 md:rounded-3xl overflow-hidden shadow-sm dark:shadow-none border border-gray-100 dark:border-neutral-800 relative group/img">
               <div className="aspect-square md:aspect-[4/5] overflow-hidden p-4 md:p-12 flex items-center justify-center">
                 {selectedMedia.type === 'video' ? (
                   <video src={selectedMedia.url} controls autoPlay className="w-full h-full object-contain" />
                 ) : (
-                  <motion.img key={selectedMedia.url} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                    src={selectedMedia.url} alt={product.name} className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                  <>
+                    <motion.img key={selectedMedia.url} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                      src={selectedMedia.url} alt={product.name} className="w-full h-full object-contain cursor-zoom-in" referrerPolicy="no-referrer"
+                      onClick={() => setZoomedImage(selectedMedia.url)} />
+                    <button onClick={() => setZoomedImage(selectedMedia.url)}
+                      className="absolute top-3 right-3 w-8 h-8 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity shadow-sm">
+                      <ZoomIn size={15} className="text-gray-600 dark:text-gray-300" />
+                    </button>
+                  </>
                 )}
               </div>
             </div>

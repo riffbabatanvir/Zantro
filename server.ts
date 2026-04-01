@@ -373,6 +373,66 @@ app.delete('/api/visitors/:id', async (req, res) => {
   }
 });
 
+
+// ─── Announcement Banner ──────────────────────────────────────────────────────
+app.get('/api/announcement', async (req, res) => {
+  const doc = await db.collection('settings').findOne({ key: 'announcement' });
+  res.json(doc ? { text: doc.text, enabled: doc.enabled, bgColor: doc.bgColor } : { text: '', enabled: false, bgColor: '#ea580c' });
+});
+
+app.post('/api/announcement', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const { text, enabled, bgColor } = req.body;
+  await db.collection('settings').updateOne(
+    { key: 'announcement' },
+    { $set: { key: 'announcement', text, enabled, bgColor: bgColor || '#ea580c' } },
+    { upsert: true }
+  );
+  res.json({ text, enabled, bgColor });
+});
+
+// ─── Hero Slides ──────────────────────────────────────────────────────────────
+app.get('/api/hero-slides', async (req, res) => {
+  const doc = await db.collection('settings').findOne({ key: 'heroSlides' });
+  res.json(doc ? doc.slides : []);
+});
+
+app.post('/api/hero-slides', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const { slides } = req.body;
+  await db.collection('settings').updateOne(
+    { key: 'heroSlides' },
+    { $set: { key: 'heroSlides', slides } },
+    { upsert: true }
+  );
+  res.json({ slides });
+});
+
+// ─── Order Tracking (public — by ID) ─────────────────────────────────────────
+app.get('/api/orders/track/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const order = await db.collection('orders').findOne({ _id: new ObjectId(id) });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    // Return safe subset only
+    res.json({
+      id: order._id.toString(),
+      status: order.status || 'pending',
+      createdAt: order.createdAt,
+      finalTotal: order.finalTotal,
+      items: order.items?.map((i: any) => ({ name: i.name, price: i.price, quantity: i.quantity, image: i.image })),
+      customerInfo: {
+        fullName: order.customerInfo?.fullName,
+        phone: order.customerInfo?.phone,
+        email: order.customerInfo?.email,
+        address: order.customerInfo?.address,
+      },
+    });
+  } catch {
+    res.status(404).json({ error: 'Order not found' });
+  }
+});
+
 // Admin login
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
