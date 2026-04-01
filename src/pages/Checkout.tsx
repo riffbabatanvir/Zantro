@@ -104,16 +104,16 @@ export default function Checkout() {
           <div className="mb-8 flex flex-col items-center gap-3">
             <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Your Order ID</p>
             <div className="flex items-center gap-2 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl px-4 py-3">
-              <span className="font-mono text-sm font-bold text-gray-800 dark:text-gray-200 select-all">{placedOrderId}</span>
+              <span className="font-mono text-sm font-bold text-gray-800 dark:text-gray-200 select-all">#{placedOrderId.slice(-6).toUpperCase()}</span>
               <button
-                onClick={() => { navigator.clipboard.writeText(placedOrderId); toast.success('Order ID copied!'); }}
+                onClick={() => { navigator.clipboard.writeText(placedOrderId.slice(-6).toUpperCase()); toast.success('Order ID copied!'); }}
                 className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 title="Copy Order ID"
               >
                 <Copy size={14} />
               </button>
             </div>
-            <p className="text-[10px] text-black/30 dark:text-white/30 text-center">Save this ID to track your order</p>
+            <p className="text-[10px] text-black/30 dark:text-white/30 text-center">Use this ID to track your order</p>
             <Link to={`/order-tracking`} className="text-[11px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400 hover:underline">
               Track Order →
             </Link>

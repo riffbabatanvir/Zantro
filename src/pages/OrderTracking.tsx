@@ -56,7 +56,7 @@ export default function OrderTracking() {
         <form onSubmit={handleSearch} className="flex gap-2 mb-8">
           <input
             type="text" value={orderId} onChange={e => setOrderId(e.target.value)}
-            placeholder="Enter your Order ID..."
+            placeholder="Enter your 6-digit Order ID (e.g. A2F3BC)..."
             className="flex-1 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl px-5 py-3.5 text-sm outline-none focus:border-orange-500 transition-colors font-mono"
           />
           <button type="submit" disabled={loading}

@@ -410,9 +410,17 @@ app.post('/api/hero-slides', async (req, res) => {
 
 // ─── Order Tracking (public — by ID) ─────────────────────────────────────────
 app.get('/api/orders/track/:id', async (req, res) => {
-  const { id } = req.params;
+  const id: string = (req.params.id || '').trim();
   try {
-    const order = await db.collection('orders').findOne({ _id: new ObjectId(id) });
+    // Support short 6-char ID (as shown in admin panel) or full MongoDB ObjectId
+    let order: any = null;
+    if (ObjectId.isValid(id) && id.length === 24) {
+      order = await db.collection('orders').findOne({ _id: new ObjectId(id) });
+    } else {
+      // Search all orders and match by last 6 chars of _id
+      const all = await db.collection('orders').find({}).toArray();
+      order = all.find((o: any) => o._id.toString().slice(-6).toLowerCase() === id.toLowerCase()) || null;
+    }
     if (!order) return res.status(404).json({ error: 'Order not found' });
     // Return safe subset only
     res.json({
