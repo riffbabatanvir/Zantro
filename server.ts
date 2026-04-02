@@ -181,9 +181,12 @@ app.get('/api/orders', async (req, res) => {
 app.patch('/api/orders/:id/status', async (req, res) => {
   if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, remark } = req.body;
   try {
-    await db.collection('orders').updateOne({ _id: new ObjectId(id) }, { $set: { status } });
+    const update: any = {};
+    if (status !== undefined) update.status = status;
+    if (remark !== undefined) update.remark = remark;
+    await db.collection('orders').updateOne({ _id: new ObjectId(id) }, { $set: update });
     const updated = await db.collection('orders').findOne({ _id: new ObjectId(id) });
     res.json({ ...updated, id: updated._id.toString() });
   } catch {
@@ -428,6 +431,7 @@ app.get('/api/orders/track/:id', async (req, res) => {
       status: order.status || 'pending',
       createdAt: order.createdAt,
       finalTotal: order.finalTotal,
+      remark: order.remark || '',
       items: order.items?.map((i: any) => ({ name: i.name, price: i.price, quantity: i.quantity, image: i.image })),
       customerInfo: {
         fullName: order.customerInfo?.fullName,

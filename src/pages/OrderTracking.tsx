@@ -141,6 +141,14 @@ export default function OrderTracking() {
                 </div>
               </div>
             </div>
+
+            {/* Remark from store */}
+            {order.remark && (
+              <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-2xl p-5">
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-2">Message from Store</h3>
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{order.remark}</p>
+              </div>
+            )}
           </motion.div>
         )}
       </div>

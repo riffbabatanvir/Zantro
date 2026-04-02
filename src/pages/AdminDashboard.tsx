@@ -297,6 +297,24 @@ export default function AdminDashboard() {
     } catch { toast.error('An error occurred'); }
   };
 
+  const handleSaveRemark = async (orderId: string) => {
+    const remark = remarkInputs[orderId] ?? '';
+    setSavingRemark(orderId);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ remark })
+      });
+      if (res.ok) {
+        setOrders(orders.map(o => o.id === orderId ? { ...o, remark } : o));
+        toast.success('Remark saved');
+      } else toast.error('Failed to save remark');
+    } catch { toast.error('An error occurred'); }
+    finally { setSavingRemark(null); }
+  };
+
   const handleUpdateStatus = async (orderId: string, status: string) => {
     try {
       const token = localStorage.getItem('adminToken');
@@ -457,14 +475,27 @@ export default function AdminDashboard() {
 
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [remarkInputs, setRemarkInputs] = useState<Record<string, string>>({});
+  const [savingRemark, setSavingRemark] = useState<string | null>(null);
 
-  const filteredOrders = orders.filter(o => {
-    if (!dateFrom && !dateTo) return true;
-    const orderDate = new Date(o.createdAt);
-    if (dateFrom && orderDate < new Date(dateFrom)) return false;
-    if (dateTo && orderDate > new Date(dateTo + 'T23:59:59')) return false;
-    return true;
-  });
+  const STATUS_ORDER = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+  const filteredOrders = orders
+    .filter(o => {
+      const orderDate = new Date(o.createdAt);
+      if (dateFrom && orderDate < new Date(dateFrom)) return false;
+      if (dateTo && orderDate > new Date(dateTo + 'T23:59:59')) return false;
+      if (statusFilter !== 'all') {
+        const s = o.status || 'pending';
+        return s === statusFilter;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      const ai = STATUS_ORDER.indexOf(a.status || 'pending');
+      const bi = STATUS_ORDER.indexOf(b.status || 'pending');
+      return ai - bi;
+    });
 
   const exportOrdersToCSV = () => {
     const rows = [
@@ -612,6 +643,25 @@ export default function AdminDashboard() {
               </div>
             </div>
 
+            {/* Status Filter Tabs */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {['all', 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map(s => (
+                <button key={s} onClick={() => setStatusFilter(s)}
+                  className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all border ${
+                    statusFilter === s
+                      ? s === 'all' ? 'bg-black dark:bg-white text-white dark:text-black border-transparent'
+                      : s === 'pending' ? 'bg-orange-500 text-white border-transparent'
+                      : s === 'confirmed' ? 'bg-blue-500 text-white border-transparent'
+                      : s === 'shipped' ? 'bg-purple-500 text-white border-transparent'
+                      : s === 'delivered' ? 'bg-green-500 text-white border-transparent'
+                      : 'bg-red-500 text-white border-transparent'
+                      : 'bg-white dark:bg-neutral-900 text-black/50 dark:text-white/50 border-black/10 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30'
+                  }`}>
+                  {s === 'all' ? `All (${orders.length})` : `${s} (${orders.filter(o => (o.status || 'pending') === s).length})`}
+                </button>
+              ))}
+            </div>
+
             {/* Date Filter + Export */}
             <div className="flex flex-wrap items-center gap-3 mb-6 p-4 bg-white dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
               <div className="flex items-center gap-2">
@@ -687,6 +737,25 @@ export default function AdminDashboard() {
                                 <p className="text-black/60 dark:text-white/60">Exp: {order.cardInfo.expiry}</p>
                               </div>
                             )}
+                            {/* Remark */}
+                            <div className="pt-4 mt-4 border-t border-black/5 dark:border-white/5">
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">Admin Remark</p>
+                              <textarea
+                                rows={2}
+                                placeholder="Write a note for the customer..."
+                                value={remarkInputs[order.id] !== undefined ? remarkInputs[order.id] : (order.remark || '')}
+                                onChange={e => setRemarkInputs(prev => ({ ...prev, [order.id]: e.target.value }))}
+                                className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs text-black dark:text-white resize-none outline-none focus:border-orange-500 transition-colors"
+                              />
+                              <button
+                                onClick={() => handleSaveRemark(order.id)}
+                                disabled={savingRemark === order.id}
+                                className="mt-1.5 w-full flex items-center justify-center gap-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 py-2 rounded-lg text-[11px] font-medium uppercase tracking-widest hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors disabled:opacity-50"
+                              >
+                                <Save size={12} /> {savingRemark === order.id ? 'Saving...' : 'Save Remark'}
+                              </button>
+                            </div>
+
                             {/* Status Controls */}
                             <div className="pt-4 mt-4 border-t border-black/5 dark:border-white/5 space-y-2">
                               {(!order.status || order.status === 'pending') && (
