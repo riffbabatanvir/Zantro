@@ -20,6 +20,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import About from './pages/About';
 import FAQ from './pages/FAQ';
 import OrderTracking from './pages/OrderTracking';
+import MyZantro from './pages/MyZantro';
 import CartDrawer from './components/CartDrawer';
 import AnnouncementBanner from './components/AnnouncementBanner';
 
@@ -56,6 +57,7 @@ export default function App() {
 				<Route path="/about" element={<About />} />
 				<Route path="/faq" element={<FAQ />} />
 				<Route path="/order-tracking" element={<OrderTracking />} />
+				<Route path="/my" element={<MyZantro />} />
               </Routes>
             </main>
             <Footer />

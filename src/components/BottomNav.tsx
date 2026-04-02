@@ -1,27 +1,27 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Grid, ShoppingCart, User } from 'lucide-react';
+import { Home, Grid, ShoppingCart, Heart } from 'lucide-react';
 import { useCart } from '../CartContext';
+import { useWishlist } from '../WishlistContext';
 import { cn } from '../lib/utils';
 
 export default function BottomNav() {
   const location = useLocation();
   const { totalItems } = useCart();
+  const { wishlist } = useWishlist();
 
   const navItems = [
     { name: 'Home', path: '/', icon: Home },
-    { name: 'Category', path: '/shop', icon: Grid },
+    { name: 'Shop', path: '/shop', icon: Grid },
     { name: 'Cart', path: '/cart', icon: ShoppingCart, badge: totalItems },
-    { name: 'Account', path: '/contact', icon: User },
+    { name: 'My Zantro', path: '/my', icon: Heart, badge: wishlist.length },
   ];
 
   const isProductPage = location.pathname.startsWith('/product/');
-
   if (isProductPage) return null;
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-950 border-t border-gray-100 dark:border-neutral-800 z-50 px-6 py-3 flex justify-between items-center">
       {navItems.map((item) => {
-        const Icon = item.icon;
         const isActive = location.pathname === item.path;
         return (
           <Link
@@ -32,7 +32,7 @@ export default function BottomNav() {
               isActive ? "text-orange-500" : "text-gray-400"
             )}
           >
-            <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+            <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} fill={item.path === '/my' && (isActive || wishlist.length > 0) ? 'currentColor' : 'none'} />
             <span className="text-[10px] font-medium">{item.name}</span>
             {item.badge !== undefined && item.badge > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
