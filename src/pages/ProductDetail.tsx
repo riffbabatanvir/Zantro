@@ -143,8 +143,9 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (isOutOfStock && !isPreorder) return;
-    addToCart({ ...product, selectedSize: selectedSize || undefined, selectedColor: selectedColor || undefined } as any, quantity);
-    if (isPreorder || isOutOfStock) {
+    const isPreorderItem = isPreorder || isOutOfStock;
+    addToCart({ ...product, selectedSize: selectedSize || undefined, selectedColor: selectedColor || undefined, isPreorder: isPreorderItem } as any, quantity);
+    if (isPreorderItem) {
       toast.success('Pre-order added! Expected delivery: 1–2 months.');
     }
   };

@@ -92,7 +92,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
                 e.preventDefault();
                 if (isOutOfStock && !isPreorder) return;
                 if (isInCart) navigate('/cart');
-                else addToCart(product);
+                else addToCart({ ...product, isPreorder: canPreorder } as any);
               }}
               disabled={isOutOfStock && !isPreorder}
               className={isInCart
@@ -109,7 +109,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
 
           <Link
             to={isOutOfStock && !isPreorder ? '#' : '/checkout'}
-            onClick={(e) => { if (isOutOfStock && !isPreorder) { e.preventDefault(); return; } if (!isInCart) addToCart(product); }}
+            onClick={(e) => { if (isOutOfStock && !isPreorder) { e.preventDefault(); return; } if (!isInCart) addToCart({ ...product, isPreorder: canPreorder } as any); }}
             className={`w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-center transition-all shadow-lg ${
               isOutOfStock && !isPreorder
                 ? 'bg-gray-200 dark:bg-neutral-800 text-gray-400 cursor-not-allowed shadow-none'
