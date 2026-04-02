@@ -45,7 +45,12 @@ export default function Cart() {
                 <div className="flex-1 flex flex-col justify-between py-2">
                   <div className="flex justify-between items-start">
                     <Link to={`/product/${item.id}`} className="group">
-                      <h3 className="text-[11px] font-medium uppercase tracking-widest text-black dark:text-white mb-2 group-hover:text-orange-600 dark:text-orange-400 transition-colors">{item.name}</h3>
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-[11px] font-medium uppercase tracking-widest text-black dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{item.name}</h3>
+                        {(item as any).isPreorder && (
+                          <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shrink-0">🕐 Pre-Order</span>
+                        )}
+                      </div>
                       <p className="text-[10px] text-black/30 dark:text-white/30 uppercase tracking-widest">{item.category}</p>
                     </Link>
                     <p className="text-sm font-light text-black dark:text-white">৳{item.price}</p>
@@ -104,6 +109,13 @@ export default function Cart() {
               >
                 Checkout
               </Link>
+              
+              {cart.some((item: any) => item.isPreorder) && (
+                <div className="mt-6 bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-xl p-4">
+                  <p className="text-[10px] text-orange-600 dark:text-orange-400 font-bold uppercase tracking-widest mb-1">🕐 Pre-Order Notice</p>
+                  <p className="text-[10px] text-black/50 dark:text-white/50 leading-relaxed">Your cart contains pre-order item(s). These may take 1–2 months to deliver after your order is confirmed.</p>
+                </div>
+              )}
               
               <p className="mt-8 text-[10px] text-black/30 dark:text-white/30 text-center uppercase tracking-widest leading-relaxed">
                 Taxes and shipping calculated at checkout

@@ -15,7 +15,7 @@ export default function AdminDashboard() {
   const [messages, setMessages] = useState<any[]>([]);
   const [visitors, setVisitors] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons' | 'hero' | 'announcement'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons' | 'hero' | 'announcement' | 'preorders'>('orders');
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
 
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
@@ -608,12 +608,12 @@ export default function AdminDashboard() {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-lg flex-wrap gap-1">
-              {(['orders', 'messages', 'products', 'categories', 'coupons', 'hero', 'announcement', 'visitors'] as const).map(tab => (
+              {(['orders', 'messages', 'products', 'preorders', 'categories', 'coupons', 'hero', 'announcement', 'visitors'] as const).map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
                   className={`px-4 py-2 rounded-md text-[11px] font-medium uppercase tracking-widest transition-all ${
                     activeTab === tab ? 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white'
                   }`}>
-                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab === 'coupons' ? 'Coupons' : tab === 'hero' ? 'Hero Slides' : tab === 'announcement' ? 'Banner' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab === 'coupons' ? 'Coupons' : tab === 'hero' ? 'Hero Slides' : tab === 'announcement' ? 'Banner' : tab === 'preorders' ? '🕐 Pre-Orders' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </button>
               ))}
             </div>
@@ -1252,6 +1252,82 @@ export default function AdminDashboard() {
               </div>
             )}
           </>
+        ) : activeTab === 'preorders' ? (
+          <div className="max-w-5xl mx-auto space-y-6">
+            <div>
+              <h2 className="text-2xl font-light tracking-tight text-black dark:text-white">Pre-Order Products</h2>
+              <p className="text-sm text-black/40 dark:text-white/40 mt-1">Manage all products marked as pre-order</p>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-2xl p-5">
+                <p className="text-[10px] uppercase tracking-widest text-orange-500 font-medium mb-1">Total Pre-Order Items</p>
+                <p className="text-3xl font-light text-black dark:text-white">{products.filter((p: any) => p.isPreorder).length}</p>
+              </div>
+              <div className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-5">
+                <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium mb-1">In Stock (Pre-Order)</p>
+                <p className="text-3xl font-light text-black dark:text-white">{products.filter((p: any) => p.isPreorder && (p.stock === undefined || p.stock > 0)).length}</p>
+              </div>
+              <div className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-5">
+                <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium mb-1">Out of Stock (Pre-Order)</p>
+                <p className="text-3xl font-light text-black dark:text-white">{products.filter((p: any) => p.isPreorder && p.stock === 0).length}</p>
+              </div>
+            </div>
+
+            {/* Pre-Order Notice */}
+            <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-2xl p-4 flex items-start gap-3">
+              <span className="text-lg shrink-0">🕐</span>
+              <p className="text-xs text-orange-700 dark:text-orange-300">Products below are marked as <strong>Pre-Order</strong>. Customers can place orders and will receive them in 1–2 months. To add or remove pre-order status, go to the <button onClick={() => setActiveTab('products')} className="underline font-bold">Products tab</button> and toggle the Pre-Order switch.</p>
+            </div>
+
+            {/* Pre-Order Products List */}
+            {products.filter((p: any) => p.isPreorder).length === 0 ? (
+              <div className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-16 text-center">
+                <p className="text-4xl mb-4">🕐</p>
+                <p className="text-sm font-medium text-black dark:text-white mb-1">No pre-order products yet</p>
+                <p className="text-xs text-black/40 dark:text-white/40">Go to the Products tab, add or edit a product, and toggle the Pre-Order switch.</p>
+                <button onClick={() => setActiveTab('products')} className="mt-4 px-5 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-orange-700 transition-colors">
+                  Go to Products
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {products.filter((p: any) => p.isPreorder).map((product: any) => (
+                  <div key={product.id} className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-4 flex items-center gap-4">
+                    <img src={product.image} alt={product.name} className="w-16 h-16 object-cover rounded-xl shrink-0" referrerPolicy="no-referrer" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-sm font-bold text-black dark:text-white truncate">{product.name}</h3>
+                        <span className="shrink-0 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Pre-Order</span>
+                        {product.stock === 0 && (
+                          <span className="shrink-0 bg-red-100 dark:bg-red-900/30 text-red-500 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Out of Stock</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-black/40 dark:text-white/40">{product.category} · ৳{product.price}</p>
+                      <p className="text-[10px] text-black/30 dark:text-white/30 mt-0.5">
+                        Stock: {product.stock === undefined ? 'Unlimited' : product.stock === 0 ? 'Out of stock' : `${product.stock} units`}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => updateProduct(product.id, { ...product, isPreorder: false })}
+                        className="px-3 py-1.5 bg-gray-100 dark:bg-neutral-800 text-black/60 dark:text-white/60 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors"
+                      >
+                        Remove Pre-Order
+                      </button>
+                      <button
+                        onClick={() => { setActiveTab('products'); }}
+                        className="px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-orange-200 transition-colors"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         ) : (
           <div className="max-w-5xl mx-auto space-y-8">
 
