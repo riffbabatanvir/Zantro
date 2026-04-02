@@ -1252,83 +1252,134 @@ export default function AdminDashboard() {
               </div>
             )}
           </>
-        ) : activeTab === 'preorders' ? (
+        ) : activeTab === 'preorders' ? (() => {
+          const preorderOrders = orders.filter((o: any) =>
+            o.items?.some((item: any) => item.isPreorder)
+          );
+          const pendingCount = preorderOrders.filter((o: any) => o.status === 'pending').length;
+          const confirmedCount = preorderOrders.filter((o: any) => o.status === 'confirmed').length;
+          const shippedCount = preorderOrders.filter((o: any) => ['shipped', 'delivered'].includes(o.status)).length;
+
+          return (
           <div className="max-w-5xl mx-auto space-y-6">
             <div>
-              <h2 className="text-2xl font-light tracking-tight text-black dark:text-white">Pre-Order Products</h2>
-              <p className="text-sm text-black/40 dark:text-white/40 mt-1">Manage all products marked as pre-order</p>
+              <h2 className="text-2xl font-light tracking-tight text-black dark:text-white">Pre-Order Orders</h2>
+              <p className="text-sm text-black/40 dark:text-white/40 mt-1">Orders that contain at least one pre-order item — persists even after pre-order status is removed from the product</p>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-2xl p-5">
-                <p className="text-[10px] uppercase tracking-widest text-orange-500 font-medium mb-1">Total Pre-Order Items</p>
-                <p className="text-3xl font-light text-black dark:text-white">{products.filter((p: any) => p.isPreorder).length}</p>
+                <p className="text-[10px] uppercase tracking-widest text-orange-500 font-medium mb-1">Total Pre-Orders</p>
+                <p className="text-3xl font-light text-black dark:text-white">{preorderOrders.length}</p>
               </div>
-              <div className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-5">
-                <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium mb-1">In Stock (Pre-Order)</p>
-                <p className="text-3xl font-light text-black dark:text-white">{products.filter((p: any) => p.isPreorder && (p.stock === undefined || p.stock > 0)).length}</p>
+              <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-100 dark:border-yellow-900/30 rounded-2xl p-5">
+                <p className="text-[10px] uppercase tracking-widest text-yellow-600 dark:text-yellow-400 font-medium mb-1">Pending</p>
+                <p className="text-3xl font-light text-black dark:text-white">{pendingCount}</p>
               </div>
-              <div className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-5">
-                <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium mb-1">Out of Stock (Pre-Order)</p>
-                <p className="text-3xl font-light text-black dark:text-white">{products.filter((p: any) => p.isPreorder && p.stock === 0).length}</p>
+              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-2xl p-5">
+                <p className="text-[10px] uppercase tracking-widest text-blue-600 dark:text-blue-400 font-medium mb-1">Confirmed</p>
+                <p className="text-3xl font-light text-black dark:text-white">{confirmedCount}</p>
+              </div>
+              <div className="bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/30 rounded-2xl p-5">
+                <p className="text-[10px] uppercase tracking-widest text-green-600 dark:text-green-400 font-medium mb-1">Shipped / Delivered</p>
+                <p className="text-3xl font-light text-black dark:text-white">{shippedCount}</p>
               </div>
             </div>
 
-            {/* Pre-Order Notice */}
-            <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-2xl p-4 flex items-start gap-3">
-              <span className="text-lg shrink-0">🕐</span>
-              <p className="text-xs text-orange-700 dark:text-orange-300">Products below are marked as <strong>Pre-Order</strong>. Customers can place orders and will receive them in 1–2 months. To add or remove pre-order status, go to the <button onClick={() => setActiveTab('products')} className="underline font-bold">Products tab</button> and toggle the Pre-Order switch.</p>
-            </div>
-
-            {/* Pre-Order Products List */}
-            {products.filter((p: any) => p.isPreorder).length === 0 ? (
+            {/* Orders List */}
+            {preorderOrders.length === 0 ? (
               <div className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-16 text-center">
                 <p className="text-4xl mb-4">🕐</p>
-                <p className="text-sm font-medium text-black dark:text-white mb-1">No pre-order products yet</p>
-                <p className="text-xs text-black/40 dark:text-white/40">Go to the Products tab, add or edit a product, and toggle the Pre-Order switch.</p>
-                <button onClick={() => setActiveTab('products')} className="mt-4 px-5 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-orange-700 transition-colors">
-                  Go to Products
-                </button>
+                <p className="text-sm font-medium text-black dark:text-white mb-1">No pre-order orders yet</p>
+                <p className="text-xs text-black/40 dark:text-white/40">When customers order a pre-order product, it will appear here.</p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {products.filter((p: any) => p.isPreorder).map((product: any) => (
-                  <div key={product.id} className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-4 flex items-center gap-4">
-                    <img src={product.image} alt={product.name} className="w-16 h-16 object-cover rounded-xl shrink-0" referrerPolicy="no-referrer" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-sm font-bold text-black dark:text-white truncate">{product.name}</h3>
-                        <span className="shrink-0 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Pre-Order</span>
-                        {product.stock === 0 && (
-                          <span className="shrink-0 bg-red-100 dark:bg-red-900/30 text-red-500 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Out of Stock</span>
-                        )}
+              <div className="space-y-4">
+                {preorderOrders.map((order: any) => {
+                  const preorderItems = order.items?.filter((i: any) => i.isPreorder) || [];
+                  const regularItems = order.items?.filter((i: any) => !i.isPreorder) || [];
+                  const statusColors: Record<string, string> = {
+                    pending: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+                    confirmed: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+                    shipped: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400',
+                    delivered: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+                    cancelled: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+                  };
+                  return (
+                    <div key={order.id} className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-5 space-y-4">
+                      {/* Order Header */}
+                      <div className="flex items-start justify-between gap-4 flex-wrap">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-black text-black dark:text-white uppercase tracking-widest">#{order.id?.slice(-6).toUpperCase()}</span>
+                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${statusColors[order.status] || statusColors.pending}`}>
+                              {order.status || 'pending'}
+                            </span>
+                            <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">🕐 Pre-Order</span>
+                          </div>
+                          <p className="text-xs text-black/40 dark:text-white/40">{order.customerInfo?.fullName} · {order.customerInfo?.phone}</p>
+                          <p className="text-[10px] text-black/30 dark:text-white/30">{new Date(order.createdAt).toLocaleString()}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-black text-orange-600 dark:text-orange-400">৳{order.finalTotal?.toFixed(2)}</p>
+                          <p className="text-[10px] text-black/30 dark:text-white/30 uppercase tracking-widest">{order.paymentMethod}</p>
+                        </div>
                       </div>
-                      <p className="text-xs text-black/40 dark:text-white/40">{product.category} · ৳{product.price}</p>
-                      <p className="text-[10px] text-black/30 dark:text-white/30 mt-0.5">
-                        Stock: {product.stock === undefined ? 'Unlimited' : product.stock === 0 ? 'Out of stock' : `${product.stock} units`}
-                      </p>
+
+                      {/* Pre-Order Items */}
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest text-orange-500 font-bold mb-2">Pre-Order Items ({preorderItems.length})</p>
+                        <div className="space-y-2">
+                          {preorderItems.map((item: any, idx: number) => (
+                            <div key={idx} className="flex items-center gap-3 bg-orange-50 dark:bg-orange-950/20 rounded-xl p-3">
+                              <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded-lg shrink-0" referrerPolicy="no-referrer" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-bold text-black dark:text-white truncate">{item.name}</p>
+                                <p className="text-[10px] text-black/40 dark:text-white/40">Qty: {item.quantity} · ৳{item.price}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Regular Items (if any) */}
+                      {regularItems.length > 0 && (
+                        <div>
+                          <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-bold mb-2">Regular Items ({regularItems.length})</p>
+                          <div className="space-y-2">
+                            {regularItems.map((item: any, idx: number) => (
+                              <div key={idx} className="flex items-center gap-3 bg-gray-50 dark:bg-neutral-800 rounded-xl p-3">
+                                <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded-lg shrink-0" referrerPolicy="no-referrer" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-bold text-black dark:text-white truncate">{item.name}</p>
+                                  <p className="text-[10px] text-black/40 dark:text-white/40">Qty: {item.quantity} · ৳{item.price}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Status Actions */}
+                      <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-black/5 dark:border-white/5">
+                        <p className="text-[10px] uppercase tracking-widest text-black/30 dark:text-white/30 mr-2">Update Status:</p>
+                        {(['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'] as const).map(s => (
+                          <button key={s} onClick={() => handleUpdateStatus(order.id, s)}
+                            disabled={order.status === s}
+                            className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors ${order.status === s ? 'bg-black/10 dark:bg-white/10 text-black/30 dark:text-white/30 cursor-not-allowed' : 'bg-gray-100 dark:bg-neutral-800 text-black/60 dark:text-white/60 hover:bg-orange-100 hover:text-orange-600 dark:hover:bg-orange-900/30 dark:hover:text-orange-400'}`}>
+                            {s}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => updateProduct(product.id, { ...product, isPreorder: false })}
-                        className="px-3 py-1.5 bg-gray-100 dark:bg-neutral-800 text-black/60 dark:text-white/60 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors"
-                      >
-                        Remove Pre-Order
-                      </button>
-                      <button
-                        onClick={() => { setActiveTab('products'); }}
-                        className="px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-orange-200 transition-colors"
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
-        ) : (
+          );
+        })() : (
           <div className="max-w-5xl mx-auto space-y-8">
 
             {/* Flash Sale Toggle */}
