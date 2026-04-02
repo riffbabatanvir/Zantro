@@ -11,7 +11,7 @@ import { Helmet } from 'react-helmet-async';
 
 export default function ProductDetail() {
   const { id } = useParams();
-  const { products } = useProducts();
+  const { products, isLoading } = useProducts();
   const { addToCart, cart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('');
@@ -89,6 +89,17 @@ export default function ProductDetail() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-neutral-950">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-black/30 dark:text-white/30 uppercase tracking-widest">Loading product...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-neutral-900">
@@ -143,9 +154,8 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (isOutOfStock && !isPreorder) return;
-    const isPreorderItem = isPreorder || isOutOfStock;
-    addToCart({ ...product, selectedSize: selectedSize || undefined, selectedColor: selectedColor || undefined, isPreorder: isPreorderItem } as any, quantity);
-    if (isPreorderItem) {
+    addToCart({ ...product, selectedSize: selectedSize || undefined, selectedColor: selectedColor || undefined } as any, quantity);
+    if (isPreorder || isOutOfStock) {
       toast.success('Pre-order added! Expected delivery: 1–2 months.');
     }
   };
