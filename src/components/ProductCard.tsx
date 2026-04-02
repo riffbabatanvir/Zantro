@@ -38,10 +38,10 @@ export default function ProductCard({ product }: { product: Product; key?: strin
             <span className="bg-black/70 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
               Out of Stock
             </span>
-            {(isPreorder || isOutOfStock) && (
-              <span className="bg-orange-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest">
+            {isPreorder && (
+              <Link to={`/product/${product.id}`} className="bg-orange-500 hover:bg-orange-600 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest transition-colors">
                 Click to Pre-Order
-              </span>
+              </Link>
             )}
           </div>
         )}
