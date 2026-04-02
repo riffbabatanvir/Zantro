@@ -164,7 +164,7 @@ export default function ProductDetail() {
             <div className="bg-white dark:bg-neutral-950 md:rounded-3xl overflow-hidden shadow-sm dark:shadow-none border border-gray-100 dark:border-neutral-800 relative group/img">
               <div className="aspect-square md:aspect-[4/5] overflow-hidden p-4 md:p-12 flex items-center justify-center">
                 {selectedMedia.type === 'video' ? (
-                  <video src={selectedMedia.url} controls autoPlay className="w-full h-full object-contain" />
+                  <video src={selectedMedia.url} controls autoPlay poster={product.image} className="w-full h-full object-contain" />
                 ) : (
                   <>
                     <motion.img key={selectedMedia.url} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
@@ -184,8 +184,13 @@ export default function ProductDetail() {
                   <button key={idx} onClick={() => setSelectedMedia(media)}
                     className={`relative flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-2 transition-all snap-start ${selectedMedia.url === media.url ? 'border-orange-500' : 'border-transparent opacity-70 hover:opacity-100'}`}>
                     {media.type === 'video' ? (
-                      <div className="w-full h-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
-                        <Play className="text-gray-400" size={24} />
+                      <div className="w-full h-full relative">
+                        <img src={product.image} alt="Video" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <div className="w-7 h-7 bg-white/90 rounded-full flex items-center justify-center shadow">
+                            <Play size={12} className="text-gray-800 ml-0.5" fill="currentColor" />
+                          </div>
+                        </div>
                       </div>
                     ) : (
                       <img src={media.url} alt={`${product.name} ${idx}`} className="w-full h-full object-cover" />
