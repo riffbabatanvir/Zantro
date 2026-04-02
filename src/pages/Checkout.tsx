@@ -95,8 +95,13 @@ export default function Checkout() {
     finally { setIsProcessing(false); }
   };
 
+  const successRef = React.useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (isSuccess) window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (isSuccess) {
+      setTimeout(() => {
+        successRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
   }, [isSuccess]);
 
   if (isSuccess) {
@@ -106,7 +111,7 @@ export default function Checkout() {
         <title>Checkout — Zantro</title>
         <meta name="robots" content="noindex" />
       </Helmet>
-      <div className="min-h-screen bg-white dark:bg-neutral-950 flex flex-col items-center justify-center p-6">
+      <div ref={successRef} className="min-h-screen bg-white dark:bg-neutral-950 flex flex-col items-center justify-center p-6">
         <CheckCircle2 size={48} className="text-green-500 mb-6" />
         <h2 className="text-4xl font-light tracking-tight text-black dark:text-white mb-4">Order Placed!</h2>
         <p className="text-sm text-black/40 dark:text-white/40 uppercase tracking-widest mb-6">Thank you for your purchase</p>
