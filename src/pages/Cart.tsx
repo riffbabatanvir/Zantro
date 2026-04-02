@@ -9,11 +9,12 @@ export default function Cart() {
 
   if (cart.length === 0) {
     return (
-    <Helmet>
-      <title>Your Cart — Zantro</title>
-      <meta name="robots" content="noindex" />
-    </Helmet>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-neutral-950 pt-20">
+      <>
+        <Helmet>
+          <title>Your Cart — Zantro</title>
+          <meta name="robots" content="noindex" />
+        </Helmet>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-neutral-950 pt-20">
         <h2 className="text-3xl font-light tracking-tight text-black dark:text-white mb-8">Your cart is empty</h2>
         <Link 
           to="/shop" 
@@ -22,6 +23,7 @@ export default function Cart() {
           Continue Shopping
         </Link>
       </div>
+      </>
     );
   }
 
