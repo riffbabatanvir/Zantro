@@ -82,6 +82,7 @@ export default function FAQ() {
   const [openItem, setOpenItem] = useState<string | null>(null);
 
   return (
+    <>
     <Helmet>
       <title>FAQ — Zantro</title>
       <meta name="description" content="Frequently asked questions about Zantro — shipping, returns, payments and more." />
@@ -149,5 +150,6 @@ export default function FAQ() {
         </motion.div>
       </div>
     </div>
+    </>
   );
 }

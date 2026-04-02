@@ -42,6 +42,7 @@ export default function Contact() {
     }
   };
   return (
+    <>
     <Helmet>
       <title>Contact Us — Zantro</title>
       <meta name="description" content="Get in touch with Zantro. We're here to help with your orders and queries." />
@@ -144,5 +145,6 @@ export default function Contact() {
         </div>
       </div>
     </div>
+    </>
   );
 }

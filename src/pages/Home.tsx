@@ -59,18 +59,19 @@ useEffect(() => {
         try { localStorage.setItem('zantro_flash_sale_end', String(newEnd)); } catch {}
       }
     }, 1000);
-    return (
-      <Helmet>
-        <title>Zantro — Online Shop Bangladesh</title>
-        <meta name="description" content="Shop the best products online at Zantro. Best deals and fast delivery across Bangladesh." />
-        <meta property="og:title" content="Zantro — Online Shop Bangladesh" />
-        <meta property="og:url" content="https://zantrobd.com" />
-      </Helmet>) => clearInterval(timer);
+    return () => clearInterval(timer);
   }, [saleEndTime]);
 
   const formatTime = (num: number) => num.toString().padStart(2, '0');
 
   return (
+    <>
+      <Helmet>
+        <title>Zantro — Online Shop Bangladesh</title>
+        <meta name="description" content="Shop the best products online at Zantro. Best deals and fast delivery across Bangladesh." />
+        <meta property="og:title" content="Zantro — Online Shop Bangladesh" />
+        <meta property="og:url" content="https://zantrobd.com" />
+      </Helmet>
     <div className="bg-transparent">
       <Hero />
       
@@ -129,5 +130,6 @@ useEffect(() => {
         </div>
       </section>
     </div>
+    </>
   );
 }

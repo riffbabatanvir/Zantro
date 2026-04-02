@@ -83,6 +83,7 @@ export default function Shop() {
   const priceFilterActive = appliedMin !== null || appliedMax !== null;
 
   return (
+    <>
     <Helmet>
       <title>Shop All Products — Zantro</title>
       <meta name="description" content="Browse all products at Zantro. Find the best deals on a wide range of items with fast delivery across Bangladesh." />
@@ -272,5 +273,6 @@ export default function Shop() {
         </div>
       </div>
     </div>
+    </>
   );
 }

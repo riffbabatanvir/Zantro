@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 
 export default function About() {
   return (
+    <>
     <Helmet>
       <title>About Us — Zantro</title>
       <meta name="description" content="Learn about Zantro — Bangladesh's trusted online shop with the best products and fast delivery." />
@@ -122,5 +123,6 @@ export default function About() {
       </section>
 
     </div>
+    </>
   );
 }

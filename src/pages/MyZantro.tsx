@@ -53,6 +53,7 @@ export default function MyZantro() {
   const currentStep = order ? STATUS_STEPS.indexOf(order.status) : -1;
 
   return (
+    <>
       <Helmet>
         <title>My Zantro — Wishlist & Order Tracking</title>
         <meta name="robots" content="noindex" />
@@ -240,5 +241,6 @@ export default function MyZantro() {
         </AnimatePresence>
       </div>
     </div>
+    </>
   );
 }
