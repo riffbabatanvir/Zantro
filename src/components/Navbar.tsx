@@ -183,7 +183,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                 className={`relative group flex items-center gap-2 bg-gray-50 dark:bg-neutral-900 px-4 py-2 rounded-full border transition-all ${myZantroOpen ? 'border-orange-400' : 'border-gray-100 dark:border-neutral-800 hover:border-orange-200'}`}
               >
                 <Heart size={18} className={`transition-colors ${wishlist.length > 0 ? 'fill-orange-500 text-orange-500' : 'text-gray-600 dark:text-gray-400 group-hover:text-orange-600 dark:group-hover:text-orange-400'}`} />
-                <span className="text-sm font-bold text-gray-900 dark:text-gray-100">My Zantro</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">My Zantro</span>
               </button>
 
               <AnimatePresence>
