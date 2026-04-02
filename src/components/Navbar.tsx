@@ -75,7 +75,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
   const navLinks = [
     { name: 'Shop All', path: '/shop' },
     { name: 'Categories', path: '/shop' },
-    { name: 'Contact', path: '/contact' },
+    { name: 'Pre-Order', path: '/preorder' },
   ];
 
   return (

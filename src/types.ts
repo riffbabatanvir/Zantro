@@ -25,6 +25,7 @@ export interface Product {
   soldCount?: number;
   reviewCount?: number;
   isFlashSale?: boolean;
+  isPreorder?: boolean;
   stock?: number;
   variants?: ProductVariant[];
   customerReviews?: CustomerReview[];

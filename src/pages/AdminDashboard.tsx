@@ -54,7 +54,7 @@ export default function AdminDashboard() {
     name: '', price: '', discount: '', description: '',
     category: CATEGORIES[0]?.name || 'Fashion',
     image: '', rating: '', soldCount: '', reviewCount: '', stock: '',
-    sizes: '', colors: ''
+    sizes: '', colors: '', isPreorder: false
   });
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -395,13 +395,14 @@ export default function AdminDashboard() {
         soldCount: newProduct.soldCount ? Number(newProduct.soldCount) : 0,
         reviewCount: newProduct.reviewCount ? Number(newProduct.reviewCount) : 0,
         stock: newProduct.stock !== '' ? Number(newProduct.stock) : undefined,
+        isPreorder: newProduct.isPreorder,
         variants: [
           ...(newProduct.sizes.trim() ? [{ type: 'size', options: newProduct.sizes.split(',').map((s: string) => s.trim()).filter(Boolean) }] : []),
           ...(newProduct.colors.trim() ? [{ type: 'color', options: newProduct.colors.split(',').map((s: string) => s.trim()).filter(Boolean) }] : []),
         ] as any,
       });
       toast.success('Product added successfully!');
-      setNewProduct({ name: '', price: '', discount: '', description: '', category: CATEGORIES[0]?.name || 'Fashion', image: '', rating: '', soldCount: '', reviewCount: '', stock: '', sizes: '', colors: '' });
+      setNewProduct({ name: '', price: '', discount: '', description: '', category: CATEGORIES[0]?.name || 'Fashion', image: '', rating: '', soldCount: '', reviewCount: '', stock: '', sizes: '', colors: '', isPreorder: false });
       setImageFiles([]); setVideoFile(null);
       if (imageInputRef.current) imageInputRef.current.value = '';
       if (videoInputRef.current) videoInputRef.current.value = '';
@@ -451,6 +452,7 @@ export default function AdminDashboard() {
         soldCount: editProductData.soldCount ? Number(editProductData.soldCount) : undefined,
         reviewCount: editProductData.reviewCount ? Number(editProductData.reviewCount) : undefined,
         stock: editProductData.stock !== '' && editProductData.stock !== undefined ? Number(editProductData.stock) : undefined,
+        isPreorder: editProductData.isPreorder || false,
         variants: [
           ...(editProductData.sizes && editProductData.sizes.trim() ? [{ type: 'size', options: editProductData.sizes.split(',').map((s: string) => s.trim()).filter(Boolean) }] : []),
           ...(editProductData.colors && editProductData.colors.trim() ? [{ type: 'color', options: editProductData.colors.split(',').map((s: string) => s.trim()).filter(Boolean) }] : []),
@@ -1332,6 +1334,18 @@ export default function AdminDashboard() {
                           </div>
                         </div>
 
+                        {/* Pre-Order Toggle (Edit) */}
+                        <div className="md:col-span-2 flex items-center justify-between bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-xl px-4 py-3">
+                          <div>
+                            <p className="text-xs font-bold text-black dark:text-white">🕐 Pre-Order Product</p>
+                            <p className="text-[10px] text-black/40 dark:text-white/40 mt-0.5">Show in pre-order section with Pre-Order button</p>
+                          </div>
+                          <button type="button" onClick={() => setEditProductData({...editProductData, isPreorder: !editProductData.isPreorder})}
+                            className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${editProductData.isPreorder ? 'bg-orange-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
+                            <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${editProductData.isPreorder ? 'translate-x-6' : 'translate-x-1'}`} />
+                          </button>
+                        </div>
+
                         {/* Image Gallery Manager */}
                         {editProductData.images && editProductData.images.length > 0 && (
                           <div className="md:col-span-2">
@@ -1558,6 +1572,18 @@ export default function AdminDashboard() {
                     <input type="text" value={newProduct.colors} onChange={(e) => setNewProduct({...newProduct, colors: e.target.value})} placeholder="e.g., Red, Blue, Black"
                       className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors" />
                   </div>
+                </div>
+
+                {/* Pre-Order Toggle */}
+                <div className="flex items-center justify-between bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-xl px-5 py-4">
+                  <div>
+                    <p className="text-sm font-bold text-black dark:text-white">🕐 Pre-Order Product</p>
+                    <p className="text-[11px] text-black/40 dark:text-white/40 mt-0.5">This product will appear in the Pre-Order section and show a Pre-Order button</p>
+                  </div>
+                  <button type="button" onClick={() => setNewProduct({...newProduct, isPreorder: !newProduct.isPreorder})}
+                    className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${newProduct.isPreorder ? 'bg-orange-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
+                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${newProduct.isPreorder ? 'translate-x-7' : 'translate-x-1'}`} />
+                  </button>
                 </div>
 
                 <div className="space-y-2">

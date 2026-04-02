@@ -138,10 +138,15 @@ export default function ProductDetail() {
   const stock = (product as any).stock;
   const isLowStock = stock !== undefined && stock > 0 && stock <= 5;
   const isOutOfStock = stock !== undefined && stock === 0;
+  const isPreorder = (product as any).isPreorder || false;
+  const showPreorderButton = isPreorder || isOutOfStock;
 
   const handleAddToCart = () => {
-    if (isOutOfStock) return;
+    if (isOutOfStock && !isPreorder) return;
     addToCart({ ...product, selectedSize: selectedSize || undefined, selectedColor: selectedColor || undefined } as any, quantity);
+    if (isPreorder || isOutOfStock) {
+      toast.success('Pre-order added! Expected delivery: 1–2 months.');
+    }
   };
 
   const avgRating = localReviews.length > 0
@@ -240,9 +245,14 @@ export default function ProductDetail() {
               </div>
 
               {/* Stock Badge */}
-              {isOutOfStock && (
+              {isPreorder && (
+                <div className="inline-block mb-4 mr-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs font-black rounded-full uppercase tracking-widest">
+                  🕐 Pre-Order — 1–2 Months Delivery
+                </div>
+              )}
+              {isOutOfStock && !isPreorder && (
                 <div className="inline-block mb-4 px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-black rounded-full uppercase tracking-widest">
-                  Out of Stock
+                  Out of Stock — Pre-Order Available
                 </div>
               )}
               {isLowStock && (
@@ -338,14 +348,18 @@ export default function ProductDetail() {
                     Go to Cart
                   </Link>
                 ) : (
-                  <button onClick={handleAddToCart} disabled={isOutOfStock}
-                    className={`flex-1 py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ${isOutOfStock ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 hover:bg-orange-200 shadow-orange-100'}`}>
-                    {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+                  <button onClick={handleAddToCart} disabled={isOutOfStock && !isPreorder}
+                    className={`flex-1 py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ${
+                      isOutOfStock && !isPreorder ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
+                      showPreorderButton ? 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200' :
+                      'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 hover:bg-orange-200 shadow-orange-100'
+                    }`}>
+                    {showPreorderButton ? '🕐 Pre-Order Now' : 'Add to Cart'}
                   </button>
                 )}
-                <Link to="/checkout" onClick={() => !isInCart && !isOutOfStock && handleAddToCart()}
-                  className={`flex-1 py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg text-center active:scale-95 flex items-center justify-center ${isOutOfStock ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none' : 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200'}`}>
-                  Buy Now
+                <Link to="/checkout" onClick={() => !isInCart && !(isOutOfStock && !isPreorder) && handleAddToCart()}
+                  className={`flex-1 py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg text-center active:scale-95 flex items-center justify-center ${isOutOfStock && !isPreorder ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none' : 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200'}`}>
+                  {showPreorderButton ? 'Pre-Order & Checkout' : 'Buy Now'}
                 </Link>
               </div>
             </div>
@@ -465,14 +479,18 @@ export default function ProductDetail() {
             Go to Cart
           </Link>
         ) : (
-          <button onClick={handleAddToCart} disabled={isOutOfStock}
-            className={`flex-1 py-4 rounded-xl text-sm font-black uppercase tracking-widest active:scale-95 transition-transform ${isOutOfStock ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400'}`}>
-            {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+          <button onClick={handleAddToCart} disabled={isOutOfStock && !isPreorder}
+            className={`flex-1 py-4 rounded-xl text-sm font-black uppercase tracking-widest active:scale-95 transition-transform ${
+              isOutOfStock && !isPreorder ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
+              showPreorderButton ? 'bg-orange-600 text-white' :
+              'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400'
+            }`}>
+            {showPreorderButton ? '🕐 Pre-Order' : 'Add to Cart'}
           </button>
         )}
-        <Link to="/checkout" onClick={() => !isInCart && !isOutOfStock && handleAddToCart()}
-          className={`flex-1 py-4 rounded-xl text-sm font-black uppercase tracking-widest text-center active:scale-95 transition-transform flex items-center justify-center ${isOutOfStock ? 'bg-gray-300 text-gray-500 pointer-events-none' : 'bg-orange-600 text-white'}`}>
-          Buy Now
+        <Link to="/checkout" onClick={() => !isInCart && !(isOutOfStock && !isPreorder) && handleAddToCart()}
+          className={`flex-1 py-4 rounded-xl text-sm font-black uppercase tracking-widest text-center active:scale-95 transition-transform flex items-center justify-center ${isOutOfStock && !isPreorder ? 'bg-gray-300 text-gray-500 pointer-events-none' : 'bg-orange-600 text-white'}`}>
+          {showPreorderButton ? 'Pre-Order & Buy' : 'Buy Now'}
         </Link>
       </div>
     </div>

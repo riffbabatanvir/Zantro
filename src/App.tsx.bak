@@ -10,7 +10,6 @@ import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Contact from './pages/Contact';
-import PreOrder from './pages/PreOrder';
 import { CartProvider } from './CartContext';
 import { ProductProvider } from './ProductContext';
 import { ThemeProvider } from './ThemeContext';
@@ -56,7 +55,6 @@ export default function App() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/contact" element={<Contact />} />
-                <Route path="/preorder" element={<PreOrder />} />
                 <Route path="/admin" element={<AdminDashboard />} />
 				<Route path="/about" element={<About />} />
 				<Route path="/faq" element={<FAQ />} />
