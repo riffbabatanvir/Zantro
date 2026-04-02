@@ -28,6 +28,9 @@ export default function ProductDetail() {
   const isInCart = product ? cart.some((item) => item.id === product.id) : false;
 
   const [selectedMedia, setSelectedMedia] = useState<{ type: 'image' | 'video', url: string }>({ type: 'image', url: '' });
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const { toggle: toggleWishlist, isWishlisted } = useWishlist();
+  const wishlisted = product ? isWishlisted(product.id) : false;
 
   // Recently viewed - save to localStorage
   useEffect(() => {
@@ -108,13 +111,9 @@ export default function ProductDetail() {
     );
   }
 
-  // Zoom overlay (rendered inside return)
   const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
   const originalPrice = product.discount ? product.price / (1 - product.discount / 100) : product.price * 1.5;
   const discountPercent = product.discount ? product.discount : 33;
-  const { toggle: toggleWishlist, isWishlisted } = useWishlist();
-  const wishlisted = product ? isWishlisted(product.id) : false;
-  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const isAdmin = !!localStorage.getItem('adminToken');
 
   const handleShare = () => {
