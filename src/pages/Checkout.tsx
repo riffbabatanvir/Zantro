@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../CartContext';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { CreditCard, Smartphone, Bitcoin, CheckCircle2, ChevronLeft, Lock, Minus, Plus, Trash2, Copy, Banknote, Tag, X } from 'lucide-react';
@@ -94,6 +94,10 @@ export default function Checkout() {
     } catch { toast.error('An error occurred'); }
     finally { setIsProcessing(false); }
   };
+
+  useEffect(() => {
+    if (isSuccess) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [isSuccess]);
 
   if (isSuccess) {
     return (
