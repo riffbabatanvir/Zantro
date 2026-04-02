@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Heart, Package, Search, Star, ShoppingCart, Check, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useWishlist } from '../WishlistContext';
@@ -10,7 +10,12 @@ import { toast } from 'sonner';
 type Tab = 'wishlist' | 'tracking';
 
 export default function MyZantro() {
-  const [tab, setTab] = useState<Tab>('wishlist');
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<Tab>(() => searchParams.get('tab') === 'tracking' ? 'tracking' : 'wishlist');
+
+  useEffect(() => {
+    if (searchParams.get('tab') === 'tracking') setTab('tracking');
+  }, [searchParams]);
   const { wishlist, toggle } = useWishlist();
   const { products } = useProducts();
   const { addToCart, cart } = useCart();

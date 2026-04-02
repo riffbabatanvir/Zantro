@@ -13,7 +13,7 @@ export default function BottomNav() {
     { name: 'Home', path: '/', icon: Home },
     { name: 'Shop', path: '/shop', icon: Grid },
     { name: 'Cart', path: '/cart', icon: ShoppingCart, badge: totalItems },
-    { name: 'My Zantro', path: '/my', icon: Heart, badge: wishlist.length },
+    { name: 'My Zantro', path: '/my', icon: Heart, badge: 0 },
   ];
 
   const isProductPage = location.pathname.startsWith('/product/');
