@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
 
@@ -81,6 +82,12 @@ export default function FAQ() {
   const [openItem, setOpenItem] = useState<string | null>(null);
 
   return (
+    <Helmet>
+      <title>FAQ — Zantro</title>
+      <meta name="description" content="Frequently asked questions about Zantro — shipping, returns, payments and more." />
+      <meta property="og:title" content="FAQ — Zantro" />
+      <meta property="og:url" content="https://zantrobd.com/faq" />
+    </Helmet>
     <div className="bg-white dark:bg-neutral-950 min-h-screen">
       <div className="max-w-3xl mx-auto px-6 lg:px-12 py-16 md:py-24">
         {/* Header */}

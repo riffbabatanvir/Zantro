@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Heart, Package, Search, Star, ShoppingCart, Check, Trash2 } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
 import { useWishlist } from '../WishlistContext';
 import { useProducts } from '../ProductContext';
@@ -52,6 +53,10 @@ export default function MyZantro() {
   const currentStep = order ? STATUS_STEPS.indexOf(order.status) : -1;
 
   return (
+      <Helmet>
+        <title>My Zantro — Wishlist & Order Tracking</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
     <div className="min-h-screen bg-white dark:bg-neutral-950">
       <div className="max-w-2xl mx-auto px-4 py-8">
 

@@ -4,6 +4,7 @@ import ProductCard from '../components/ProductCard';
 import { CATEGORIES, CATEGORY_GROUPS } from '../constants';
 import { useProducts } from '../ProductContext';
 import { X, ChevronDown } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 
@@ -82,6 +83,12 @@ export default function Shop() {
   const priceFilterActive = appliedMin !== null || appliedMax !== null;
 
   return (
+    <Helmet>
+      <title>Shop All Products — Zantro</title>
+      <meta name="description" content="Browse all products at Zantro. Find the best deals on a wide range of items with fast delivery across Bangladesh." />
+      <meta property="og:title" content="Shop All Products — Zantro" />
+      <meta property="og:url" content="https://zantrobd.com/shop" />
+    </Helmet>
     <div className="bg-transparent min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row min-h-screen">

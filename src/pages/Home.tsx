@@ -2,6 +2,7 @@ import Hero from '../components/Hero';
 import CategorySection from '../components/CategorySection';
 import ProductCard from '../components/ProductCard';
 import { useProducts } from '../ProductContext';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
@@ -58,7 +59,13 @@ useEffect(() => {
         try { localStorage.setItem('zantro_flash_sale_end', String(newEnd)); } catch {}
       }
     }, 1000);
-    return () => clearInterval(timer);
+    return (
+      <Helmet>
+        <title>Zantro — Online Shop Bangladesh</title>
+        <meta name="description" content="Shop the best products online at Zantro. Best deals and fast delivery across Bangladesh." />
+        <meta property="og:title" content="Zantro — Online Shop Bangladesh" />
+        <meta property="og:url" content="https://zantrobd.com" />
+      </Helmet>) => clearInterval(timer);
   }, [saleEndTime]);
 
   const formatTime = (num: number) => num.toString().padStart(2, '0');

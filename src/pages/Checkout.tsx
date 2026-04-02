@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useCart } from '../CartContext';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { CreditCard, Smartphone, Bitcoin, CheckCircle2, ChevronLeft, Lock, Minus, Plus, Trash2, Copy, Banknote, Tag, X } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 
@@ -96,6 +97,10 @@ export default function Checkout() {
 
   if (isSuccess) {
     return (
+    <Helmet>
+      <title>Checkout — Zantro</title>
+      <meta name="robots" content="noindex" />
+    </Helmet>
       <div className="min-h-screen bg-white dark:bg-neutral-950 flex flex-col items-center justify-center p-6">
         <CheckCircle2 size={48} className="text-green-500 mb-6" />
         <h2 className="text-4xl font-light tracking-tight text-black dark:text-white mb-4">Order Placed!</h2>

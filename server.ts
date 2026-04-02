@@ -455,6 +455,45 @@ app.post('/api/admin/login', (req, res) => {
   }
 });
 
+// ─── Robots.txt ───────────────────────────────────────────────────────────────
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.send('User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /checkout\nDisallow: /cart\nSitemap: https://zantrobd.com/sitemap.xml');
+});
+
+// ─── Sitemap ──────────────────────────────────────────────────────────────────
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const products = await db.collection('products').find({}).toArray();
+    const staticUrls = [
+      { loc: 'https://zantrobd.com', priority: '1.0', changefreq: 'daily' },
+      { loc: 'https://zantrobd.com/shop', priority: '0.9', changefreq: 'daily' },
+      { loc: 'https://zantrobd.com/about', priority: '0.6', changefreq: 'monthly' },
+      { loc: 'https://zantrobd.com/contact', priority: '0.6', changefreq: 'monthly' },
+      { loc: 'https://zantrobd.com/faq', priority: '0.5', changefreq: 'monthly' },
+    ];
+    const productUrls = products.map((p: any) => ({
+      loc: `https://zantrobd.com/product/${p._id}`,
+      priority: '0.8',
+      changefreq: 'weekly',
+    }));
+    const allUrls = [...staticUrls, ...productUrls];
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${allUrls.map(u => `  <url>
+    <loc>${u.loc}</loc>
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`).join('\n')}
+</urlset>`;
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch {
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
+
 async function startServer() {
   await connectDB();
   if (process.env.NODE_ENV !== 'production') {

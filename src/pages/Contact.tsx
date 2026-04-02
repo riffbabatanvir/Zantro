@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare, Clock } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
 
@@ -41,6 +42,12 @@ export default function Contact() {
     }
   };
   return (
+    <Helmet>
+      <title>Contact Us — Zantro</title>
+      <meta name="description" content="Get in touch with Zantro. We're here to help with your orders and queries." />
+      <meta property="og:title" content="Contact Us — Zantro" />
+      <meta property="og:url" content="https://zantrobd.com/contact" />
+    </Helmet>
     <div className="bg-white dark:bg-neutral-950 min-h-screen pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">

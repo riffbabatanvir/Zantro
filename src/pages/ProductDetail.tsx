@@ -7,6 +7,7 @@ import { motion } from 'motion/react';
 import ProductCard from '../components/ProductCard';
 import { toast } from 'sonner';
 import { useWishlist } from '../WishlistContext';
+import { Helmet } from 'react-helmet-async';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -148,6 +149,18 @@ export default function ProductDetail() {
     : product.rating || 5;
 
   return (
+    <>
+      <Helmet>
+        <title>{product.name} — Zantro</title>
+        <meta name="description" content={`${(product.description || '').slice(0, 155)}`} />
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={`${product.name} — Zantro`} />
+        <meta property="og:description" content={(product.description || '').slice(0, 155)} />
+        <meta property="og:image" content={product.image} />
+        <meta property="og:url" content={`https://zantrobd.com/product/${product.id}`} />
+        <meta property="product:price:amount" content={String(product.price)} />
+        <meta property="product:price:currency" content="BDT" />
+      </Helmet>
     <div className="bg-transparent min-h-screen">
       <div className="max-w-7xl mx-auto md:px-6 lg:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16 lg:gap-24 mb-16 md:mb-32">
@@ -463,5 +476,7 @@ export default function ProductDetail() {
         </Link>
       </div>
     </div>
+  );
+    </>
   );
 }

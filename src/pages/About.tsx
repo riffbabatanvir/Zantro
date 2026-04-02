@@ -1,9 +1,16 @@
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
 export default function About() {
   return (
+    <Helmet>
+      <title>About Us — Zantro</title>
+      <meta name="description" content="Learn about Zantro — Bangladesh's trusted online shop with the best products and fast delivery." />
+      <meta property="og:title" content="About Us — Zantro" />
+      <meta property="og:url" content="https://zantrobd.com/about" />
+    </Helmet>
     <div className="bg-white dark:bg-neutral-950 text-black dark:text-white">
 
       {/* Hero */}

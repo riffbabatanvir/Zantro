@@ -15,6 +15,7 @@ import { ProductProvider } from './ProductContext';
 import { ThemeProvider } from './ThemeContext';
 import { WishlistProvider } from './WishlistContext';
 import { Toaster } from 'sonner';
+import { HelmetProvider } from 'react-helmet-async';
 
 import AdminDashboard from './pages/AdminDashboard';
 import About from './pages/About';
@@ -35,6 +36,7 @@ function ScrollToTop() {
 export default function App() {
   const [cartOpen, setCartOpen] = useState(false);
   return (
+    <HelmetProvider>
     <ThemeProvider>
       <Router>
         <ProductProvider>
@@ -70,5 +72,6 @@ export default function App() {
         </ProductProvider>
       </Router>
     </ThemeProvider>
+    </HelmetProvider>
   );
 }
