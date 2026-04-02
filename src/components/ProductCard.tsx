@@ -12,6 +12,8 @@ export default function ProductCard({ product }: { product: Product; key?: strin
   const isInCart = cart.some((item) => item.id === product.id);
   const originalPrice = product.discount ? product.price / (1 - product.discount / 100) : product.price * 1.5;
   const isOutOfStock = (product as any).stock === 0;
+  const isPreorder = (product as any).isPreorder || false;
+  const canPreorder = isPreorder || isOutOfStock;
   const wishlisted = isWishlisted(product.id);
 
   return (
@@ -32,10 +34,15 @@ export default function ProductCard({ product }: { product: Product; key?: strin
 
         {/* Out of stock overlay */}
         {isOutOfStock && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
             <span className="bg-black/70 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
               Out of Stock
             </span>
+            {(isPreorder || isOutOfStock) && (
+              <span className="bg-orange-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest">
+                Click to Pre-Order
+              </span>
+            )}
           </div>
         )}
 
@@ -83,33 +90,35 @@ export default function ProductCard({ product }: { product: Product; key?: strin
             <button
               onClick={(e) => {
                 e.preventDefault();
-                if (isOutOfStock) return;
+                if (isOutOfStock && !isPreorder) return;
                 if (isInCart) navigate('/cart');
                 else addToCart(product);
               }}
-              disabled={isOutOfStock}
+              disabled={isOutOfStock && !isPreorder}
               className={isInCart
                 ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 p-2 rounded-xl hover:bg-green-200 transition-colors'
-                : isOutOfStock
+                : isOutOfStock && !isPreorder
                   ? 'bg-gray-100 dark:bg-neutral-800 text-gray-300 p-2 rounded-xl cursor-not-allowed'
                   : 'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 p-2 rounded-xl hover:bg-orange-200 transition-colors'
               }
-              title={isOutOfStock ? 'Out of Stock' : isInCart ? 'Go to Cart' : 'Add to Cart'}
+              title={isOutOfStock && !isPreorder ? 'Out of Stock' : isInCart ? 'Go to Cart' : canPreorder ? 'Pre-Order' : 'Add to Cart'}
             >
               {isInCart ? <Check size={16} strokeWidth={2.5} /> : <ShoppingCart size={16} strokeWidth={2.5} />}
             </button>
           </div>
 
           <Link
-            to={isOutOfStock ? '#' : '/checkout'}
-            onClick={(e) => { if (isOutOfStock) { e.preventDefault(); return; } if (!isInCart) addToCart(product); }}
+            to={isOutOfStock && !isPreorder ? '#' : '/checkout'}
+            onClick={(e) => { if (isOutOfStock && !isPreorder) { e.preventDefault(); return; } if (!isInCart) addToCart(product); }}
             className={`w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-center transition-all shadow-lg ${
-              isOutOfStock
+              isOutOfStock && !isPreorder
                 ? 'bg-gray-200 dark:bg-neutral-800 text-gray-400 cursor-not-allowed shadow-none'
-                : 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200'
+                : canPreorder
+                  ? 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200'
+                  : 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200'
             }`}
           >
-            {isOutOfStock ? 'Unavailable' : 'Buy Now'}
+            {isOutOfStock && !isPreorder ? 'Unavailable' : canPreorder ? '🕐 Pre-Order' : 'Buy Now'}
           </Link>
         </div>
       </div>

@@ -168,7 +168,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <Link key={link.name} to={link.path} className="text-sm font-bold text-gray-600 hover:text-orange-600 dark:text-orange-400 transition-all">
+              <Link key={link.name} to={link.path} className="text-sm font-bold text-gray-600 hover:text-orange-600 dark:text-orange-400 transition-all whitespace-nowrap">
                 {link.name}
               </Link>
             ))}

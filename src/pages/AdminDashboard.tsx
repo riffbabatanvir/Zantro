@@ -1581,8 +1581,8 @@ export default function AdminDashboard() {
                     <p className="text-[11px] text-black/40 dark:text-white/40 mt-0.5">This product will appear in the Pre-Order section and show a Pre-Order button</p>
                   </div>
                   <button type="button" onClick={() => setNewProduct({...newProduct, isPreorder: !newProduct.isPreorder})}
-                    className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${newProduct.isPreorder ? 'bg-orange-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
-                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${newProduct.isPreorder ? 'translate-x-7' : 'translate-x-1'}`} />
+                    className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${newProduct.isPreorder ? 'bg-orange-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
+                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${newProduct.isPreorder ? 'translate-x-6' : 'translate-x-1'}`} />
                   </button>
                 </div>
 
