@@ -31,6 +31,7 @@ function PreorderProductCard({ product }: { product: any }) {
       price: displayPrice,
       isPreorder: true,
       selectedTierLabel: selectedTier?.label,
+      preorderMinQty: selectedTier ? selectedTier.minQty : 1,
     } as any, selectedTier ? selectedTier.minQty : 1);
   };
 

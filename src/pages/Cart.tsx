@@ -57,20 +57,26 @@ export default function Cart() {
                   </div>
 
                   <div className="flex justify-between items-end">
-                    <div className="flex items-center border-b border-black/10 dark:border-white/10 pb-1">
-                      <button 
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="text-black/40 dark:text-white/40 hover:text-black dark:text-white transition-colors"
-                      >
-                        <Minus size={12} />
-                      </button>
-                      <span className="w-10 text-center text-[10px] font-medium tracking-widest">{item.quantity}</span>
-                      <button 
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="text-black/40 dark:text-white/40 hover:text-black dark:text-white transition-colors"
-                      >
-                        <Plus size={12} />
-                      </button>
+                    <div className="flex flex-col gap-1">
+                      {(item as any).selectedTierLabel && (
+                        <span className="text-[9px] uppercase tracking-widest text-orange-500 font-bold">{(item as any).selectedTierLabel}</span>
+                      )}
+                      <div className="flex items-center border-b border-black/10 dark:border-white/10 pb-1">
+                        <button 
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          disabled={item.quantity <= ((item as any).preorderMinQty || 1)}
+                          className="text-black/40 dark:text-white/40 hover:text-black dark:text-white transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span className="w-10 text-center text-[10px] font-medium tracking-widest">{item.quantity}</span>
+                        <button 
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="text-black/40 dark:text-white/40 hover:text-black dark:text-white transition-colors"
+                        >
+                          <Plus size={12} />
+                        </button>
+                      </div>
                     </div>
                     <button 
                       onClick={() => removeFromCart(item.id)}

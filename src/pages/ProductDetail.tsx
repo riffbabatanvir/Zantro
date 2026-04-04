@@ -16,6 +16,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
+  const [selectedTierIdx, setSelectedTierIdx] = useState(0);
 
   // Review form state
   const [reviewName, setReviewName] = useState('');
@@ -150,10 +151,29 @@ export default function ProductDetail() {
   const isOutOfStock = stock !== undefined && stock === 0;
   const isPreorder = (product as any).isPreorder || false;
   const showPreorderButton = isPreorder || isOutOfStock;
+  const preorderTiers: Array<{ minQty: number; maxQty?: number; label: string; price: number }> = (product as any).preorderPriceTiers || [];
+  const hasTiers = isPreorder && preorderTiers.length > 0;
+  const selectedTier = hasTiers ? preorderTiers[selectedTierIdx] : null;
+  const effectivePrice = selectedTier ? selectedTier.price : product.price;
+  const minQty = selectedTier ? selectedTier.minQty : 1;
+
+  // Keep quantity in sync with tier minimum when tier changes
+  const handleTierChange = (idx: number) => {
+    setSelectedTierIdx(idx);
+    setQuantity(preorderTiers[idx]?.minQty || 1);
+  };
 
   const handleAddToCart = () => {
     if (isOutOfStock && !isPreorder) return;
-    addToCart({ ...product, selectedSize: selectedSize || undefined, selectedColor: selectedColor || undefined } as any, quantity);
+    addToCart({
+      ...product,
+      price: effectivePrice,
+      selectedSize: selectedSize || undefined,
+      selectedColor: selectedColor || undefined,
+      isPreorder: isPreorder || isOutOfStock,
+      selectedTierLabel: selectedTier?.label,
+      preorderMinQty: minQty,
+    } as any, quantity);
     if (isPreorder || isOutOfStock) {
       toast.success('Pre-order added! Expected delivery: 1–2 months.');
     }
@@ -249,9 +269,10 @@ export default function ProductDetail() {
               </h1>
 
               <div className="flex items-baseline gap-3 mb-4">
-                <span className="text-3xl md:text-5xl font-black text-orange-600 dark:text-orange-400">৳{product.price}</span>
-                <span className="text-lg text-gray-400 line-through font-bold">৳{originalPrice.toFixed(2)}</span>
-                <span className="bg-red-50 text-red-600 text-xs font-black px-2 py-1 rounded">SAVE {discountPercent}%</span>
+                <span className="text-3xl md:text-5xl font-black text-orange-600 dark:text-orange-400">৳{effectivePrice}</span>
+                {!hasTiers && <span className="text-lg text-gray-400 line-through font-bold">৳{originalPrice.toFixed(2)}</span>}
+                {!hasTiers && <span className="bg-red-50 text-red-600 text-xs font-black px-2 py-1 rounded">SAVE {discountPercent}%</span>}
+                {hasTiers && <span className="text-sm text-gray-400 font-medium">per unit</span>}
               </div>
 
               {/* Stock Badge */}
@@ -335,20 +356,65 @@ export default function ProductDetail() {
                 </div>
               )}
 
+              {/* Preorder Tier Selector */}
+              {hasTiers && (
+                <div>
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Select Quantity Tier</p>
+                  <div className="space-y-2">
+                    {preorderTiers.map((tier, idx) => (
+                      <button key={idx} type="button" onClick={() => handleTierChange(idx)}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 text-left transition-all ${
+                          selectedTierIdx === idx
+                            ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
+                            : 'border-gray-200 dark:border-neutral-700 hover:border-orange-300'
+                        }`}>
+                        <div className="flex items-center gap-3">
+                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                            selectedTierIdx === idx ? 'border-orange-500' : 'border-gray-300 dark:border-neutral-500'
+                          }`}>
+                            {selectedTierIdx === idx && <div className="w-2 h-2 rounded-full bg-orange-500" />}
+                          </div>
+                          <span className={`text-sm font-bold ${selectedTierIdx === idx ? 'text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'}`}>
+                            {tier.label}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className={`text-sm font-black tabular-nums ${selectedTierIdx === idx ? 'text-orange-600 dark:text-orange-400' : 'text-gray-900 dark:text-white'}`}>
+                            ৳{tier.price.toFixed(2)}<span className="text-xs font-normal text-gray-400">/pc</span>
+                          </span>
+                          <p className="text-[10px] text-gray-400">
+                            Min {tier.minQty}{tier.maxQty ? `–${tier.maxQty}` : tier.maxQty === undefined ? '+' : ''} pcs
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  {selectedTier && (
+                    <p className="text-xs text-gray-400 mt-2 pl-1">
+                      Total: <span className="font-black text-gray-900 dark:text-white">৳{(effectivePrice * quantity).toFixed(2)}</span>
+                      {' '}for {quantity} pc{quantity > 1 ? 's' : ''}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Quantity */}
               <div className="flex items-center gap-6">
                 <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Quantity</span>
                 <div className="flex items-center bg-white dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800 rounded-2xl p-1 shadow-sm">
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  <button onClick={() => setQuantity(Math.max(minQty, quantity - 1))}
                     className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-orange-600 dark:text-orange-400 transition-colors">
                     <Minus size={16} strokeWidth={2.5} />
                   </button>
                   <span className="w-12 text-center text-sm font-black text-gray-900 dark:text-white">{quantity}</span>
-                  <button onClick={() => setQuantity(stock !== undefined ? Math.min(stock, quantity + 1) : quantity + 1)}
+                  <button onClick={() => setQuantity(stock !== undefined && !isPreorder ? Math.min(stock, quantity + 1) : quantity + 1)}
                     className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-orange-600 dark:text-orange-400 transition-colors">
                     <Plus size={16} strokeWidth={2.5} />
                   </button>
                 </div>
+                {hasTiers && minQty > 1 && (
+                  <span className="text-[10px] text-orange-500 font-bold uppercase tracking-widest">Min {minQty} pcs</span>
+                )}
               </div>
 
               {/* Action Buttons */}

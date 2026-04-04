@@ -77,10 +77,14 @@ export default function CartDrawer({ open, onClose }: Props) {
                         </p>
                       )}
                       <p className="text-sm font-black text-orange-500 mt-1">৳{item.price.toFixed(2)}</p>
+                      {(item as any).selectedTierLabel && (
+                        <p className="text-[9px] uppercase tracking-widest text-orange-400 font-bold mt-0.5">{(item as any).selectedTierLabel}</p>
+                      )}
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center gap-1 bg-white dark:bg-neutral-800 rounded-lg border border-gray-100 dark:border-neutral-700 p-0.5">
                           <button onClick={() => updateQuantity(item.id, item.quantity - 1, (item as any).selectedSize, (item as any).selectedColor)}
-                            className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-orange-500 transition-colors">
+                            disabled={item.quantity <= ((item as any).preorderMinQty || 1)}
+                            className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-orange-500 transition-colors disabled:opacity-25 disabled:cursor-not-allowed">
                             <Minus size={11} strokeWidth={2.5} />
                           </button>
                           <span className="w-6 text-center text-xs font-black">{item.quantity}</span>
