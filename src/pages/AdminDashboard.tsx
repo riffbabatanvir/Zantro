@@ -867,7 +867,25 @@ export default function AdminDashboard() {
                           </div>
                           <div className="space-y-3">
                             <h3 className="text-[11px] font-medium uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">Payment Info</h3>
-                            <div className="flex items-start gap-3 text-sm text-black/80 dark:text-white/80"><CreditCard size={16} className="mt-0.5 shrink-0 text-black/40 dark:text-white/40" /><span className="capitalize">{order.paymentMethod}</span></div>
+                            <div className="flex items-start gap-3 text-sm text-black/80 dark:text-white/80">
+                              <CreditCard size={16} className="mt-0.5 shrink-0 text-black/40 dark:text-white/40" />
+                              <div>
+                                <span className="capitalize font-medium">{order.paymentMethod}{order.paymentMethod === 'bank' && order.selectedBank ? ` — ${order.selectedBank === 'pubali' ? 'Pubali Bank' : order.selectedBank === 'mtb' ? 'Mutual Trust Bank' : order.selectedBank === 'npsb' ? 'NPSB (Any Bank)' : order.selectedBank}` : ''}</span>
+                                {order.isPreorderOrder && (
+                                  <div className="mt-1">
+                                    {order.preorderPayOption === '50' ? (
+                                      order.fullPaid ? (
+                                        <span className="text-[10px] font-bold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">✓ Fully Paid</span>
+                                      ) : (
+                                        <span className="text-[10px] font-bold text-red-500 bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-full">50% Advance · Due: ৳{order.preorderRemainingAmount?.toFixed(2)}</span>
+                                      )
+                                    ) : (
+                                      <span className="text-[10px] font-bold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">✓ Full Payment</span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                             {order.paymentMethod === 'card' && order.cardInfo && (
                               <div className="mt-2 p-3 bg-gray-50 dark:bg-neutral-950 rounded-lg border border-black/5 dark:border-white/5 text-xs font-mono space-y-1">
                                 <p className="text-black/60 dark:text-white/60">Card: {order.cardInfo.cardNumber || 'N/A'}</p>

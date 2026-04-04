@@ -136,6 +136,21 @@ export default function OrderTracking() {
                   ))}
                 </div>
                 <div className="border-t border-gray-200 dark:border-neutral-700 pt-2 space-y-1.5">
+                  {order.paymentMethod && (
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-gray-400">Payment</span>
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300 capitalize">
+                        {order.paymentMethod === 'bank'
+                          ? `Bank — ${order.selectedBank === 'pubali' ? 'Pubali Bank' : order.selectedBank === 'mtb' ? 'Mutual Trust Bank' : order.selectedBank === 'npsb' ? 'NPSB (Any Bank)' : order.selectedBank || ''}`
+                          : order.paymentMethod === 'cod' ? 'Cash on Delivery'
+                          : order.paymentMethod === 'bkash' ? 'bKash'
+                          : order.paymentMethod === 'nagad' ? 'Nagad'
+                          : order.paymentMethod === 'crypto' ? 'Crypto'
+                          : order.paymentMethod === 'card' ? 'Card'
+                          : order.paymentMethod}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-xs font-bold text-gray-400">{order.preorderPayOption === '50' ? 'Paid Now (50%)' : 'Total'}</span>
                     <span className="text-sm font-black text-orange-500">৳{order.finalTotal?.toFixed(2)}</span>
