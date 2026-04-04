@@ -478,6 +478,8 @@ export default function AdminDashboard() {
     } catch { toast.error('Failed to add pre-owned product'); }
     finally { setIsAddingPreowned(false); }
   };
+
+  const handleUpdateProduct = async (id: string) => {
     setIsUploadingEdit(true);
     try {
       const token = localStorage.getItem('adminToken');
