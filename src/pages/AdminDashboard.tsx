@@ -1940,8 +1940,8 @@ export default function AdminDashboard() {
                               <p className="text-[10px] text-black/40 dark:text-white/40 mt-0.5">Enables bulk pricing tiers for this product</p>
                             </div>
                             <button type="button" onClick={() => setEditProductData({...editProductData, isPreorder: !editProductData.isPreorder})}
-                              className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${editProductData.isPreorder ? 'bg-orange-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
-                              <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${editProductData.isPreorder ? 'translate-x-6' : 'translate-x-1'}`} />
+                              className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-colors shrink-0 ${editProductData.isPreorder ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-gray-200 dark:bg-neutral-800 text-black/40 dark:text-white/40 hover:bg-gray-300 dark:hover:bg-neutral-700'}`}>
+                              {editProductData.isPreorder ? '✓ Enabled' : 'Disabled'}
                             </button>
                           </div>
                           {editProductData.isPreorder && (
