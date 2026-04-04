@@ -15,7 +15,7 @@ export default function AdminDashboard() {
   const [messages, setMessages] = useState<any[]>([]);
   const [visitors, setVisitors] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons' | 'hero' | 'announcement' | 'preorders'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons' | 'hero' | 'announcement' | 'preorders' | 'preowned'>('orders');
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
 
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
@@ -65,6 +65,17 @@ export default function AdminDashboard() {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
+
+  // Pre-Owned product form state
+  const [newPreowned, setNewPreowned] = useState({
+    name: '', price: '', discount: '', description: '',
+    category: 'Pre-Owned', image: '', rating: '', soldCount: '',
+    reviewCount: '', stock: '', sizes: '', colors: '',
+    yearsUsed: '', percentNew: ''
+  });
+  const [preownedImageFiles, setPreownedImageFiles] = useState<File[]>([]);
+  const [isAddingPreowned, setIsAddingPreowned] = useState(false);
+  const preownedImageInputRef = useRef<HTMLInputElement>(null);
   // Category images
   const { images: categoryImages, refetch: refetchCategoryImages } = useCategoryImages();
   // Coupons
@@ -427,7 +438,46 @@ export default function AdminDashboard() {
     finally { setIsAddingProduct(false); }
   };
 
-  const handleUpdateProduct = async (id: string) => {
+  const handleAddPreowned = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsAddingPreowned(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      let uploadedImages: string[] = [];
+      if (preownedImageFiles.length > 0) {
+        const formData = new FormData();
+        preownedImageFiles.forEach(file => formData.append('files', file));
+        const res = await fetch('/api/upload', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData });
+        if (res.ok) { const data = await res.json(); uploadedImages = data.urls; }
+      }
+      const primaryImage = newPreowned.image || uploadedImages[0] || 'https://via.placeholder.com/400';
+      await addProduct({
+        name: newPreowned.name,
+        price: Number(newPreowned.price),
+        discount: newPreowned.discount ? Number(newPreowned.discount) : undefined,
+        description: newPreowned.description,
+        category: 'Pre-Owned',
+        image: primaryImage,
+        images: uploadedImages.length > 0 ? uploadedImages : undefined,
+        rating: newPreowned.rating ? Number(newPreowned.rating) : 5,
+        soldCount: newPreowned.soldCount ? Number(newPreowned.soldCount) : 0,
+        reviewCount: newPreowned.reviewCount ? Number(newPreowned.reviewCount) : 0,
+        stock: newPreowned.stock !== '' ? Number(newPreowned.stock) : undefined,
+        isPreowned: true,
+        yearsUsed: newPreowned.yearsUsed !== '' ? Number(newPreowned.yearsUsed) : undefined,
+        percentNew: newPreowned.percentNew !== '' ? Number(newPreowned.percentNew) : undefined,
+        variants: [
+          ...(newPreowned.sizes.trim() ? [{ type: 'size', options: newPreowned.sizes.split(',').map((s: string) => s.trim()).filter(Boolean) }] : []),
+          ...(newPreowned.colors.trim() ? [{ type: 'color', options: newPreowned.colors.split(',').map((s: string) => s.trim()).filter(Boolean) }] : []),
+        ] as any,
+      });
+      toast.success('Pre-owned product added!');
+      setNewPreowned({ name: '', price: '', discount: '', description: '', category: 'Pre-Owned', image: '', rating: '', soldCount: '', reviewCount: '', stock: '', sizes: '', colors: '', yearsUsed: '', percentNew: '' });
+      setPreownedImageFiles([]);
+      if (preownedImageInputRef.current) preownedImageInputRef.current.value = '';
+    } catch { toast.error('Failed to add pre-owned product'); }
+    finally { setIsAddingPreowned(false); }
+  };
     setIsUploadingEdit(true);
     try {
       const token = localStorage.getItem('adminToken');
@@ -638,12 +688,12 @@ export default function AdminDashboard() {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-lg flex-wrap gap-1">
-              {(['orders', 'messages', 'products', 'preorders', 'categories', 'coupons', 'hero', 'announcement', 'visitors'] as const).map(tab => (
+              {(['orders', 'messages', 'products', 'preowned', 'preorders', 'categories', 'coupons', 'hero', 'announcement', 'visitors'] as const).map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
                   className={`px-4 py-2 rounded-md text-[11px] font-medium uppercase tracking-widest transition-all ${
                     activeTab === tab ? 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white'
                   }`}>
-                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab === 'coupons' ? 'Coupons' : tab === 'hero' ? 'Hero Slides' : tab === 'announcement' ? 'Banner' : tab === 'preorders' ? '🕐 Pre-Orders' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab === 'coupons' ? 'Coupons' : tab === 'hero' ? 'Hero Slides' : tab === 'announcement' ? 'Banner' : tab === 'preorders' ? '🕐 Pre-Orders' : tab === 'preowned' ? '♻️ Pre-Owned' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </button>
               ))}
             </div>
@@ -1282,6 +1332,155 @@ export default function AdminDashboard() {
               </div>
             )}
           </>
+        ) : activeTab === 'preowned' ? (
+          <div className="max-w-5xl mx-auto space-y-8">
+            {/* Pre-Owned Products List */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center text-lg">♻️</div>
+                <div>
+                  <h2 className="text-xl font-medium text-black dark:text-white">Pre-Owned Products</h2>
+                  <p className="text-xs text-black/40 dark:text-white/40 mt-0.5">Manage your used / second-hand listings</p>
+                </div>
+              </div>
+              {products.filter((p: any) => p.isPreowned || p.category === 'Pre-Owned').length === 0 ? (
+                <div className="text-center py-12 text-black/30 dark:text-white/30">
+                  <div className="text-4xl mb-3">♻️</div>
+                  <p className="text-sm">No pre-owned products yet. Add one below.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {products.filter((p: any) => p.isPreowned || p.category === 'Pre-Owned').map((product: any) => (
+                    <div key={product.id} className="flex items-center gap-4 p-4 border border-black/5 dark:border-white/5 rounded-xl hover:border-amber-200 dark:hover:border-amber-800/40 transition-colors">
+                      <img src={product.image} alt={product.name} className="w-14 h-14 object-cover rounded-lg shrink-0" referrerPolicy="no-referrer" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-black dark:text-white truncate">{product.name}</p>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          <span className="text-xs text-black/40 dark:text-white/40">৳{product.price}</span>
+                          {product.yearsUsed != null && <span className="text-[10px] bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full">Used {product.yearsUsed} {product.yearsUsed === 1 ? 'yr' : 'yrs'}</span>}
+                          {product.percentNew != null && <span className="text-[10px] bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full">{product.percentNew}% new</span>}
+                        </div>
+                      </div>
+                      <button onClick={() => deleteProduct(product.id)}
+                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors shrink-0">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+
+            {/* Add Pre-Owned Product Form */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+              className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 shadow-sm">
+              <h2 className="text-xl font-medium text-black dark:text-white mb-1">Add Pre-Owned Product</h2>
+              <p className="text-xs text-black/40 dark:text-white/40 mb-6">These will appear under the Pre-Owned category and won't show in Recommended For You.</p>
+              <form onSubmit={handleAddPreowned} className="space-y-6">
+                {/* Name & Price */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Product Name</label>
+                    <input type="text" required value={newPreowned.name} onChange={(e) => setNewPreowned({...newPreowned, name: e.target.value})}
+                      placeholder="e.g., iPhone 13 Pro (Used)"
+                      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Price (৳)</label>
+                    <input type="number" required min="0" value={newPreowned.price} onChange={(e) => setNewPreowned({...newPreowned, price: e.target.value})}
+                      placeholder="e.g., 45000"
+                      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors" />
+                  </div>
+                </div>
+
+                {/* Pre-Owned Specific Fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl">
+                  <div className="space-y-2">
+                    <label className="block text-[10px] uppercase tracking-widest text-amber-700 dark:text-amber-400">⏱ Years Used <span className="normal-case text-amber-500/60">(optional — leave blank to hide)</span></label>
+                    <input type="number" min="0" step="0.5" value={newPreowned.yearsUsed} onChange={(e) => setNewPreowned({...newPreowned, yearsUsed: e.target.value})}
+                      placeholder="e.g., 2"
+                      className="w-full bg-white dark:bg-neutral-900 border border-amber-200 dark:border-amber-800/40 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-[10px] uppercase tracking-widest text-amber-700 dark:text-amber-400">✨ % New / Condition <span className="normal-case text-amber-500/60">(optional — leave blank to hide)</span></label>
+                    <input type="number" min="0" max="100" value={newPreowned.percentNew} onChange={(e) => setNewPreowned({...newPreowned, percentNew: e.target.value})}
+                      placeholder="e.g., 80"
+                      className="w-full bg-white dark:bg-neutral-900 border border-amber-200 dark:border-amber-800/40 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors" />
+                  </div>
+                </div>
+
+                {/* Discount, Stock */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Discount %</label>
+                    <input type="number" min="0" max="100" value={newPreowned.discount} onChange={(e) => setNewPreowned({...newPreowned, discount: e.target.value})}
+                      placeholder="e.g., 10"
+                      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Stock Quantity</label>
+                    <input type="number" min="0" value={newPreowned.stock} onChange={(e) => setNewPreowned({...newPreowned, stock: e.target.value})}
+                      placeholder="Leave blank = unlimited"
+                      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Rating (0–5)</label>
+                    <input type="number" min="0" max="5" step="0.1" value={newPreowned.rating} onChange={(e) => setNewPreowned({...newPreowned, rating: e.target.value})}
+                      placeholder="e.g., 4.2"
+                      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors" />
+                  </div>
+                </div>
+
+                {/* Sizes & Colors */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Sizes (comma separated)</label>
+                    <input type="text" value={newPreowned.sizes} onChange={(e) => setNewPreowned({...newPreowned, sizes: e.target.value})}
+                      placeholder="e.g., S, M, L"
+                      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Colors (comma separated)</label>
+                    <input type="text" value={newPreowned.colors} onChange={(e) => setNewPreowned({...newPreowned, colors: e.target.value})}
+                      placeholder="e.g., Black, Silver"
+                      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors" />
+                  </div>
+                </div>
+
+                {/* Image Upload */}
+                <div className="space-y-2">
+                  <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40"><ImageIcon size={12} className="inline mr-1" />Product Images</label>
+                  <input type="url" value={newPreowned.image} onChange={(e) => setNewPreowned({...newPreowned, image: e.target.value})}
+                    placeholder="https://example.com/image.jpg (or upload below)"
+                    className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors mb-2" />
+                  <div className="border-2 border-dashed border-black/10 dark:border-white/10 rounded-xl p-4 text-center cursor-pointer hover:border-amber-400 transition-colors"
+                    onClick={() => preownedImageInputRef.current?.click()}>
+                    <Upload size={20} className="mx-auto mb-2 text-black/20 dark:text-white/20" />
+                    <p className="text-xs text-black/40 dark:text-white/40">Click to upload images</p>
+                    {preownedImageFiles.length > 0 && <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">{preownedImageFiles.length} file(s) selected</p>}
+                  </div>
+                  <input ref={preownedImageInputRef} type="file" accept="image/*" multiple className="hidden"
+                    onChange={(e) => setPreownedImageFiles(Array.from(e.target.files || []))} />
+                </div>
+
+                {/* Description */}
+                <div className="space-y-2">
+                  <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40"><FileText size={12} className="inline mr-1" />Description</label>
+                  <textarea required rows={4} value={newPreowned.description} onChange={(e) => setNewPreowned({...newPreowned, description: e.target.value})}
+                    placeholder="Describe the item's condition, what's included, any scratches or wear, etc."
+                    className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors resize-none" />
+                </div>
+
+                <div className="pt-4 border-t border-black/5 dark:border-white/5">
+                  <button type="submit" disabled={isAddingPreowned}
+                    className="w-full md:w-auto px-8 py-3 bg-amber-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-amber-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                    {isAddingPreowned ? 'Adding...' : '♻️ Add Pre-Owned Product'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
         ) : activeTab === 'preorders' ? (() => {
           const preorderOrders = orders.filter((o: any) =>
             o.items?.some((item: any) => item.isPreorder)
@@ -1547,42 +1746,6 @@ export default function AdminDashboard() {
                                 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400 hover:text-orange-700 transition-colors">
                                 <PlusCircle size={14} /> Add Tier
                               </button>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Pre-Owned Section (Edit) */}
-                        <div className="md:col-span-2 border border-amber-200 dark:border-amber-900/40 rounded-xl overflow-hidden">
-                          <div className="flex items-center justify-between bg-amber-50 dark:bg-amber-950/20 px-4 py-3">
-                            <div>
-                              <p className="text-xs font-bold text-black dark:text-white">♻️ Pre-Owned Product</p>
-                              <p className="text-[10px] text-black/40 dark:text-white/40 mt-0.5">Mark as used/second-hand — won't appear in Recommended</p>
-                            </div>
-                            <button type="button" onClick={() => setEditProductData({...editProductData, isPreowned: !editProductData.isPreowned})}
-                              className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${editProductData.isPreowned ? 'bg-amber-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
-                              <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${editProductData.isPreowned ? 'translate-x-6' : 'translate-x-1'}`} />
-                            </button>
-                          </div>
-                          {editProductData.isPreowned && (
-                            <div className="bg-white dark:bg-neutral-900 px-4 py-4">
-                              <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium mb-3">Pre-Owned Details (optional)</p>
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-1.5">
-                                  <label className="block text-[9px] uppercase tracking-widest text-black/30 dark:text-white/30">Years Used</label>
-                                  <input type="number" min="0" step="0.5" value={editProductData.yearsUsed ?? ''}
-                                    onChange={(e) => setEditProductData({...editProductData, yearsUsed: e.target.value === '' ? undefined : Number(e.target.value)})}
-                                    placeholder="e.g., 2 (leave blank to hide)"
-                                    className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:border-amber-500 outline-none transition-colors" />
-                                </div>
-                                <div className="space-y-1.5">
-                                  <label className="block text-[9px] uppercase tracking-widest text-black/30 dark:text-white/30">% New / Condition</label>
-                                  <input type="number" min="0" max="100" value={editProductData.percentNew ?? ''}
-                                    onChange={(e) => setEditProductData({...editProductData, percentNew: e.target.value === '' ? undefined : Number(e.target.value)})}
-                                    placeholder="e.g., 80 (leave blank to hide)"
-                                    className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:border-amber-500 outline-none transition-colors" />
-                                </div>
-                              </div>
-                              <p className="text-[10px] text-black/30 dark:text-white/30 mt-2">Leave either field blank and it won't be shown on the product page.</p>
                             </div>
                           )}
                         </div>
@@ -1872,40 +2035,6 @@ export default function AdminDashboard() {
                         className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400 hover:text-orange-700 transition-colors">
                         <PlusCircle size={14} /> Add Tier
                       </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Pre-Owned Section */}
-                <div className="border border-amber-200 dark:border-amber-900/40 rounded-xl overflow-hidden">
-                  <div className="flex items-center justify-between bg-amber-50 dark:bg-amber-950/20 px-5 py-4">
-                    <div>
-                      <p className="text-sm font-bold text-black dark:text-white">♻️ Pre-Owned Product</p>
-                      <p className="text-[11px] text-black/40 dark:text-white/40 mt-0.5">Mark this as a used/second-hand item — will not appear in Recommended section</p>
-                    </div>
-                    <button type="button" onClick={() => setNewProduct({...newProduct, isPreowned: !newProduct.isPreowned})}
-                      className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${newProduct.isPreowned ? 'bg-amber-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
-                      <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${newProduct.isPreowned ? 'translate-x-6' : 'translate-x-1'}`} />
-                    </button>
-                  </div>
-                  {newProduct.isPreowned && (
-                    <div className="bg-white dark:bg-neutral-900 px-5 py-5">
-                      <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium mb-4">Pre-Owned Details (optional)</p>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Years Used</label>
-                          <input type="number" min="0" step="0.5" value={newProduct.yearsUsed} onChange={(e) => setNewProduct({...newProduct, yearsUsed: e.target.value})}
-                            placeholder="e.g., 2 (leave blank to hide)"
-                            className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors" />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">% New / Condition</label>
-                          <input type="number" min="0" max="100" value={newProduct.percentNew} onChange={(e) => setNewProduct({...newProduct, percentNew: e.target.value})}
-                            placeholder="e.g., 80 (leave blank to hide)"
-                            className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors" />
-                        </div>
-                      </div>
-                      <p className="text-[10px] text-black/30 dark:text-white/30 mt-3">Leave either field blank and it won't be shown on the product page.</p>
                     </div>
                   )}
                 </div>
