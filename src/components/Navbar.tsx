@@ -99,7 +99,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setShowSuggestions(true)}
-                  className="w-full bg-gray-100 dark:bg-neutral-800 border-2 border-transparent focus:border-orange-500 rounded-full py-1.5 md:py-2.5 px-8 md:px-12 text-xs md:text-sm text-black dark:text-black outline-none transition-all placeholder:text-gray-400"
+                  className="w-full bg-gray-100 dark:bg-white border-2 border-transparent focus:border-orange-500 rounded-full py-1.5 md:py-2.5 px-8 md:px-12 text-xs md:text-sm text-black dark:text-black outline-none transition-all placeholder:text-gray-400"
                 />
                 <Search size={14} className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500" />
                 <button type="submit" className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-orange-500 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold hover:bg-orange-600 transition-colors">
