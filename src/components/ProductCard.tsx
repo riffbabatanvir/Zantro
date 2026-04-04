@@ -13,6 +13,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
   const originalPrice = product.discount ? product.price / (1 - product.discount / 100) : product.price * 1.5;
   const isOutOfStock = (product as any).stock === 0;
   const isPreorder = (product as any).isPreorder || false;
+  const isPreowned = (product as any).isPreowned || false;
   const canPreorder = isPreorder || isOutOfStock;
   const wishlisted = isWishlisted(product.id);
 
@@ -47,9 +48,19 @@ export default function ProductCard({ product }: { product: Product; key?: strin
         )}
 
         {/* Discount / Hot badge */}
-        {!isOutOfStock && (
+        {!isOutOfStock && !isPreowned && (
           <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">
             {product.discount ? `-${product.discount}%` : 'Hot'}
+          </div>
+        )}
+
+        {/* Pre-Owned badge */}
+        {isPreowned && (
+          <div className="absolute top-2 left-2 flex flex-col gap-1">
+            <span className="bg-amber-600 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">Pre-Owned</span>
+            {(product as any).percentNew != null && (
+              <span className="bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded-md">{(product as any).percentNew}% new</span>
+            )}
           </div>
         )}
 

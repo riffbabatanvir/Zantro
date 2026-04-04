@@ -33,6 +33,9 @@ export interface Product {
   reviewCount?: number;
   isFlashSale?: boolean;
   isPreorder?: boolean;
+  isPreowned?: boolean;
+  yearsUsed?: number;
+  percentNew?: number;
   preorderPriceTiers?: PreorderPriceTier[];   // bulk pricing for preorder
   stock?: number;
   variants?: ProductVariant[];

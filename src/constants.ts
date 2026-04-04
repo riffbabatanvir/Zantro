@@ -10,6 +10,7 @@ export const CATEGORIES: Category[] = [
   { id: '7',  name: 'Home & Living',            image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '8',  name: 'Toys & Accessories',       image: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '9',  name: 'Miscellaneous',            image: 'https://images.unsplash.com/photo-1553481187-be93c21490a9?auto=format&fit=crop&q=80&w=400&h=400' },
+  { id: '10', name: 'Pre-Owned',                 image: 'https://images.unsplash.com/photo-1558618047-f4e60cde5ea5?auto=format&fit=crop&q=80&w=400&h=400' },
 ];
 
 // Groups used in the Shop sidebar
@@ -37,6 +38,10 @@ export const CATEGORY_GROUPS = [
   {
     label: 'Miscellaneous',
     categories: ['Miscellaneous'],
+  },
+  {
+    label: 'Pre-Owned',
+    categories: ['Pre-Owned'],
   },
 ];
 

@@ -54,7 +54,7 @@ export default function AdminDashboard() {
     name: '', price: '', discount: '', description: '',
     category: CATEGORIES[0]?.name || 'Fashion',
     image: '', rating: '', soldCount: '', reviewCount: '', stock: '',
-    sizes: '', colors: '', isPreorder: false
+    sizes: '', colors: '', isPreorder: false, isPreowned: false, yearsUsed: '', percentNew: ''
   });
   const [newProductPriceTiers, setNewProductPriceTiers] = useState<Array<{minQty: string; maxQty: string; label: string; price: string}>>([
     { minQty: '1', maxQty: '1', label: '1 piece', price: '' },
@@ -399,6 +399,9 @@ export default function AdminDashboard() {
         reviewCount: newProduct.reviewCount ? Number(newProduct.reviewCount) : 0,
         stock: newProduct.stock !== '' ? Number(newProduct.stock) : undefined,
         isPreorder: newProduct.isPreorder,
+        isPreowned: newProduct.isPreowned,
+        yearsUsed: newProduct.isPreowned && newProduct.yearsUsed !== '' ? Number(newProduct.yearsUsed) : undefined,
+        percentNew: newProduct.isPreowned && newProduct.percentNew !== '' ? Number(newProduct.percentNew) : undefined,
         preorderPriceTiers: newProduct.isPreorder
           ? newProductPriceTiers
               .filter(t => t.price && t.label)
@@ -415,7 +418,7 @@ export default function AdminDashboard() {
         ] as any,
       });
       toast.success('Product added successfully!');
-      setNewProduct({ name: '', price: '', discount: '', description: '', category: CATEGORIES[0]?.name || 'Fashion', image: '', rating: '', soldCount: '', reviewCount: '', stock: '', sizes: '', colors: '', isPreorder: false });
+      setNewProduct({ name: '', price: '', discount: '', description: '', category: CATEGORIES[0]?.name || 'Fashion', image: '', rating: '', soldCount: '', reviewCount: '', stock: '', sizes: '', colors: '', isPreorder: false, isPreowned: false, yearsUsed: '', percentNew: '' });
       setNewProductPriceTiers([{ minQty: '1', maxQty: '1', label: '1 piece', price: '' }]);
       setImageFiles([]); setVideoFile(null);
       if (imageInputRef.current) imageInputRef.current.value = '';
@@ -467,6 +470,9 @@ export default function AdminDashboard() {
         reviewCount: editProductData.reviewCount ? Number(editProductData.reviewCount) : undefined,
         stock: editProductData.stock !== '' && editProductData.stock !== undefined ? Number(editProductData.stock) : undefined,
         isPreorder: editProductData.isPreorder || false,
+        isPreowned: editProductData.isPreowned || false,
+        yearsUsed: editProductData.isPreowned && editProductData.yearsUsed != null ? editProductData.yearsUsed : undefined,
+        percentNew: editProductData.isPreowned && editProductData.percentNew != null ? editProductData.percentNew : undefined,
         preorderPriceTiers: editProductData.isPreorder
           ? (editProductData.preorderPriceTiers || [])
               .filter((t: any) => t.price && t.label)
@@ -1545,6 +1551,42 @@ export default function AdminDashboard() {
                           )}
                         </div>
 
+                        {/* Pre-Owned Section (Edit) */}
+                        <div className="md:col-span-2 border border-amber-200 dark:border-amber-900/40 rounded-xl overflow-hidden">
+                          <div className="flex items-center justify-between bg-amber-50 dark:bg-amber-950/20 px-4 py-3">
+                            <div>
+                              <p className="text-xs font-bold text-black dark:text-white">♻️ Pre-Owned Product</p>
+                              <p className="text-[10px] text-black/40 dark:text-white/40 mt-0.5">Mark as used/second-hand — won't appear in Recommended</p>
+                            </div>
+                            <button type="button" onClick={() => setEditProductData({...editProductData, isPreowned: !editProductData.isPreowned})}
+                              className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${editProductData.isPreowned ? 'bg-amber-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
+                              <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${editProductData.isPreowned ? 'translate-x-6' : 'translate-x-1'}`} />
+                            </button>
+                          </div>
+                          {editProductData.isPreowned && (
+                            <div className="bg-white dark:bg-neutral-900 px-4 py-4">
+                              <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium mb-3">Pre-Owned Details (optional)</p>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1.5">
+                                  <label className="block text-[9px] uppercase tracking-widest text-black/30 dark:text-white/30">Years Used</label>
+                                  <input type="number" min="0" step="0.5" value={editProductData.yearsUsed ?? ''}
+                                    onChange={(e) => setEditProductData({...editProductData, yearsUsed: e.target.value === '' ? undefined : Number(e.target.value)})}
+                                    placeholder="e.g., 2 (leave blank to hide)"
+                                    className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:border-amber-500 outline-none transition-colors" />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <label className="block text-[9px] uppercase tracking-widest text-black/30 dark:text-white/30">% New / Condition</label>
+                                  <input type="number" min="0" max="100" value={editProductData.percentNew ?? ''}
+                                    onChange={(e) => setEditProductData({...editProductData, percentNew: e.target.value === '' ? undefined : Number(e.target.value)})}
+                                    placeholder="e.g., 80 (leave blank to hide)"
+                                    className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:border-amber-500 outline-none transition-colors" />
+                                </div>
+                              </div>
+                              <p className="text-[10px] text-black/30 dark:text-white/30 mt-2">Leave either field blank and it won't be shown on the product page.</p>
+                            </div>
+                          )}
+                        </div>
+
                         {/* Image Gallery Manager */}
                         {editProductData.images && editProductData.images.length > 0 && (
                           <div className="md:col-span-2">
@@ -1830,6 +1872,40 @@ export default function AdminDashboard() {
                         className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400 hover:text-orange-700 transition-colors">
                         <PlusCircle size={14} /> Add Tier
                       </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Pre-Owned Section */}
+                <div className="border border-amber-200 dark:border-amber-900/40 rounded-xl overflow-hidden">
+                  <div className="flex items-center justify-between bg-amber-50 dark:bg-amber-950/20 px-5 py-4">
+                    <div>
+                      <p className="text-sm font-bold text-black dark:text-white">♻️ Pre-Owned Product</p>
+                      <p className="text-[11px] text-black/40 dark:text-white/40 mt-0.5">Mark this as a used/second-hand item — will not appear in Recommended section</p>
+                    </div>
+                    <button type="button" onClick={() => setNewProduct({...newProduct, isPreowned: !newProduct.isPreowned})}
+                      className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${newProduct.isPreowned ? 'bg-amber-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
+                      <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${newProduct.isPreowned ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                  {newProduct.isPreowned && (
+                    <div className="bg-white dark:bg-neutral-900 px-5 py-5">
+                      <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium mb-4">Pre-Owned Details (optional)</p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Years Used</label>
+                          <input type="number" min="0" step="0.5" value={newProduct.yearsUsed} onChange={(e) => setNewProduct({...newProduct, yearsUsed: e.target.value})}
+                            placeholder="e.g., 2 (leave blank to hide)"
+                            className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">% New / Condition</label>
+                          <input type="number" min="0" max="100" value={newProduct.percentNew} onChange={(e) => setNewProduct({...newProduct, percentNew: e.target.value})}
+                            placeholder="e.g., 80 (leave blank to hide)"
+                            className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors" />
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-black/30 dark:text-white/30 mt-3">Leave either field blank and it won't be shown on the product page.</p>
                     </div>
                   )}
                 </div>

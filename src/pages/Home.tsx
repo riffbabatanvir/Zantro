@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react';
 
 export default function Home() {
   const { products } = useProducts();
-  const featuredProducts = products.slice(0, 8);
+  const featuredProducts = products.filter(p => !p.isPreowned && p.category !== 'Pre-Owned').slice(0, 8);
   const flashSaleProducts = products.filter(p => p.isFlashSale);
 const [flashSaleEnabled, setFlashSaleEnabled] = useState(true);
 

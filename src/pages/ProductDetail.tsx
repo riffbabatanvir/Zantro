@@ -151,6 +151,9 @@ export default function ProductDetail() {
   const isOutOfStock = stock !== undefined && stock === 0;
   const isPreorder = (product as any).isPreorder || false;
   const showPreorderButton = isPreorder || isOutOfStock;
+  const isPreowned = (product as any).isPreowned || false;
+  const yearsUsed = (product as any).yearsUsed;
+  const percentNew = (product as any).percentNew;
   const preorderTiers: Array<{ minQty: number; maxQty?: number; label: string; price: number }> = (product as any).preorderPriceTiers || [];
   const hasTiers = isPreorder && preorderTiers.length > 0;
   const selectedTier = hasTiers ? preorderTiers[selectedTierIdx] : null;
@@ -282,6 +285,23 @@ export default function ProductDetail() {
               </div>
 
               {/* Stock Badge */}
+              {isPreowned && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-black rounded-full uppercase tracking-widest">
+                    ♻️ Pre-Owned
+                  </div>
+                  {percentNew != null && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-black rounded-full uppercase tracking-widest">
+                      {percentNew}% Condition
+                    </div>
+                  )}
+                  {yearsUsed != null && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 text-xs font-black rounded-full uppercase tracking-widest">
+                      Used {yearsUsed} {yearsUsed === 1 ? 'year' : 'years'}
+                    </div>
+                  )}
+                </div>
+              )}
               {isPreorder && (
                 <div className="inline-block mb-4 mr-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs font-black rounded-full uppercase tracking-widest">
                   🕐 Pre-Order — 1–2 Months Delivery
