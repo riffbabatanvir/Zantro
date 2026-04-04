@@ -56,6 +56,9 @@ export default function AdminDashboard() {
     image: '', rating: '', soldCount: '', reviewCount: '', stock: '',
     sizes: '', colors: '', isPreorder: false
   });
+  const [newProductPriceTiers, setNewProductPriceTiers] = useState<Array<{minQty: string; maxQty: string; label: string; price: string}>>([
+    { minQty: '1', maxQty: '1', label: '1 piece', price: '' },
+  ]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
@@ -396,6 +399,16 @@ export default function AdminDashboard() {
         reviewCount: newProduct.reviewCount ? Number(newProduct.reviewCount) : 0,
         stock: newProduct.stock !== '' ? Number(newProduct.stock) : undefined,
         isPreorder: newProduct.isPreorder,
+        preorderPriceTiers: newProduct.isPreorder
+          ? newProductPriceTiers
+              .filter(t => t.price && t.label)
+              .map(t => ({
+                minQty: Number(t.minQty) || 1,
+                maxQty: t.maxQty ? Number(t.maxQty) : undefined,
+                label: t.label,
+                price: Number(t.price),
+              }))
+          : undefined,
         variants: [
           ...(newProduct.sizes.trim() ? [{ type: 'size', options: newProduct.sizes.split(',').map((s: string) => s.trim()).filter(Boolean) }] : []),
           ...(newProduct.colors.trim() ? [{ type: 'color', options: newProduct.colors.split(',').map((s: string) => s.trim()).filter(Boolean) }] : []),
@@ -403,6 +416,7 @@ export default function AdminDashboard() {
       });
       toast.success('Product added successfully!');
       setNewProduct({ name: '', price: '', discount: '', description: '', category: CATEGORIES[0]?.name || 'Fashion', image: '', rating: '', soldCount: '', reviewCount: '', stock: '', sizes: '', colors: '', isPreorder: false });
+      setNewProductPriceTiers([{ minQty: '1', maxQty: '1', label: '1 piece', price: '' }]);
       setImageFiles([]); setVideoFile(null);
       if (imageInputRef.current) imageInputRef.current.value = '';
       if (videoInputRef.current) videoInputRef.current.value = '';
@@ -453,6 +467,16 @@ export default function AdminDashboard() {
         reviewCount: editProductData.reviewCount ? Number(editProductData.reviewCount) : undefined,
         stock: editProductData.stock !== '' && editProductData.stock !== undefined ? Number(editProductData.stock) : undefined,
         isPreorder: editProductData.isPreorder || false,
+        preorderPriceTiers: editProductData.isPreorder
+          ? (editProductData.preorderPriceTiers || [])
+              .filter((t: any) => t.price && t.label)
+              .map((t: any) => ({
+                minQty: Number(t.minQty) || 1,
+                maxQty: t.maxQty ? Number(t.maxQty) : undefined,
+                label: t.label,
+                price: Number(t.price),
+              }))
+          : undefined,
         variants: [
           ...(editProductData.sizes && editProductData.sizes.trim() ? [{ type: 'size', options: editProductData.sizes.split(',').map((s: string) => s.trim()).filter(Boolean) }] : []),
           ...(editProductData.colors && editProductData.colors.trim() ? [{ type: 'color', options: editProductData.colors.split(',').map((s: string) => s.trim()).filter(Boolean) }] : []),
@@ -1461,16 +1485,64 @@ export default function AdminDashboard() {
                           </div>
                         </div>
 
-                        {/* Pre-Order Toggle (Edit) */}
-                        <div className="md:col-span-2 flex items-center justify-between bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-xl px-4 py-3">
-                          <div>
-                            <p className="text-xs font-bold text-black dark:text-white">🕐 Pre-Order Product</p>
-                            <p className="text-[10px] text-black/40 dark:text-white/40 mt-0.5">Show in pre-order section with Pre-Order button</p>
+                        {/* Pre-Order Section (Edit) */}
+                        <div className="md:col-span-2 border border-orange-200 dark:border-orange-900/40 rounded-xl overflow-hidden">
+                          <div className="flex items-center justify-between bg-orange-50 dark:bg-orange-950/20 px-4 py-3">
+                            <div>
+                              <p className="text-xs font-bold text-black dark:text-white">🕐 Pre-Order Product</p>
+                              <p className="text-[10px] text-black/40 dark:text-white/40 mt-0.5">Enables bulk pricing tiers for this product</p>
+                            </div>
+                            <button type="button" onClick={() => setEditProductData({...editProductData, isPreorder: !editProductData.isPreorder})}
+                              className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${editProductData.isPreorder ? 'bg-orange-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
+                              <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${editProductData.isPreorder ? 'translate-x-6' : 'translate-x-1'}`} />
+                            </button>
                           </div>
-                          <button type="button" onClick={() => setEditProductData({...editProductData, isPreorder: !editProductData.isPreorder})}
-                            className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${editProductData.isPreorder ? 'bg-orange-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
-                            <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${editProductData.isPreorder ? 'translate-x-6' : 'translate-x-1'}`} />
-                          </button>
+                          {editProductData.isPreorder && (
+                            <div className="bg-white dark:bg-neutral-900 px-4 py-4 space-y-3">
+                              <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Bulk Pricing Tiers</p>
+                              <div className="space-y-2">
+                                {(editProductData.preorderPriceTiers || []).map((tier: any, idx: number) => (
+                                  <div key={idx} className="grid grid-cols-12 gap-2 items-start">
+                                    <div className="col-span-4">
+                                      {idx === 0 && <label className="block text-[9px] uppercase tracking-widest text-black/30 dark:text-white/30 mb-1">Label</label>}
+                                      <input type="text" value={tier.label} placeholder="e.g. 1 piece"
+                                        onChange={e => { const tiers = [...(editProductData.preorderPriceTiers || [])]; tiers[idx] = {...tiers[idx], label: e.target.value}; setEditProductData({...editProductData, preorderPriceTiers: tiers}); }}
+                                        className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs focus:border-orange-500 outline-none" />
+                                    </div>
+                                    <div className="col-span-2">
+                                      {idx === 0 && <label className="block text-[9px] uppercase tracking-widest text-black/30 dark:text-white/30 mb-1">Min</label>}
+                                      <input type="number" min="1" value={tier.minQty}
+                                        onChange={e => { const tiers = [...(editProductData.preorderPriceTiers || [])]; tiers[idx] = {...tiers[idx], minQty: e.target.value}; setEditProductData({...editProductData, preorderPriceTiers: tiers}); }}
+                                        className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs focus:border-orange-500 outline-none" />
+                                    </div>
+                                    <div className="col-span-2">
+                                      {idx === 0 && <label className="block text-[9px] uppercase tracking-widest text-black/30 dark:text-white/30 mb-1">Max</label>}
+                                      <input type="number" min="1" value={tier.maxQty || ''} placeholder="∞"
+                                        onChange={e => { const tiers = [...(editProductData.preorderPriceTiers || [])]; tiers[idx] = {...tiers[idx], maxQty: e.target.value}; setEditProductData({...editProductData, preorderPriceTiers: tiers}); }}
+                                        className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs focus:border-orange-500 outline-none" />
+                                    </div>
+                                    <div className="col-span-3">
+                                      {idx === 0 && <label className="block text-[9px] uppercase tracking-widest text-black/30 dark:text-white/30 mb-1">৳ / unit</label>}
+                                      <input type="number" min="0" value={tier.price} placeholder="0"
+                                        onChange={e => { const tiers = [...(editProductData.preorderPriceTiers || [])]; tiers[idx] = {...tiers[idx], price: e.target.value}; setEditProductData({...editProductData, preorderPriceTiers: tiers}); }}
+                                        className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs focus:border-orange-500 outline-none" />
+                                    </div>
+                                    <div className="col-span-1 flex items-end">
+                                      <button type="button" onClick={() => { const tiers = (editProductData.preorderPriceTiers || []).filter((_: any, i: number) => i !== idx); setEditProductData({...editProductData, preorderPriceTiers: tiers}); }}
+                                        className={`w-7 h-7 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors ${idx === 0 ? 'mt-5' : ''}`}>
+                                        <Trash2 size={12} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                              <button type="button"
+                                onClick={() => setEditProductData({...editProductData, preorderPriceTiers: [...(editProductData.preorderPriceTiers || []), { minQty: '', maxQty: '', label: '', price: '' }]})}
+                                className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400 hover:text-orange-700 transition-colors">
+                                <PlusCircle size={14} /> Add Tier
+                              </button>
+                            </div>
+                          )}
                         </div>
 
                         {/* Image Gallery Manager */}
@@ -1589,7 +1661,7 @@ export default function AdminDashboard() {
                             title="Toggle Flash Sale">
                             <Zap size={10} /> Flash
                           </button>
-                          <button onClick={() => { setEditingProduct(product.id); setEditProductData({ name: product.name, price: product.price, discount: product.discount || '', description: product.description, category: product.category, image: product.image, images: (product as any).images || [], video: (product as any).video || undefined, rating: product.rating || '', soldCount: (product as any).soldCount || '', reviewCount: (product as any).reviewCount || '', stock: (product as any).stock ?? '', sizes: ((product as any).variants?.find((v: any) => v.type === 'size')?.options || []).join(', '), colors: ((product as any).variants?.find((v: any) => v.type === 'color')?.options || []).join(', ') }); setEditImageFiles([]); setEditVideoFile(null); if (editImageInputRef.current) editImageInputRef.current.value = ''; if (editVideoInputRef.current) editVideoInputRef.current.value = ''; }}
+                          <button onClick={() => { setEditingProduct(product.id); setEditProductData({ name: product.name, price: product.price, discount: product.discount || '', description: product.description, category: product.category, image: product.image, images: (product as any).images || [], video: (product as any).video || undefined, rating: product.rating || '', soldCount: (product as any).soldCount || '', reviewCount: (product as any).reviewCount || '', stock: (product as any).stock ?? '', sizes: ((product as any).variants?.find((v: any) => v.type === 'size')?.options || []).join(', '), colors: ((product as any).variants?.find((v: any) => v.type === 'color')?.options || []).join(', '), isPreorder: (product as any).isPreorder || false, preorderPriceTiers: (product as any).preorderPriceTiers || [] }); setEditImageFiles([]); setEditVideoFile(null); if (editImageInputRef.current) editImageInputRef.current.value = ''; if (editVideoInputRef.current) editVideoInputRef.current.value = ''; }}
                             className="p-2 text-black/40 dark:text-white/40 hover:text-orange-600 dark:hover:text-orange-400 transition-colors rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20" title="Edit Product">
                             <Edit2 size={16} />
                           </button>
@@ -1701,16 +1773,65 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* Pre-Order Toggle */}
-                <div className="flex items-center justify-between bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-xl px-5 py-4">
-                  <div>
-                    <p className="text-sm font-bold text-black dark:text-white">🕐 Pre-Order Product</p>
-                    <p className="text-[11px] text-black/40 dark:text-white/40 mt-0.5">This product will appear in the Pre-Order section and show a Pre-Order button</p>
+                {/* Pre-Order Section */}
+                <div className="border border-orange-200 dark:border-orange-900/40 rounded-xl overflow-hidden">
+                  <div className="flex items-center justify-between bg-orange-50 dark:bg-orange-950/20 px-5 py-4">
+                    <div>
+                      <p className="text-sm font-bold text-black dark:text-white">🕐 Pre-Order Product</p>
+                      <p className="text-[11px] text-black/40 dark:text-white/40 mt-0.5">Enables bulk pricing tiers — customers pick a quantity bracket at checkout</p>
+                    </div>
+                    <button type="button" onClick={() => setNewProduct({...newProduct, isPreorder: !newProduct.isPreorder})}
+                      className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${newProduct.isPreorder ? 'bg-orange-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
+                      <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${newProduct.isPreorder ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
                   </div>
-                  <button type="button" onClick={() => setNewProduct({...newProduct, isPreorder: !newProduct.isPreorder})}
-                    className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${newProduct.isPreorder ? 'bg-orange-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
-                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${newProduct.isPreorder ? 'translate-x-6' : 'translate-x-1'}`} />
-                  </button>
+                  {newProduct.isPreorder && (
+                    <div className="bg-white dark:bg-neutral-900 px-5 py-5 space-y-4">
+                      <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Bulk Pricing Tiers</p>
+                      <p className="text-[11px] text-black/50 dark:text-white/40 -mt-2">Add tiers like "1 piece", "1–9 pieces", "10+ pieces" with different per-unit prices. Customers will select one tier when ordering.</p>
+                      <div className="space-y-3">
+                        {newProductPriceTiers.map((tier, idx) => (
+                          <div key={idx} className="grid grid-cols-12 gap-2 items-start">
+                            <div className="col-span-4">
+                              <label className="block text-[9px] uppercase tracking-widest text-black/30 dark:text-white/30 mb-1">Label</label>
+                              <input type="text" value={tier.label} placeholder="e.g. 1 piece"
+                                onChange={e => { const t = [...newProductPriceTiers]; t[idx] = {...t[idx], label: e.target.value}; setNewProductPriceTiers(t); }}
+                                className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:border-orange-500 outline-none" />
+                            </div>
+                            <div className="col-span-2">
+                              <label className="block text-[9px] uppercase tracking-widest text-black/30 dark:text-white/30 mb-1">Min Qty</label>
+                              <input type="number" min="1" value={tier.minQty}
+                                onChange={e => { const t = [...newProductPriceTiers]; t[idx] = {...t[idx], minQty: e.target.value}; setNewProductPriceTiers(t); }}
+                                className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:border-orange-500 outline-none" />
+                            </div>
+                            <div className="col-span-2">
+                              <label className="block text-[9px] uppercase tracking-widest text-black/30 dark:text-white/30 mb-1">Max Qty</label>
+                              <input type="number" min="1" value={tier.maxQty} placeholder="∞"
+                                onChange={e => { const t = [...newProductPriceTiers]; t[idx] = {...t[idx], maxQty: e.target.value}; setNewProductPriceTiers(t); }}
+                                className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:border-orange-500 outline-none" />
+                            </div>
+                            <div className="col-span-3">
+                              <label className="block text-[9px] uppercase tracking-widest text-black/30 dark:text-white/30 mb-1">Price / unit (৳)</label>
+                              <input type="number" min="0" value={tier.price} placeholder="0"
+                                onChange={e => { const t = [...newProductPriceTiers]; t[idx] = {...t[idx], price: e.target.value}; setNewProductPriceTiers(t); }}
+                                className="w-full bg-gray-50 dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:border-orange-500 outline-none" />
+                            </div>
+                            <div className="col-span-1 flex items-end pb-0.5">
+                              <button type="button" onClick={() => setNewProductPriceTiers(newProductPriceTiers.filter((_, i) => i !== idx))}
+                                className="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors mt-5">
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <button type="button"
+                        onClick={() => setNewProductPriceTiers([...newProductPriceTiers, { minQty: '', maxQty: '', label: '', price: '' }])}
+                        className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400 hover:text-orange-700 transition-colors">
+                        <PlusCircle size={14} /> Add Tier
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">

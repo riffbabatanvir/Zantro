@@ -21,6 +21,12 @@ export default function Checkout() {
     cardNumber: '', cardExpiry: '', cardCvc: '', cardName: ''
   });
 
+  // Preorder detection
+  const isPreorderCart = cart.some((item) => (item as any).isPreorder);
+
+  // Preorder payment option: '100' = full, '50' = half advance
+  const [preorderPayOption, setPreorderPayOption] = useState<'100' | '50'>('100');
+
   // Coupon state
   const [couponInput, setCouponInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
@@ -28,7 +34,13 @@ export default function Checkout() {
 
   const shippingCost = (region === 'outside' && paymentMethod !== 'cod') ? 120 : 0;
   const couponDiscount = appliedCoupon ? Math.round(totalPrice * appliedCoupon.discount / 100) : 0;
-  const finalTotal = totalPrice + shippingCost - couponDiscount;
+  const baseTotal = totalPrice + shippingCost - couponDiscount;
+  const finalTotal = isPreorderCart && preorderPayOption === '50'
+    ? Math.round(baseTotal * 0.5)
+    : baseTotal;
+  const remainingAmount = isPreorderCart && preorderPayOption === '50'
+    ? baseTotal - finalTotal
+    : 0;
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -80,6 +92,9 @@ export default function Checkout() {
       items: cart, totalPrice, shippingCost, couponDiscount,
       couponCode: appliedCoupon?.code,
       finalTotal, paymentMethod,
+      isPreorderOrder: isPreorderCart,
+      preorderPayOption: isPreorderCart ? preorderPayOption : undefined,
+      preorderRemainingAmount: isPreorderCart && preorderPayOption === '50' ? remainingAmount : undefined,
       customerInfo: { fullName: formData.fullName, email: formData.email, address: formData.address, region, phone: formData.phone },
       cardInfo: paymentMethod === 'card' ? { cardNumber: formData.cardNumber, expiry: formData.cardExpiry, cvc: formData.cardCvc, nameOnCard: formData.cardName } : undefined
     };
@@ -296,9 +311,41 @@ export default function Checkout() {
                 </div>
               </section>
 
+              {/* Pre-Order Payment Option */}
+              {isPreorderCart && (
+                <section>
+                  <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-2">03. Pre-Order Payment</h2>
+                  <p className="text-[11px] text-black/40 dark:text-white/40 mb-4">Since this is a pre-order, choose how much you'd like to pay now. The remaining balance is due before shipment.</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    {([
+                      { id: '100', label: 'Pay in Full', sub: '100% now', desc: 'No balance due at delivery' },
+                      { id: '50',  label: '50% Advance', sub: 'Pay half now', desc: `Remaining ৳${(baseTotal - Math.round(baseTotal * 0.5)).toFixed(2)} before shipment` },
+                    ] as const).map(opt => (
+                      <button key={opt.id} type="button" onClick={() => setPreorderPayOption(opt.id)}
+                        className={`flex flex-col items-start gap-1 border rounded-xl px-4 py-4 transition-all text-left ${preorderPayOption === opt.id ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20' : 'border-black/10 dark:border-white/10 hover:border-black dark:hover:border-white'}`}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${preorderPayOption === opt.id ? 'border-orange-500' : 'border-black/30 dark:border-white/30'}`}>
+                            {preorderPayOption === opt.id && <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />}
+                          </div>
+                          <span className={`text-xs font-bold uppercase tracking-widest ${preorderPayOption === opt.id ? 'text-orange-600 dark:text-orange-400' : 'text-black dark:text-white'}`}>{opt.label}</span>
+                        </div>
+                        <p className="text-[10px] text-black/40 dark:text-white/40 pl-5">{opt.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                  {preorderPayOption === '50' && (
+                    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                      className="mt-3 flex items-start gap-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 rounded-xl px-4 py-3">
+                      <span className="text-amber-500 text-sm">⚠️</span>
+                      <p className="text-[11px] text-amber-700 dark:text-amber-400">You are paying <strong>50% (৳{finalTotal.toFixed(2)})</strong> now as an advance. The remaining <strong>৳{remainingAmount.toFixed(2)}</strong> must be paid before your order is shipped.</p>
+                    </motion.div>
+                  )}
+                </section>
+              )}
+
               {/* Coupon Section */}
               <section>
-                <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-6">03. Coupon Code</h2>
+                <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-6">{isPreorderCart ? '04' : '03'}. Coupon Code</h2>
                 {appliedCoupon ? (
                   <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
                     <div className="flex items-center gap-3">
@@ -390,8 +437,24 @@ export default function Checkout() {
                   <span>-৳{couponDiscount.toFixed(2)}</span>
                 </div>
               )}
+              {isPreorderCart && preorderPayOption === '50' && (
+                <>
+                  <div className="flex justify-between text-[11px] uppercase tracking-widest text-black/40 dark:text-white/40">
+                    <span>Order Total</span>
+                    <span className="text-black dark:text-white">৳{baseTotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-[11px] uppercase tracking-widest text-orange-600 dark:text-orange-400">
+                    <span>50% Advance Due Now</span>
+                    <span>৳{finalTotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-[11px] uppercase tracking-widest text-black/30 dark:text-white/30">
+                    <span>Remaining (before shipment)</span>
+                    <span>৳{remainingAmount.toFixed(2)}</span>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest text-black dark:text-white pt-4 border-t border-black/5 dark:border-white/5">
-                <span>Total</span>
+                <span>{isPreorderCart && preorderPayOption === '50' ? 'Pay Now' : 'Total'}</span>
                 <span>৳{finalTotal.toFixed(2)}</span>
               </div>
             </div>

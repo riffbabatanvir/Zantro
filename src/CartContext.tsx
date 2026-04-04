@@ -27,6 +27,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [cart]);
 
   const addToCart = (product: Product & { selectedSize?: string; selectedColor?: string }, quantity: number = 1) => {
+    // Block mixing preorder and regular items
+    const cartHasPreorder = cart.some((item) => (item as any).isPreorder);
+    const cartHasRegular = cart.some((item) => !(item as any).isPreorder);
+    const addingPreorder = !!(product as any).isPreorder;
+
+    if (addingPreorder && cartHasRegular) {
+      toast.error('Cannot mix Pre-Order & regular items. Please checkout or clear your cart first.', { duration: 4000 });
+      return;
+    }
+    if (!addingPreorder && cartHasPreorder) {
+      toast.error('Cannot mix regular & Pre-Order items. Please checkout or clear your cart first.', { duration: 4000 });
+      return;
+    }
+
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) =>
         item.id === product.id &&

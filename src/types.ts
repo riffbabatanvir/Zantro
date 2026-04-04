@@ -11,6 +11,13 @@ export interface CustomerReview {
   date: string;
 }
 
+export interface PreorderPriceTier {
+  minQty: number;
+  maxQty?: number;
+  label: string;     // e.g. "1 piece", "1–9 pieces", "10+ pieces"
+  price: number;     // price per unit at this tier
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -26,6 +33,7 @@ export interface Product {
   reviewCount?: number;
   isFlashSale?: boolean;
   isPreorder?: boolean;
+  preorderPriceTiers?: PreorderPriceTier[];   // bulk pricing for preorder
   stock?: number;
   variants?: ProductVariant[];
   customerReviews?: CustomerReview[];
