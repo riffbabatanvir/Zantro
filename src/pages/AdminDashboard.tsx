@@ -396,6 +396,46 @@ export default function AdminDashboard() {
     } catch { toast.error('An error occurred'); }
   };
 
+  // Bulk selection state
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<string>('confirmed');
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+
+  const toggleSelectOrder = (id: string) => {
+    setSelectedOrders(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOrders.size === filteredOrders.length) {
+      setSelectedOrders(new Set());
+    } else {
+      setSelectedOrders(new Set(filteredOrders.map((o: any) => o.id)));
+    }
+  };
+
+  const handleBulkStatusUpdate = async () => {
+    if (selectedOrders.size === 0) return;
+    setIsBulkUpdating(true);
+    const token = localStorage.getItem('adminToken');
+    try {
+      await Promise.all([...selectedOrders].map(id =>
+        fetch(`/api/orders/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ status: bulkStatus })
+        })
+      ));
+      setOrders(orders.map((o: any) => selectedOrders.has(o.id) ? { ...o, status: bulkStatus } : o));
+      toast.success(`${selectedOrders.size} order(s) updated to "${bulkStatus}"`);
+      setSelectedOrders(new Set());
+    } catch { toast.error('Bulk update failed'); }
+    finally { setIsBulkUpdating(false); }
+  };
+
   const handleDeleteOrder = async (orderId: string) => {
     if (!window.confirm('Are you sure you want to delete this order completely?')) return;
     try {
@@ -825,6 +865,37 @@ export default function AdminDashboard() {
               </div>
             </div>
 
+            {/* Bulk Action Toolbar */}
+            {filteredOrders.length > 0 && (
+              <div className="flex flex-wrap items-center gap-3 mb-4 p-3 bg-white dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
+                <button onClick={toggleSelectAll}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-colors border ${selectedOrders.size === filteredOrders.length && filteredOrders.length > 0 ? 'bg-orange-500 text-white border-orange-500' : 'border-black/10 dark:border-white/10 text-black/60 dark:text-white/60 hover:border-orange-500 hover:text-orange-500'}`}>
+                  {selectedOrders.size === filteredOrders.length && filteredOrders.length > 0 ? '✓ Deselect All' : `Select All (${filteredOrders.length})`}
+                </button>
+                {selectedOrders.size > 0 && (
+                  <>
+                    <span className="text-[11px] font-bold text-orange-500">{selectedOrders.size} selected</span>
+                    <div className="flex items-center gap-2 ml-auto flex-wrap">
+                      <span className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Update to:</span>
+                      <select value={bulkStatus} onChange={e => setBulkStatus(e.target.value)}
+                        className="bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs text-black dark:text-white outline-none focus:border-orange-500 transition-colors">
+                        {['pending','confirmed','shipped','delivered','cancelled'].map(s => (
+                          <option key={s} value={s} className="bg-white dark:bg-neutral-900">{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                        ))}
+                      </select>
+                      <button onClick={handleBulkStatusUpdate} disabled={isBulkUpdating}
+                        className="px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-orange-700 transition-colors disabled:opacity-50">
+                        {isBulkUpdating ? 'Updating...' : 'Apply'}
+                      </button>
+                    </div>
+                  </>
+                )}
+                {selectedOrders.size === 0 && (
+                  <span className="text-[10px] text-black/30 dark:text-white/30 uppercase tracking-widest">Select orders to bulk update status</span>
+                )}
+              </div>
+            )}
+
             {isLoading ? (
               <div className="text-center py-20 text-black/40 dark:text-white/40">Loading orders...</div>
             ) : filteredOrders.length === 0 ? (
@@ -839,6 +910,10 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-4">
                           <div>
                             <div className="flex items-center gap-3">
+                              <button onClick={() => toggleSelectOrder(order.id)}
+                                className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${selectedOrders.has(order.id) ? 'bg-orange-500 border-orange-500 text-white' : 'border-black/20 dark:border-white/20 hover:border-orange-500'}`}>
+                                {selectedOrders.has(order.id) && <CheckCircle size={11} />}
+                              </button>
                               <span className="text-[10px] font-bold uppercase tracking-widest text-black/60 dark:text-white/60 bg-black/5 dark:bg-white/10 px-2 py-1 rounded">Order #{order.id.slice(-6)}</span>
                               <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded ${
                                 order.status === 'confirmed' ? 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30' :
@@ -848,6 +923,11 @@ export default function AdminDashboard() {
                                 'text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-900/30'}`}>
                                 {order.status || 'pending'}
                               </span>
+                              {order.cancelRequest && order.status !== 'cancelled' && (
+                                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 flex items-center gap-1">
+                                  ⚠ Cancel Requested
+                                </span>
+                              )}
                             </div>
                             <p className="text-xs text-black/40 dark:text-white/40 mt-2">{new Date(order.createdAt).toLocaleString()}</p>
                           </div>
@@ -911,6 +991,15 @@ export default function AdminDashboard() {
                                 <Save size={12} /> {savingRemark === order.id ? 'Saving...' : 'Save Remark'}
                               </button>
                             </div>
+
+                            {/* Cancel Request Info */}
+                            {order.cancelRequest && order.status !== 'cancelled' && (
+                              <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/40 rounded-xl">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-yellow-700 dark:text-yellow-400 mb-1">⚠ Customer Cancellation Request</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 italic">"{order.cancelRequest.reason}"</p>
+                                <p className="text-[10px] text-gray-400 mt-1">{new Date(order.cancelRequest.requestedAt).toLocaleString()}</p>
+                              </div>
+                            )}
 
                             {/* Status Controls */}
                             <div className="pt-4 mt-4 border-t border-black/5 dark:border-white/5 space-y-2">

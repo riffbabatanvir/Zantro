@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Search, Package, CheckCircle, XCircle, Clock, Truck, MapPin, Phone, Mail, User } from 'lucide-react';
+import { useState } from 'react';
+import { Search, Package, CheckCircle, XCircle, Clock, Truck, MapPin, Phone, Mail, User, AlertTriangle } from 'lucide-react';
 
 const STATUS_STEPS = ['pending', 'confirmed', 'shipped', 'delivered'];
 
@@ -36,6 +37,30 @@ export default function OrderTracking() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const [cancelReason, setCancelReason] = useState('');
+  const [showCancelForm, setShowCancelForm] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelSuccess, setCancelSuccess] = useState(false);
+
+  const handleCancelRequest = async () => {
+    if (!cancelReason.trim()) return;
+    setCancelLoading(true);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/cancel-request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: cancelReason.trim() }),
+      });
+      if (res.ok) {
+        setCancelSuccess(true);
+        setShowCancelForm(false);
+        setCancelReason('');
+        setOrder((prev: any) => ({ ...prev, cancelRequest: { reason: cancelReason.trim(), requestedAt: new Date().toISOString() } }));
+      }
+    } catch {}
+    finally { setCancelLoading(false); }
   };
 
   const statusInfo = order ? (STATUS_INFO[order.status] || STATUS_INFO['pending']) : null;
@@ -180,6 +205,57 @@ export default function OrderTracking() {
               <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-2xl p-5">
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-2">Message from Store</h3>
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{order.remark}</p>
+              </div>
+            )}
+
+            {/* Cancellation Section */}
+            {order.status === 'cancelled' ? (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-5">
+                <p className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-1">Order Cancelled</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">This order has been cancelled.</p>
+              </div>
+            ) : order.status === 'delivered' ? null : order.cancelRequest ? (
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/40 rounded-2xl p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle size={16} className="text-yellow-600 dark:text-yellow-400 shrink-0" />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-yellow-600 dark:text-yellow-400">Cancellation Requested</p>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Your cancellation request has been received. Our team will review it shortly.</p>
+                {order.cancelRequest.reason && <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 italic">Reason: "{order.cancelRequest.reason}"</p>}
+              </div>
+            ) : (
+              <div className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-5 border border-black/5 dark:border-white/5">
+                {!showCancelForm ? (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-gray-800 dark:text-gray-200">Need to cancel?</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Submit a cancellation request and we'll get back to you.</p>
+                    </div>
+                    <button onClick={() => setShowCancelForm(true)}
+                      className="px-4 py-2 border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shrink-0">
+                      Request Cancellation
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm font-bold text-gray-800 dark:text-gray-200">Reason for cancellation</p>
+                    <textarea
+                      rows={3} value={cancelReason} onChange={e => setCancelReason(e.target.value)}
+                      placeholder="Please describe why you'd like to cancel this order..."
+                      className="w-full bg-white dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-800 dark:text-gray-200 outline-none focus:border-red-400 transition-colors resize-none placeholder:text-gray-400"
+                    />
+                    <div className="flex gap-2">
+                      <button onClick={handleCancelRequest} disabled={cancelLoading || !cancelReason.trim()}
+                        className="px-5 py-2.5 bg-red-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-700 transition-colors disabled:opacity-50">
+                        {cancelLoading ? 'Submitting...' : 'Submit Request'}
+                      </button>
+                      <button onClick={() => { setShowCancelForm(false); setCancelReason(''); }}
+                        className="px-5 py-2.5 border border-black/10 dark:border-white/10 text-gray-500 dark:text-gray-400 rounded-xl text-xs font-bold uppercase tracking-widest hover:border-black/30 dark:hover:border-white/30 transition-colors">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </motion.div>

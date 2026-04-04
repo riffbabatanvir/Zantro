@@ -195,6 +195,24 @@ app.patch('/api/orders/:id/status', async (req, res) => {
   }
 });
 
+// Cancel request (public — customer submits)
+app.post('/api/orders/:id/cancel-request', async (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+  try {
+    const order = await db.collection('orders').findOne({ _id: new ObjectId(id) });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    if (['delivered', 'cancelled'].includes(order.status)) return res.status(400).json({ error: 'Cannot request cancellation for this order' });
+    await db.collection('orders').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { cancelRequest: { reason, requestedAt: new Date().toISOString() } } }
+    );
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: 'Failed to submit cancellation request' });
+  }
+});
+
 app.delete('/api/orders/:id', async (req, res) => {
   if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
   const { id } = req.params;
@@ -474,6 +492,7 @@ app.get('/api/orders/track/:id', async (req, res) => {
       preorderRemainingAmount: order.preorderRemainingAmount,
       fullPaid: order.fullPaid || false,
       isPreorderOrder: order.isPreorderOrder || false,
+      cancelRequest: order.cancelRequest || null,
       items: order.items?.map((i: any) => ({ name: i.name, price: i.price, quantity: i.quantity, image: i.image, isPreorder: i.isPreorder })),
       customerInfo: {
         fullName: order.customerInfo?.fullName,
