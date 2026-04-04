@@ -139,6 +139,8 @@ export default function AdminDashboard() {
   };
 
   const [catEditId, setCatEditId] = useState<string | null>(null);
+  const [manageSearch, setManageSearch] = useState('');
+  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
   // Hero Slides
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
   const [isSavingHero, setIsSavingHero] = useState(false);
@@ -1642,9 +1644,63 @@ export default function AdminDashboard() {
               </div>
 
               <div className="space-y-4">
-                {products.map(product => (
-                  <div key={product.id} className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between p-4 bg-gray-50 dark:bg-neutral-950 rounded-xl border border-black/5 dark:border-white/5">
-                    {editingProduct === product.id ? (
+                {/* Search bar */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={manageSearch}
+                    onChange={e => setManageSearch(e.target.value)}
+                    placeholder="Search products by name..."
+                    className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2.5 pl-9 text-sm focus:border-orange-500 outline-none transition-colors"
+                  />
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/30 dark:text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" /></svg>
+                  {manageSearch && (
+                    <button onClick={() => setManageSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-black/30 dark:text-white/30 hover:text-black dark:hover:text-white transition-colors text-lg leading-none">×</button>
+                  )}
+                </div>
+
+                {/* Grouped by category */}
+                {(() => {
+                  const filtered = products.filter((p: any) =>
+                    !manageSearch || p.name.toLowerCase().includes(manageSearch.toLowerCase())
+                  );
+                  const grouped = CATEGORIES.reduce((acc: Record<string, any[]>, cat) => {
+                    const catProducts = filtered.filter((p: any) => p.category === cat.name);
+                    if (catProducts.length > 0) acc[cat.name] = catProducts;
+                    return acc;
+                  }, {});
+                  // Products with unrecognized / missing categories
+                  const knownCatNames = CATEGORIES.map(c => c.name);
+                  const uncategorized = filtered.filter((p: any) => !knownCatNames.includes(p.category));
+                  if (uncategorized.length > 0) grouped['Other'] = uncategorized;
+
+                  if (filtered.length === 0) return (
+                    <div className="text-center py-8 text-black/40 dark:text-white/40 text-sm">No products match "{manageSearch}"</div>
+                  );
+
+                  return Object.entries(grouped).map(([catName, catProducts]) => {
+                    const isCollapsed = collapsedCategories[catName];
+                    return (
+                      <div key={catName} className="border border-black/5 dark:border-white/5 rounded-xl overflow-hidden">
+                        {/* Category header */}
+                        <button
+                          type="button"
+                          onClick={() => setCollapsedCategories(prev => ({ ...prev, [catName]: !prev[catName] }))}
+                          className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-neutral-950 hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-black uppercase tracking-widest text-black dark:text-white">{catName}</span>
+                            <span className="text-[10px] font-bold bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-full">{catProducts.length}</span>
+                          </div>
+                          <svg className={`w-4 h-4 text-black/40 dark:text-white/40 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+
+                        {/* Products in this category */}
+                        {!isCollapsed && (
+                          <div className="divide-y divide-black/5 dark:divide-white/5">
+                            {catProducts.map((product: any) => (
+                              <div key={product.id} className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between p-4 bg-white dark:bg-neutral-900">
+                                {editingProduct === product.id ? (
                       <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                         <input type="text" value={editProductData.name} onChange={(e) => setEditProductData({...editProductData, name: e.target.value})}
                           className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none" placeholder="Name" />
@@ -1881,7 +1937,12 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 ))}
-                {products.length === 0 && <div className="text-center py-8 text-black/40 dark:text-white/40 text-sm">No products found.</div>}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </motion.div>
 
