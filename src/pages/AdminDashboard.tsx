@@ -24,6 +24,7 @@ export default function AdminDashboard() {
 
   // Payment settings state
   const [paymentSettings, setPaymentSettings] = useState<any>({
+    cardEnabled: true,
     bkashNumber: '', nagadNumber: '', bkashQr: '',
     binancePayQr: '', binancePayId: '',
     codEnabled: true, codDisabledForPreorder: true,
@@ -1661,6 +1662,21 @@ export default function AdminDashboard() {
               </div>
 
               <div className="space-y-6">
+                {/* Card Settings */}
+                <div className="border border-black/5 dark:border-white/5 rounded-xl p-5 space-y-4">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">Card Payment</h3>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-black dark:text-white">Enable Card Payment</p>
+                      <p className="text-xs text-black/40 dark:text-white/40 mt-0.5">Show credit/debit card option at checkout</p>
+                    </div>
+                    <button onClick={() => setPaymentSettings((p: any) => ({ ...p, cardEnabled: !p.cardEnabled }))}
+                      className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-colors ${paymentSettings.cardEnabled ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-200 dark:bg-neutral-800 text-black/40 dark:text-white/40 hover:bg-gray-300'}`}>
+                      {paymentSettings.cardEnabled ? '✓ Enabled' : 'Disabled'}
+                    </button>
+                  </div>
+                </div>
+
                 {/* COD Settings */}
                 <div className="border border-black/5 dark:border-white/5 rounded-xl p-5 space-y-4">
                   <h3 className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">Cash on Delivery (COD)</h3>

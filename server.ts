@@ -273,7 +273,7 @@ app.get('/api/settings/payment', async (req, res) => {
     res.json(rest);
   } else {
     res.json({
-      bkashNumber: '01922929033', nagadNumber: '01922929033',
+      cardEnabled: true, bkashNumber: '01922929033', nagadNumber: '01922929033',
       bkashQr: 'https://res.cloudinary.com/di4byoc2w/image/upload/v1774930027/Image_20260331100303_170_72_ixlgcn.jpg',
       binancePayQr: '', binancePayId: 'riffbaba',
       codEnabled: true, codDisabledForPreorder: true,
@@ -289,8 +289,8 @@ app.get('/api/settings/payment', async (req, res) => {
 
 app.post('/api/settings/payment', async (req, res) => {
   if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
-  const { bkashNumber, nagadNumber, bkashQr, binancePayQr, binancePayId, codEnabled, codDisabledForPreorder, cryptoAddresses } = req.body;
-  const update = { bkashNumber, nagadNumber, bkashQr, binancePayQr, binancePayId, codEnabled, codDisabledForPreorder, cryptoAddresses };
+  const { cardEnabled, bkashNumber, nagadNumber, bkashQr, binancePayQr, binancePayId, codEnabled, codDisabledForPreorder, cryptoAddresses } = req.body;
+  const update = { cardEnabled, bkashNumber, nagadNumber, bkashQr, binancePayQr, binancePayId, codEnabled, codDisabledForPreorder, cryptoAddresses };
   await db.collection('settings').updateOne(
     { key: 'paymentSettings' },
     { $set: { key: 'paymentSettings', ...update } },

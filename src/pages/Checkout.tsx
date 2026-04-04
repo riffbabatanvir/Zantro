@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../CartContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { CreditCard, Smartphone, Bitcoin, CheckCircle2, ChevronLeft, Lock, Minus, Plus, Trash2, Copy, Banknote, Tag, X } from 'lucide-react';
+import { CreditCard, Smartphone, Bitcoin, CheckCircle2, ChevronLeft, Lock, Minus, Plus, Trash2, Copy, Banknote, Tag, X, Landmark, Building2 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 
-type PaymentMethod = 'card' | 'bkash' | 'nagad' | 'crypto' | 'cod';
+type PaymentMethod = 'card' | 'bkash' | 'nagad' | 'crypto' | 'cod' | 'bank';
 
 export default function Checkout() {
   const { cart, totalPrice, clearCart, updateQuantity, removeFromCart } = useCart();
@@ -26,6 +26,7 @@ export default function Checkout() {
 
   // Preorder payment option: '100' = full, '50' = half advance
   const [preorderPayOption, setPreorderPayOption] = useState<'100' | '50'>('100');
+  const [selectedBank, setSelectedBank] = useState<string>('');
 
   // Coupon state
   const [couponInput, setCouponInput] = useState('');
@@ -91,6 +92,7 @@ export default function Checkout() {
   const codEnabled = paymentSettings?.codEnabled !== false;
   const codDisabledForPreorder = paymentSettings?.codDisabledForPreorder !== false;
 
+  const cardEnabled = paymentSettings?.cardEnabled !== false;
   const binancePayQr = paymentSettings?.binancePayQr || '';
   const binancePayId = paymentSettings?.binancePayId || 'riffbaba';
   const cryptoAddresses = paymentSettings?.cryptoAddresses || [
@@ -109,11 +111,15 @@ export default function Checkout() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (paymentMethod === 'bank' && !selectedBank) {
+      toast.error('Please select a bank to proceed.');
+      return;
+    }
     setIsProcessing(true);
     const orderData = {
       items: cart, totalPrice, shippingCost, couponDiscount,
       couponCode: appliedCoupon?.code,
-      finalTotal, paymentMethod,
+      finalTotal, paymentMethod, selectedBank: paymentMethod === 'bank' ? selectedBank : undefined,
       isPreorderOrder: isPreorderCart,
       preorderPayOption: isPreorderCart ? preorderPayOption : undefined,
       preorderRemainingAmount: isPreorderCart && preorderPayOption === '50' ? remainingAmount : undefined,
@@ -236,11 +242,12 @@ export default function Checkout() {
                 <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-6">02. Payment Method</h2>
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { id: 'card', name: 'Card', icon: CreditCard },
+                    ...(cardEnabled ? [{ id: 'card', name: 'Card', icon: CreditCard }] : []),
                     { id: 'bkash', name: 'bKash', icon: Smartphone },
                     { id: 'nagad', name: 'Nagad', icon: Smartphone },
                     { id: 'crypto', name: 'Crypto', icon: Bitcoin },
-                    ...(!codEnabled || (isPreorderCart && codDisabledForPreorder) ? [] : [{ id: 'cod', name: 'COD', icon: Banknote }])
+                    ...(!codEnabled || (isPreorderCart && codDisabledForPreorder) ? [] : [{ id: 'cod', name: 'COD', icon: Banknote }]),
+                    { id: 'bank', name: 'Bank', icon: Landmark }
                   ].map((method) => {
                     const Icon = method.icon;
                     const isSelected = paymentMethod === method.id;
@@ -356,6 +363,44 @@ export default function Checkout() {
                         <Banknote size={48} className="text-black/20 dark:text-white/20 mb-4" />
                         <p className="text-[11px] uppercase tracking-widest text-black/60 dark:text-white/60 text-center">Pay with cash upon delivery</p>
                         <p className="text-xs font-medium mt-2 text-black dark:text-white">Amount: ৳{finalTotal.toFixed(2)}</p>
+                      </motion.div>
+                    )}
+
+                    {paymentMethod === 'bank' && (
+                      <motion.div key="bank" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                        className="p-6 border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-neutral-900 rounded-xl space-y-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Building2 size={20} className="text-black/40 dark:text-white/40" />
+                          <p className="text-xs font-bold uppercase tracking-widest text-black dark:text-white">Select Your Bank</p>
+                        </div>
+                        {[
+                          { id: 'pubali', name: 'Pubali Bank', sub: 'Pubali Bank Limited' },
+                          { id: 'mtb', name: 'Mutual Trust Bank', sub: 'MTB Limited' },
+                          { id: 'npsb', name: 'NPSB', sub: 'Any Bank via NPSB' },
+                        ].map(bank => (
+                          <button key={bank.id} type="button" onClick={() => setSelectedBank(bank.id)}
+                            className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl border transition-all text-left ${selectedBank === bank.id ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20' : 'border-black/10 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30'}`}>
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selectedBank === bank.id ? 'border-orange-500' : 'border-black/30 dark:border-white/30'}`}>
+                              {selectedBank === bank.id && <div className="w-2 h-2 rounded-full bg-orange-500" />}
+                            </div>
+                            <div>
+                              <p className={`text-sm font-bold ${selectedBank === bank.id ? 'text-orange-600 dark:text-orange-400' : 'text-black dark:text-white'}`}>{bank.name}</p>
+                              <p className="text-[10px] text-black/40 dark:text-white/40 mt-0.5">{bank.sub}</p>
+                            </div>
+                          </button>
+                        ))}
+                        {selectedBank && (
+                          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                            className="mt-2 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 rounded-xl">
+                            <p className="text-xs font-bold uppercase tracking-widest text-blue-700 dark:text-blue-400 mb-1">Next Steps</p>
+                            <p className="text-xs text-blue-700/80 dark:text-blue-300/80 leading-relaxed">
+                              Once your order is placed, our team will reach out to you via SMS or email with the complete bank transfer details. Please ensure your payment is completed within 24 hours to confirm your order.
+                            </p>
+                          </motion.div>
+                        )}
+                        {!selectedBank && (
+                          <p className="text-[10px] text-center text-black/30 dark:text-white/30 uppercase tracking-widest pt-1">Please select a bank to proceed</p>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>
