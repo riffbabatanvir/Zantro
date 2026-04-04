@@ -90,8 +90,6 @@ export default function Checkout() {
     }
   }, [cart.length, isSuccess, navigate]);
 
-  if (cart.length === 0 && !isSuccess) return null;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
