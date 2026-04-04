@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../CartContext';
-import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { CreditCard, Smartphone, Bitcoin, CheckCircle2, ChevronLeft, Lock, Minus, Plus, Trash2, Copy, Banknote, Tag, X } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
@@ -83,7 +83,14 @@ export default function Checkout() {
     { name: 'SOL (Solana)', address: '72ucZBSshMHfAyHXKGdUyxuoTtLGRerwDJSjupZuMVpX' }
   ];
 
-  if (cart.length === 0 && !isSuccess) return <Navigate to="/cart" />;
+  // Redirect to cart if cart becomes empty (e.g. user removes last item)
+  useEffect(() => {
+    if (cart.length === 0 && !isSuccess) {
+      navigate('/cart', { replace: true });
+    }
+  }, [cart.length, isSuccess, navigate]);
+
+  if (cart.length === 0 && !isSuccess) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
