@@ -76,7 +76,22 @@ export default function Checkout() {
     toast.success('Coupon removed');
   };
 
-  const cryptoAddresses = [
+  const [paymentSettings, setPaymentSettings] = useState<any>(null);
+
+  useEffect(() => {
+    fetch('/api/settings/payment')
+      .then(r => r.json())
+      .then(data => setPaymentSettings(data))
+      .catch(() => {});
+  }, []);
+
+  const bkashNumber = paymentSettings?.bkashNumber || '01922929033';
+  const nagadNumber = paymentSettings?.nagadNumber || '01922929033';
+  const bkashQr = paymentSettings?.bkashQr || 'https://res.cloudinary.com/di4byoc2w/image/upload/v1774930027/Image_20260331100303_170_72_ixlgcn.jpg';
+  const codEnabled = paymentSettings?.codEnabled !== false;
+  const codDisabledForPreorder = paymentSettings?.codDisabledForPreorder !== false;
+
+  const cryptoAddresses = paymentSettings?.cryptoAddresses || [
     { name: 'BTC (Bitcoin)', address: '147hzwvR68sxcJUfkMEpSRxTwd9hqNpeq7' },
     { name: 'ETH (Ethereum)', address: '0x26c8d840e121e49d9657b1e4ec04cfffe1fb2b8c' },
     { name: 'USDT (TRC20)', address: 'TXNYecJoTbgj6QeUGU8Vyjmb6y8u2Cc2rP' },
@@ -223,7 +238,7 @@ export default function Checkout() {
                     { id: 'bkash', name: 'bKash', icon: Smartphone },
                     { id: 'nagad', name: 'Nagad', icon: Smartphone },
                     { id: 'crypto', name: 'Crypto', icon: Bitcoin },
-                    { id: 'cod', name: 'COD', icon: Banknote }
+                    ...(!codEnabled || (isPreorderCart && codDisabledForPreorder) ? [] : [{ id: 'cod', name: 'COD', icon: Banknote }])
                   ].map((method) => {
                     const Icon = method.icon;
                     const isSelected = paymentMethod === method.id;
@@ -256,12 +271,12 @@ export default function Checkout() {
                         {paymentMethod === 'bkash' ? (
                           <>
                             <div className="w-48 h-48 bg-white p-2 rounded-lg shadow-sm mb-4">
-                              <img src="https://res.cloudinary.com/di4byoc2w/image/upload/v1774930027/Image_20260331100303_170_72_ixlgcn.jpg" alt="bKash QR" className="w-full h-full object-contain" />
+                              <img src={bkashQr} alt="bKash QR" className="w-full h-full object-contain" />
                             </div>
                             <p className="text-[11px] uppercase tracking-widest text-black/60 dark:text-white/60 text-center mb-3">Scan with bKash App to pay</p>
                             <div className="flex items-center gap-3 bg-white dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2">
-                              <span className="text-sm font-bold text-black dark:text-white">01922929033</span>
-                              <button type="button" onClick={() => copyToClipboard('01922929033')}
+                              <span className="text-sm font-bold text-black dark:text-white">{bkashNumber}</span>
+                              <button type="button" onClick={() => copyToClipboard(bkashNumber)}
                                 className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-pink-500 hover:text-pink-600 transition-colors">
                                 <Copy size={12} /> Copy
                               </button>
@@ -271,8 +286,8 @@ export default function Checkout() {
                           <>
                             <p className="text-sm text-black/60 dark:text-white/60 text-center mb-3">Send money to</p>
                             <div className="flex items-center gap-3 bg-white dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2">
-                              <span className="text-sm font-bold text-black dark:text-white">01922929033</span>
-                              <button type="button" onClick={() => copyToClipboard('01922929033')}
+                              <span className="text-sm font-bold text-black dark:text-white">{nagadNumber}</span>
+                              <button type="button" onClick={() => copyToClipboard(nagadNumber)}
                                 className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-orange-500 hover:text-orange-600 transition-colors">
                                 <Copy size={12} /> Copy
                               </button>

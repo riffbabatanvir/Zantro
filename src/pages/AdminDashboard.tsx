@@ -15,12 +15,47 @@ export default function AdminDashboard() {
   const [messages, setMessages] = useState<any[]>([]);
   const [visitors, setVisitors] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons' | 'hero' | 'announcement' | 'preorders' | 'preowned'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons' | 'hero' | 'announcement' | 'preorders' | 'preowned' | 'payment'>('orders');
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
 
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [editProductData, setEditProductData] = useState<any>({});
   const [flashSaleEnabled, setFlashSaleEnabled] = useState(true);
+
+  // Payment settings state
+  const [paymentSettings, setPaymentSettings] = useState<any>({
+    bkashNumber: '', nagadNumber: '', bkashQr: '',
+    codEnabled: true, codDisabledForPreorder: true,
+    cryptoAddresses: [
+      { name: 'BTC (Bitcoin)', address: '' },
+      { name: 'ETH (Ethereum)', address: '' },
+      { name: 'USDT (TRC20)', address: '' },
+      { name: 'SOL (Solana)', address: '' },
+    ]
+  });
+  const [isSavingPayment, setIsSavingPayment] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/settings/payment')
+      .then(r => r.json())
+      .then(data => { if (data && !data.error) setPaymentSettings((prev: any) => ({ ...prev, ...data })); })
+      .catch(() => {});
+  }, []);
+
+  const handleSavePaymentSettings = async () => {
+    setIsSavingPayment(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch('/api/settings/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(paymentSettings),
+      });
+      if (res.ok) toast.success('Payment settings saved!'); else toast.error('Failed to save');
+    } catch {}
+    finally { setIsSavingPayment(false); }
+  };
+
 
   useEffect(() => {
     fetch('/api/settings/flashsale')
@@ -692,12 +727,12 @@ export default function AdminDashboard() {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-lg flex-wrap gap-1">
-              {(['orders', 'messages', 'products', 'preowned', 'preorders', 'categories', 'coupons', 'hero', 'announcement', 'visitors'] as const).map(tab => (
+              {(['orders', 'messages', 'products', 'preowned', 'preorders', 'categories', 'coupons', 'hero', 'announcement', 'visitors', 'payment'] as const).map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
                   className={`px-4 py-2 rounded-md text-[11px] font-medium uppercase tracking-widest transition-all ${
                     activeTab === tab ? 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white'
                   }`}>
-                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab === 'coupons' ? 'Coupons' : tab === 'hero' ? 'Hero Slides' : tab === 'announcement' ? 'Banner' : tab === 'preorders' ? '🕐 Pre-Orders' : tab === 'preowned' ? '♻️ Pre-Owned' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab === 'coupons' ? 'Coupons' : tab === 'hero' ? 'Hero Slides' : tab === 'announcement' ? 'Banner' : tab === 'preorders' ? '🕐 Pre-Orders' : tab === 'preowned' ? '♻️ Pre-Owned' : tab === 'payment' ? '💳 Payment' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </button>
               ))}
             </div>
@@ -1612,7 +1647,109 @@ export default function AdminDashboard() {
             )}
           </div>
           );
-        })() : (
+        })() : activeTab === 'payment' ? (
+          <div className="max-w-3xl mx-auto space-y-6">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-6 border-b border-black/5 dark:border-white/5 pb-4">
+                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center"><CreditCard size={20} /></div>
+                <div>
+                  <h2 className="text-xl font-medium text-black dark:text-white">Payment Settings</h2>
+                  <p className="text-xs text-black/40 dark:text-white/40 mt-1">Manage payment methods shown at checkout</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                {/* COD Settings */}
+                <div className="border border-black/5 dark:border-white/5 rounded-xl p-5 space-y-4">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">Cash on Delivery (COD)</h3>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-black dark:text-white">Enable COD globally</p>
+                      <p className="text-xs text-black/40 dark:text-white/40 mt-0.5">Show COD option at checkout for all orders</p>
+                    </div>
+                    <button onClick={() => setPaymentSettings((p: any) => ({ ...p, codEnabled: !p.codEnabled }))}
+                      className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-colors ${paymentSettings.codEnabled ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-200 dark:bg-neutral-800 text-black/40 dark:text-white/40 hover:bg-gray-300'}`}>
+                      {paymentSettings.codEnabled ? '✓ Enabled' : 'Disabled'}
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-black/5 dark:border-white/5 pt-4">
+                    <div>
+                      <p className="text-sm font-medium text-black dark:text-white">Disable COD for Pre-Orders</p>
+                      <p className="text-xs text-black/40 dark:text-white/40 mt-0.5">Hide COD option when cart contains pre-order items</p>
+                    </div>
+                    <button onClick={() => setPaymentSettings((p: any) => ({ ...p, codDisabledForPreorder: !p.codDisabledForPreorder }))}
+                      className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-colors ${paymentSettings.codDisabledForPreorder ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-gray-200 dark:bg-neutral-800 text-black/40 dark:text-white/40 hover:bg-gray-300'}`}>
+                      {paymentSettings.codDisabledForPreorder ? '✓ Disabled for Pre-Order' : 'Allowed for Pre-Order'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* bKash Settings */}
+                <div className="border border-black/5 dark:border-white/5 rounded-xl p-5 space-y-4">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">bKash</h3>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">bKash Number</label>
+                    <input type="text" value={paymentSettings.bkashNumber}
+                      onChange={e => setPaymentSettings((p: any) => ({ ...p, bkashNumber: e.target.value }))}
+                      placeholder="01XXXXXXXXX"
+                      className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-orange-500 outline-none transition-colors text-sm bg-transparent" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">bKash QR Image URL</label>
+                    <input type="text" value={paymentSettings.bkashQr}
+                      onChange={e => setPaymentSettings((p: any) => ({ ...p, bkashQr: e.target.value }))}
+                      placeholder="https://... (Cloudinary or direct image URL)"
+                      className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-orange-500 outline-none transition-colors text-sm bg-transparent" />
+                    {paymentSettings.bkashQr && (
+                      <div className="mt-3 w-24 h-24 border border-black/10 dark:border-white/10 rounded-lg overflow-hidden">
+                        <img src={paymentSettings.bkashQr} alt="bKash QR Preview" className="w-full h-full object-contain" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Nagad Settings */}
+                <div className="border border-black/5 dark:border-white/5 rounded-xl p-5 space-y-4">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">Nagad</h3>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">Nagad Number</label>
+                    <input type="text" value={paymentSettings.nagadNumber}
+                      onChange={e => setPaymentSettings((p: any) => ({ ...p, nagadNumber: e.target.value }))}
+                      placeholder="01XXXXXXXXX"
+                      className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-orange-500 outline-none transition-colors text-sm bg-transparent" />
+                  </div>
+                </div>
+
+                {/* Crypto Settings */}
+                <div className="border border-black/5 dark:border-white/5 rounded-xl p-5 space-y-4">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">Crypto Addresses</h3>
+                  {paymentSettings.cryptoAddresses?.map((crypto: any, idx: number) => (
+                    <div key={idx}>
+                      <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">{crypto.name}</label>
+                      <input type="text" value={crypto.address}
+                        onChange={e => {
+                          const updated = [...paymentSettings.cryptoAddresses];
+                          updated[idx] = { ...updated[idx], address: e.target.value };
+                          setPaymentSettings((p: any) => ({ ...p, cryptoAddresses: updated }));
+                        }}
+                        placeholder={`${crypto.name} wallet address`}
+                        className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-orange-500 outline-none transition-colors text-sm font-mono bg-transparent" />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Save Button */}
+                <div className="flex justify-end pt-2">
+                  <button onClick={handleSavePaymentSettings} disabled={isSavingPayment}
+                    className="px-8 py-3 bg-orange-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center gap-2">
+                    {isSavingPayment ? 'Saving...' : 'Save Payment Settings'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        ) : (
           <div className="max-w-5xl mx-auto space-y-8">
 
             {/* Flash Sale Toggle */}

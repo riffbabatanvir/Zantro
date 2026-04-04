@@ -264,6 +264,40 @@ app.post('/api/settings/flashsale', async (req, res) => {
   res.json({ enabled });
 });
 
+// ─── Payment Settings ────────────────────────────────────────────────────────
+
+app.get('/api/settings/payment', async (req, res) => {
+  const setting = await db.collection('settings').findOne({ key: 'paymentSettings' });
+  if (setting) {
+    const { _id, key, ...rest } = setting;
+    res.json(rest);
+  } else {
+    res.json({
+      bkashNumber: '01922929033', nagadNumber: '01922929033',
+      bkashQr: 'https://res.cloudinary.com/di4byoc2w/image/upload/v1774930027/Image_20260331100303_170_72_ixlgcn.jpg',
+      codEnabled: true, codDisabledForPreorder: true,
+      cryptoAddresses: [
+        { name: 'BTC (Bitcoin)', address: '147hzwvR68sxcJUfkMEpSRxTwd9hqNpeq7' },
+        { name: 'ETH (Ethereum)', address: '0x26c8d840e121e49d9657b1e4ec04cfffe1fb2b8c' },
+        { name: 'USDT (TRC20)', address: 'TXNYecJoTbgj6QeUGU8Vyjmb6y8u2Cc2rP' },
+        { name: 'SOL (Solana)', address: '72ucZBSshMHfAyHXKGdUyxuoTtLGRerwDJSjupZuMVpX' }
+      ]
+    });
+  }
+});
+
+app.post('/api/settings/payment', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const { bkashNumber, nagadNumber, bkashQr, codEnabled, codDisabledForPreorder, cryptoAddresses } = req.body;
+  const update = { bkashNumber, nagadNumber, bkashQr, codEnabled, codDisabledForPreorder, cryptoAddresses };
+  await db.collection('settings').updateOne(
+    { key: 'paymentSettings' },
+    { $set: { key: 'paymentSettings', ...update } },
+    { upsert: true }
+  );
+  res.json(update);
+});
+
 // ─── Coupons ─────────────────────────────────────────────────────────────────
 
 app.get('/api/coupons', async (req, res) => {
