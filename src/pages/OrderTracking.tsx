@@ -135,9 +135,27 @@ export default function OrderTracking() {
                     </div>
                   ))}
                 </div>
-                <div className="border-t border-gray-200 dark:border-neutral-700 pt-2 flex justify-between">
-                  <span className="text-xs font-bold text-gray-400">Total</span>
-                  <span className="text-sm font-black text-orange-500">৳{order.finalTotal?.toFixed(2)}</span>
+                <div className="border-t border-gray-200 dark:border-neutral-700 pt-2 space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-xs font-bold text-gray-400">{order.preorderPayOption === '50' ? 'Paid Now (50%)' : 'Total'}</span>
+                    <span className="text-sm font-black text-orange-500">৳{order.finalTotal?.toFixed(2)}</span>
+                  </div>
+                  {order.preorderPayOption === '50' && (
+                    order.fullPaid ? (
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-green-600 dark:text-green-400">Payment Status</span>
+                        <span className="text-xs font-black text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">✓ Fully Paid</span>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between items-center bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 rounded-xl px-3 py-2 mt-1">
+                        <div>
+                          <p className="text-xs font-bold text-red-600 dark:text-red-400">Due Amount</p>
+                          <p className="text-[10px] text-red-500/70 dark:text-red-400/70">Payable before shipment</p>
+                        </div>
+                        <span className="text-sm font-black text-red-600 dark:text-red-400">৳{order.preorderRemainingAmount?.toFixed(2)}</span>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             </div>

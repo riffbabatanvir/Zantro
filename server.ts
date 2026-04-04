@@ -181,11 +181,12 @@ app.get('/api/orders', async (req, res) => {
 app.patch('/api/orders/:id/status', async (req, res) => {
   if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
   const { id } = req.params;
-  const { status, remark } = req.body;
+  const { status, remark, fullPaid } = req.body;
   try {
     const update: any = {};
     if (status !== undefined) update.status = status;
     if (remark !== undefined) update.remark = remark;
+    if (fullPaid !== undefined) update.fullPaid = fullPaid;
     await db.collection('orders').updateOne({ _id: new ObjectId(id) }, { $set: update });
     const updated = await db.collection('orders').findOne({ _id: new ObjectId(id) });
     res.json({ ...updated, id: updated._id.toString() });

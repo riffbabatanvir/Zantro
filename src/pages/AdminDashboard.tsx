@@ -381,6 +381,21 @@ export default function AdminDashboard() {
     } catch { toast.error('An error occurred'); }
   };
 
+  const handleMarkFullyPaid = async (orderId: string) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ fullPaid: true })
+      });
+      if (res.ok) {
+        setOrders(orders.map(o => o.id === orderId ? { ...o, fullPaid: true } : o));
+        toast.success('Order marked as fully paid');
+      } else toast.error('Failed to update order');
+    } catch { toast.error('An error occurred'); }
+  };
+
   const handleDeleteOrder = async (orderId: string) => {
     if (!window.confirm('Are you sure you want to delete this order completely?')) return;
     try {
@@ -1591,9 +1606,19 @@ export default function AdminDashboard() {
                           <p className="text-xs text-black/40 dark:text-white/40">{order.customerInfo?.fullName} · {order.customerInfo?.phone}</p>
                           <p className="text-[10px] text-black/30 dark:text-white/30">{new Date(order.createdAt).toLocaleString()}</p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right space-y-1">
                           <p className="text-sm font-black text-orange-600 dark:text-orange-400">৳{order.finalTotal?.toFixed(2)}</p>
                           <p className="text-[10px] text-black/30 dark:text-white/30 uppercase tracking-widest">{order.paymentMethod}</p>
+                          {order.preorderPayOption === '50' && (
+                            order.fullPaid ? (
+                              <span className="inline-block bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">✓ Fully Paid</span>
+                            ) : (
+                              <div>
+                                <p className="text-[10px] font-bold text-red-500">Due: ৳{order.preorderRemainingAmount?.toFixed(2)}</p>
+                                <p className="text-[9px] text-black/30 dark:text-white/30">50% advance paid</p>
+                              </div>
+                            )
+                          )}
                         </div>
                       </div>
 
@@ -1641,6 +1666,12 @@ export default function AdminDashboard() {
                             {s}
                           </button>
                         ))}
+                        {order.preorderPayOption === '50' && !order.fullPaid && (
+                          <button onClick={() => handleMarkFullyPaid(order.id)}
+                            className="ml-auto px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-1.5">
+                            <CheckCircle size={12} /> Mark as Fully Paid
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
