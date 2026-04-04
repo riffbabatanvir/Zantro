@@ -14,25 +14,26 @@ interface PreorderPriceTier {
 }
 
 function PreorderProductCard({ product }: { product: any }) {
-  const { addToCart, cart } = useCart();
+  const { addToCart, cart, removeFromCart } = useCart();
   const tiers: PreorderPriceTier[] = product.preorderPriceTiers || [];
   const hasTiers = tiers.length > 0;
 
   const [selectedTierIdx, setSelectedTierIdx] = useState(0);
   const selectedTier = hasTiers ? tiers[selectedTierIdx] : null;
-  const displayPrice = selectedTier ? selectedTier.price : product.price;
+  const packagePrice = selectedTier ? selectedTier.price : product.price;
 
   const isInCart = cart.some((item) => item.id === product.id);
 
   const handleAddToCart = () => {
-    if (isInCart) return;
+    if (hasTiers) removeFromCart(product.id); // replace if re-selecting tier
     addToCart({
       ...product,
-      price: displayPrice,
+      price: packagePrice,       // flat package price
       isPreorder: true,
       selectedTierLabel: selectedTier?.label,
-      preorderMinQty: selectedTier ? selectedTier.minQty : 1,
-    } as any, selectedTier ? selectedTier.minQty : 1);
+      preorderMinQty: 1,
+      preorderIsPackage: true,
+    } as any, 1);
   };
 
   return (
@@ -97,17 +98,11 @@ function PreorderProductCard({ product }: { product: any }) {
                     </span>
                   </div>
                   <span className={`text-xs font-bold tabular-nums ${selectedTierIdx === idx ? 'text-orange-600 dark:text-orange-400' : 'text-black dark:text-white'}`}>
-                    ৳{tier.price.toFixed(2)}<span className="font-normal text-black/30 dark:text-white/30">/pc</span>
+                    ৳{tier.price.toFixed(2)}
                   </span>
                 </button>
               ))}
             </div>
-            {selectedTier && (
-              <p className="text-[10px] text-black/40 dark:text-white/40 pl-1">
-                Min order: <span className="font-bold text-black dark:text-white">{selectedTier.minQty} pc{selectedTier.minQty > 1 ? 's' : ''}</span>
-                {selectedTier.maxQty ? ` – ${selectedTier.maxQty} pcs` : selectedTier.maxQty === undefined ? '+' : ''}
-              </p>
-            )}
           </div>
         ) : (
           <div className="flex items-baseline gap-2">
@@ -127,20 +122,19 @@ function PreorderProductCard({ product }: { product: any }) {
             onClick={handleAddToCart}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${
               isInCart
-                ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800'
+                ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border border-orange-300 dark:border-orange-700'
                 : 'bg-black dark:bg-white text-white dark:text-black hover:bg-orange-600 dark:hover:bg-orange-400 dark:hover:text-black'
             }`}
           >
-            {isInCart ? <><Check size={13} /> Added</> : <><ShoppingCart size={13} /> Pre-Order</>}
+            {isInCart ? <><Check size={13} /> Update Cart</> : <><ShoppingCart size={13} /> Pre-Order</>}
           </button>
-          {isInCart && (
-            <Link
-              to="/checkout"
-              className="flex items-center justify-center px-3 py-2.5 rounded-xl border border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
-            >
-              <ChevronRight size={14} />
-            </Link>
-          )}
+          <Link
+            to="/checkout"
+            onClick={handleAddToCart}
+            className="flex items-center justify-center px-3 py-2.5 rounded-xl border border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
+          >
+            <ChevronRight size={14} />
+          </Link>
         </div>
       </div>
     </motion.div>

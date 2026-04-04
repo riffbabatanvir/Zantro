@@ -406,12 +406,12 @@ export default function Checkout() {
                       </div>
                     )}
                     {(item as any).selectedTierLabel && (
-                      <p className="text-[9px] uppercase tracking-widest text-orange-500 font-bold mt-1">{(item as any).selectedTierLabel}</p>
+                      <p className="text-[9px] uppercase tracking-widest text-orange-500 font-bold mt-1">📦 {(item as any).selectedTierLabel}</p>
                     )}
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center border border-black/10 dark:border-white/10 rounded">
                         <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          disabled={item.quantity <= ((item as any).preorderMinQty || 1)}
+                          disabled={item.quantity <= 1}
                           className="px-2 py-1 text-black/40 dark:text-white/40 hover:text-black dark:text-white transition-colors disabled:opacity-25 disabled:cursor-not-allowed">
                           <Minus size={10} />
                         </button>

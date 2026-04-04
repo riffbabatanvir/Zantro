@@ -12,7 +12,7 @@ import { Helmet } from 'react-helmet-async';
 export default function ProductDetail() {
   const { id } = useParams();
   const { products, isLoading } = useProducts();
-  const { addToCart, cart } = useCart();
+  const { addToCart, cart, removeFromCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
@@ -154,25 +154,31 @@ export default function ProductDetail() {
   const preorderTiers: Array<{ minQty: number; maxQty?: number; label: string; price: number }> = (product as any).preorderPriceTiers || [];
   const hasTiers = isPreorder && preorderTiers.length > 0;
   const selectedTier = hasTiers ? preorderTiers[selectedTierIdx] : null;
-  const effectivePrice = selectedTier ? selectedTier.price : product.price;
-  const minQty = selectedTier ? selectedTier.minQty : 1;
 
-  // Keep quantity in sync with tier minimum when tier changes
+  // For tier products: price = flat package price, quantity = number of packages (min 1)
+  // The tier price is already a total for the whole package (e.g. "3 pcs for ৳800")
+  const packagePrice = selectedTier ? selectedTier.price : product.price;
+  const packageQtyLabel = selectedTier ? selectedTier.label : null;
+
+  // Keep quantity reset to 1 package when tier changes
   const handleTierChange = (idx: number) => {
     setSelectedTierIdx(idx);
-    setQuantity(preorderTiers[idx]?.minQty || 1);
+    setQuantity(1);
   };
 
   const handleAddToCart = () => {
     if (isOutOfStock && !isPreorder) return;
+    // Remove existing entry for this product first so re-adding with new tier replaces it
+    if (hasTiers) removeFromCart(product.id);
     addToCart({
       ...product,
-      price: effectivePrice,
+      price: packagePrice,          // flat package price — NOT multiplied by qty later
       selectedSize: selectedSize || undefined,
       selectedColor: selectedColor || undefined,
       isPreorder: isPreorder || isOutOfStock,
-      selectedTierLabel: selectedTier?.label,
-      preorderMinQty: minQty,
+      selectedTierLabel: packageQtyLabel,
+      preorderMinQty: 1,            // minimum 1 package
+      preorderIsPackage: true,
     } as any, quantity);
     if (isPreorder || isOutOfStock) {
       toast.success('Pre-order added! Expected delivery: 1–2 months.');
@@ -269,10 +275,10 @@ export default function ProductDetail() {
               </h1>
 
               <div className="flex items-baseline gap-3 mb-4">
-                <span className="text-3xl md:text-5xl font-black text-orange-600 dark:text-orange-400">৳{effectivePrice}</span>
+                <span className="text-3xl md:text-5xl font-black text-orange-600 dark:text-orange-400">৳{packagePrice}</span>
                 {!hasTiers && <span className="text-lg text-gray-400 line-through font-bold">৳{originalPrice.toFixed(2)}</span>}
                 {!hasTiers && <span className="bg-red-50 text-red-600 text-xs font-black px-2 py-1 rounded">SAVE {discountPercent}%</span>}
-                {hasTiers && <span className="text-sm text-gray-400 font-medium">per unit</span>}
+                {hasTiers && selectedTier && <span className="text-sm text-gray-400 font-medium">per package</span>}
               </div>
 
               {/* Stock Badge */}
@@ -359,7 +365,7 @@ export default function ProductDetail() {
               {/* Preorder Tier Selector */}
               {hasTiers && (
                 <div>
-                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Select Quantity Tier</p>
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Select Package</p>
                   <div className="space-y-2">
                     {preorderTiers.map((tier, idx) => (
                       <button key={idx} type="button" onClick={() => handleTierChange(idx)}
@@ -378,32 +384,29 @@ export default function ProductDetail() {
                             {tier.label}
                           </span>
                         </div>
-                        <div className="text-right">
-                          <span className={`text-sm font-black tabular-nums ${selectedTierIdx === idx ? 'text-orange-600 dark:text-orange-400' : 'text-gray-900 dark:text-white'}`}>
-                            ৳{tier.price.toFixed(2)}<span className="text-xs font-normal text-gray-400">/pc</span>
-                          </span>
-                          <p className="text-[10px] text-gray-400">
-                            Min {tier.minQty}{tier.maxQty ? `–${tier.maxQty}` : tier.maxQty === undefined ? '+' : ''} pcs
-                          </p>
-                        </div>
+                        <span className={`text-sm font-black tabular-nums ${selectedTierIdx === idx ? 'text-orange-600 dark:text-orange-400' : 'text-gray-900 dark:text-white'}`}>
+                          ৳{tier.price.toFixed(2)}
+                        </span>
                       </button>
                     ))}
                   </div>
-                  {selectedTier && (
+                  {selectedTier && quantity > 1 && (
                     <p className="text-xs text-gray-400 mt-2 pl-1">
-                      Total: <span className="font-black text-gray-900 dark:text-white">৳{(effectivePrice * quantity).toFixed(2)}</span>
-                      {' '}for {quantity} pc{quantity > 1 ? 's' : ''}
+                      {quantity} × {selectedTier.label} = <span className="font-black text-gray-900 dark:text-white">৳{(packagePrice * quantity).toFixed(2)}</span>
                     </p>
                   )}
                 </div>
               )}
 
-              {/* Quantity */}
+              {/* Quantity — "Packages" for tiered preorders */}
               <div className="flex items-center gap-6">
-                <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Quantity</span>
+                <span className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                  {hasTiers ? 'Packages' : 'Quantity'}
+                </span>
                 <div className="flex items-center bg-white dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800 rounded-2xl p-1 shadow-sm">
-                  <button onClick={() => setQuantity(Math.max(minQty, quantity - 1))}
-                    className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-orange-600 dark:text-orange-400 transition-colors">
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
+                    className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-orange-600 dark:text-orange-400 transition-colors disabled:opacity-25 disabled:cursor-not-allowed">
                     <Minus size={16} strokeWidth={2.5} />
                   </button>
                   <span className="w-12 text-center text-sm font-black text-gray-900 dark:text-white">{quantity}</span>
@@ -412,28 +415,19 @@ export default function ProductDetail() {
                     <Plus size={16} strokeWidth={2.5} />
                   </button>
                 </div>
-                {hasTiers && minQty > 1 && (
-                  <span className="text-[10px] text-orange-500 font-bold uppercase tracking-widest">Min {minQty} pcs</span>
-                )}
               </div>
 
-              {/* Action Buttons */}
+              {/* Action Buttons — always allow re-selecting tier for preorder */}
               <div className="flex flex-col sm:flex-row gap-4">
-                {isInCart ? (
-                  <Link to="/cart" className="flex-1 bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 py-4 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-green-200 transition-all shadow-lg shadow-green-100 active:scale-95 text-center flex items-center justify-center">
-                    Go to Cart
-                  </Link>
-                ) : (
-                  <button onClick={handleAddToCart} disabled={isOutOfStock && !isPreorder}
-                    className={`flex-1 py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ${
-                      isOutOfStock && !isPreorder ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
-                      showPreorderButton ? 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200' :
-                      'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 hover:bg-orange-200 shadow-orange-100'
-                    }`}>
-                    {showPreorderButton ? '🕐 Pre-Order Now' : 'Add to Cart'}
-                  </button>
-                )}
-                <Link to="/checkout" onClick={() => !isInCart && !(isOutOfStock && !isPreorder) && handleAddToCart()}
+                <button onClick={handleAddToCart} disabled={isOutOfStock && !isPreorder}
+                  className={`flex-1 py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ${
+                    isOutOfStock && !isPreorder ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
+                    showPreorderButton ? 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200' :
+                    'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 hover:bg-orange-200 shadow-orange-100'
+                  }`}>
+                  {hasTiers && isInCart ? '🔄 Update Cart' : showPreorderButton ? '🕐 Pre-Order Now' : 'Add to Cart'}
+                </button>
+                <Link to="/checkout" onClick={() => !(isOutOfStock && !isPreorder) && handleAddToCart()}
                   className={`flex-1 py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg text-center active:scale-95 flex items-center justify-center ${isOutOfStock && !isPreorder ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none' : 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200'}`}>
                   {showPreorderButton ? 'Pre-Order & Checkout' : 'Buy Now'}
                 </Link>
@@ -550,21 +544,15 @@ export default function ProductDetail() {
 
       {/* Mobile Fixed Bottom Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-950 border-t border-gray-100 dark:border-neutral-800 p-3 z-[60] flex gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
-        {isInCart ? (
-          <Link to="/cart" className="flex-1 bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 py-4 rounded-xl text-sm font-black uppercase tracking-widest text-center active:scale-95 transition-transform flex items-center justify-center">
-            Go to Cart
-          </Link>
-        ) : (
-          <button onClick={handleAddToCart} disabled={isOutOfStock && !isPreorder}
-            className={`flex-1 py-4 rounded-xl text-sm font-black uppercase tracking-widest active:scale-95 transition-transform ${
-              isOutOfStock && !isPreorder ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
-              showPreorderButton ? 'bg-orange-600 text-white' :
-              'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400'
-            }`}>
-            {showPreorderButton ? '🕐 Pre-Order' : 'Add to Cart'}
-          </button>
-        )}
-        <Link to="/checkout" onClick={() => !isInCart && !(isOutOfStock && !isPreorder) && handleAddToCart()}
+        <button onClick={handleAddToCart} disabled={isOutOfStock && !isPreorder}
+          className={`flex-1 py-4 rounded-xl text-sm font-black uppercase tracking-widest active:scale-95 transition-transform ${
+            isOutOfStock && !isPreorder ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
+            showPreorderButton ? 'bg-orange-600 text-white' :
+            'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400'
+          }`}>
+          {hasTiers && isInCart ? '🔄 Update' : showPreorderButton ? '🕐 Pre-Order' : 'Add to Cart'}
+        </button>
+        <Link to="/checkout" onClick={() => !(isOutOfStock && !isPreorder) && handleAddToCart()}
           className={`flex-1 py-4 rounded-xl text-sm font-black uppercase tracking-widest text-center active:scale-95 transition-transform flex items-center justify-center ${isOutOfStock && !isPreorder ? 'bg-gray-300 text-gray-500 pointer-events-none' : 'bg-orange-600 text-white'}`}>
           {showPreorderButton ? 'Pre-Order & Buy' : 'Buy Now'}
         </Link>

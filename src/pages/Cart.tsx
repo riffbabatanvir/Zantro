@@ -59,12 +59,12 @@ export default function Cart() {
                   <div className="flex justify-between items-end">
                     <div className="flex flex-col gap-1">
                       {(item as any).selectedTierLabel && (
-                        <span className="text-[9px] uppercase tracking-widest text-orange-500 font-bold">{(item as any).selectedTierLabel}</span>
+                        <span className="text-[9px] uppercase tracking-widest text-orange-500 font-bold">📦 {(item as any).selectedTierLabel}</span>
                       )}
                       <div className="flex items-center border-b border-black/10 dark:border-white/10 pb-1">
                         <button 
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          disabled={item.quantity <= ((item as any).preorderMinQty || 1)}
+                          disabled={item.quantity <= 1}
                           className="text-black/40 dark:text-white/40 hover:text-black dark:text-white transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
                         >
                           <Minus size={12} />
@@ -77,6 +77,9 @@ export default function Cart() {
                           <Plus size={12} />
                         </button>
                       </div>
+                      {(item as any).selectedTierLabel && item.quantity > 1 && (
+                        <span className="text-[9px] text-black/30 dark:text-white/30">{item.quantity} × ৳{item.price.toFixed(2)} = ৳{(item.price * item.quantity).toFixed(2)}</span>
+                      )}
                     </div>
                     <button 
                       onClick={() => removeFromCart(item.id)}

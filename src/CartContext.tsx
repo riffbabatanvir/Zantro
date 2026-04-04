@@ -75,29 +75,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateQuantity = (productId: string, quantity: number, selectedSize?: string, selectedColor?: string) => {
-    setCart((prevCart) => {
-      const item = prevCart.find(
-        (i) =>
-          i.id === productId &&
-          (selectedSize === undefined || (i as any).selectedSize === selectedSize) &&
-          (selectedColor === undefined || (i as any).selectedColor === selectedColor)
-      );
-      // For preorder items enforce the tier minimum quantity
-      const minQty = (item as any)?.preorderMinQty || 1;
-      const newQuantity = Math.max(minQty, quantity);
-      if (newQuantity === 0) return prevCart.filter((i) => !(
-        i.id === productId &&
-        (selectedSize === undefined || (i as any).selectedSize === selectedSize) &&
-        (selectedColor === undefined || (i as any).selectedColor === selectedColor)
-      ));
-      return prevCart.map((i) =>
-        i.id === productId &&
-        (selectedSize === undefined || (i as any).selectedSize === selectedSize) &&
-        (selectedColor === undefined || (i as any).selectedColor === selectedColor)
-          ? { ...i, quantity: newQuantity }
-          : i
-      );
-    });
+    const newQuantity = Math.max(1, quantity);
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.id === productId &&
+        (selectedSize === undefined || (item as any).selectedSize === selectedSize) &&
+        (selectedColor === undefined || (item as any).selectedColor === selectedColor)
+          ? { ...item, quantity: newQuantity }
+          : item
+      )
+    );
   };
 
   const clearCart = () => {
