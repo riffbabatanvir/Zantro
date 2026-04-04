@@ -425,7 +425,7 @@ export default function ProductDetail() {
                     showPreorderButton ? 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200' :
                     'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 hover:bg-orange-200 shadow-orange-100'
                   }`}>
-                  {hasTiers && isInCart ? '🔄 Update Cart' : showPreorderButton ? '🕐 Pre-Order Now' : 'Add to Cart'}
+                  {hasTiers && isInCart ? '🔄 Update Cart' : showPreorderButton ? 'Add Pre-order to Cart' : 'Add to Cart'}
                 </button>
                 <Link to="/checkout" onClick={() => !(isOutOfStock && !isPreorder) && handleAddToCart()}
                   className={`flex-1 py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg text-center active:scale-95 flex items-center justify-center ${isOutOfStock && !isPreorder ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none' : 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200'}`}>
@@ -550,7 +550,7 @@ export default function ProductDetail() {
             showPreorderButton ? 'bg-orange-600 text-white' :
             'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400'
           }`}>
-          {hasTiers && isInCart ? '🔄 Update' : showPreorderButton ? '🕐 Pre-Order' : 'Add to Cart'}
+          {hasTiers && isInCart ? '🔄 Update' : showPreorderButton ? 'Add Pre-order' : 'Add to Cart'}
         </button>
         <Link to="/checkout" onClick={() => !(isOutOfStock && !isPreorder) && handleAddToCart()}
           className={`flex-1 py-4 rounded-xl text-sm font-black uppercase tracking-widest text-center active:scale-95 transition-transform flex items-center justify-center ${isOutOfStock && !isPreorder ? 'bg-gray-300 text-gray-500 pointer-events-none' : 'bg-orange-600 text-white'}`}>

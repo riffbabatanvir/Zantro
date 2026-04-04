@@ -108,8 +108,8 @@ export default function ProductCard({ product }: { product: Product; key?: strin
           </div>
 
           <Link
-            to={isOutOfStock && !isPreorder ? '#' : '/checkout'}
-            onClick={(e) => { if (isOutOfStock && !isPreorder) { e.preventDefault(); return; } if (!isInCart) addToCart({ ...product, isPreorder: canPreorder } as any); }}
+            to={isOutOfStock && !isPreorder ? '#' : isPreorder ? `/product/${product.id}` : '/checkout'}
+            onClick={(e) => { if (isOutOfStock && !isPreorder) { e.preventDefault(); return; } if (!isPreorder && !isInCart) addToCart({ ...product, isPreorder: canPreorder } as any); }}
             className={`w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-center transition-all shadow-lg ${
               isOutOfStock && !isPreorder
                 ? 'bg-gray-200 dark:bg-neutral-800 text-gray-400 cursor-not-allowed shadow-none'
