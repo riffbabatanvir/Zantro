@@ -91,6 +91,8 @@ export default function Checkout() {
   const codEnabled = paymentSettings?.codEnabled !== false;
   const codDisabledForPreorder = paymentSettings?.codDisabledForPreorder !== false;
 
+  const binancePayQr = paymentSettings?.binancePayQr || '';
+  const binancePayId = paymentSettings?.binancePayId || 'riffbaba';
   const cryptoAddresses = paymentSettings?.cryptoAddresses || [
     { name: 'BTC (Bitcoin)', address: '147hzwvR68sxcJUfkMEpSRxTwd9hqNpeq7' },
     { name: 'ETH (Ethereum)', address: '0x26c8d840e121e49d9657b1e4ec04cfffe1fb2b8c' },
@@ -316,6 +318,35 @@ export default function Checkout() {
                         <p className="text-[10px] text-center text-black/40 dark:text-white/40 uppercase tracking-widest mt-4">
                           Send exactly ৳{finalTotal.toFixed(2)} equivalent
                         </p>
+
+                        {/* Binance Pay */}
+                        {(binancePayQr || binancePayId) && (
+                          <div className="mt-4 border-t border-black/5 dark:border-white/5 pt-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center shrink-0">
+                                <span className="text-[8px] font-black text-black">B</span>
+                              </div>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white">Binance Pay</p>
+                            </div>
+                            {binancePayQr && (
+                              <div className="flex justify-center mb-3">
+                                <div className="w-40 h-40 bg-white p-2 rounded-lg shadow-sm border border-black/5">
+                                  <img src={binancePayQr} alt="Binance Pay QR" className="w-full h-full object-contain" />
+                                </div>
+                              </div>
+                            )}
+                            <div className="flex items-center justify-between p-3 border border-yellow-400/30 bg-yellow-50/50 dark:bg-yellow-900/10 rounded-lg">
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white">Pay ID</p>
+                                <p className="text-xs text-black/60 dark:text-white/60 font-mono mt-0.5">{binancePayId}</p>
+                              </div>
+                              <button type="button" onClick={() => copyToClipboard(binancePayId)}
+                                className="p-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded-md transition-colors shrink-0">
+                                <Copy size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </motion.div>
                     )}
 

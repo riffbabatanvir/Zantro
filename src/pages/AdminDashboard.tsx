@@ -25,6 +25,7 @@ export default function AdminDashboard() {
   // Payment settings state
   const [paymentSettings, setPaymentSettings] = useState<any>({
     bkashNumber: '', nagadNumber: '', bkashQr: '',
+    binancePayQr: '', binancePayId: '',
     codEnabled: true, codDisabledForPreorder: true,
     cryptoAddresses: [
       { name: 'BTC (Bitcoin)', address: '' },
@@ -1724,6 +1725,36 @@ export default function AdminDashboard() {
                 {/* Crypto Settings */}
                 <div className="border border-black/5 dark:border-white/5 rounded-xl p-5 space-y-4">
                   <h3 className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">Crypto Addresses</h3>
+
+                  {/* Binance Pay */}
+                  <div className="border border-yellow-400/30 bg-yellow-50/40 dark:bg-yellow-900/10 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center shrink-0">
+                        <span className="text-[8px] font-black text-black">B</span>
+                      </div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">Binance Pay</p>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">Pay ID / Username</label>
+                      <input type="text" value={paymentSettings.binancePayId}
+                        onChange={e => setPaymentSettings((p: any) => ({ ...p, binancePayId: e.target.value }))}
+                        placeholder="e.g. riffbaba"
+                        className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-yellow-500 outline-none transition-colors text-sm bg-transparent" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">Binance Pay QR Image URL</label>
+                      <input type="text" value={paymentSettings.binancePayQr}
+                        onChange={e => setPaymentSettings((p: any) => ({ ...p, binancePayQr: e.target.value }))}
+                        placeholder="https://... (upload to Cloudinary and paste URL)"
+                        className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-yellow-500 outline-none transition-colors text-sm bg-transparent" />
+                      {paymentSettings.binancePayQr && (
+                        <div className="mt-3 w-24 h-24 border border-yellow-400/30 rounded-lg overflow-hidden">
+                          <img src={paymentSettings.binancePayQr} alt="Binance QR Preview" className="w-full h-full object-contain" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {paymentSettings.cryptoAddresses?.map((crypto: any, idx: number) => (
                     <div key={idx}>
                       <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">{crypto.name}</label>
