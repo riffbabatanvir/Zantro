@@ -776,6 +776,11 @@ export default function AdminDashboard() {
   const averageOrderValue = validOrders.length > 0 ? totalRevenue / validOrders.length : 0;
   const onlineVisitors = visitors.filter(v => v.isOnline).length;
   const totalVisitors = visitors.length;
+  const [visitorPage, setVisitorPage] = useState(1);
+  const [visitorPerPage, setVisitorPerPage] = useState(20);
+  const [manualBlockIP, setManualBlockIP] = useState('');
+  const visitorTotalPages = Math.ceil(visitors.length / visitorPerPage);
+  const paginatedVisitors = visitors.slice((visitorPage - 1) * visitorPerPage, visitorPage * visitorPerPage);
 
   const getDeviceIcon = (device: string) => {
     if (device === 'Mobile') return <Smartphone size={14} />;
@@ -1455,18 +1460,28 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Refresh + Export buttons */}
-            <div className="flex justify-end gap-3 mb-4">
-              <button
-                onClick={() => { const token = localStorage.getItem('adminToken'); if (token) fetchVisitors(token); }}
-                className="px-4 py-2 bg-black/5 dark:bg-white/5 text-black/60 dark:text-white/60 rounded-lg text-xs font-medium uppercase tracking-widest hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-              >
-                🔄 Refresh
-              </button>
-              <button onClick={exportVisitorsToCSV}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-green-700 transition-colors">
-                📥 Export Excel
-              </button>
+            {/* Toolbar: Refresh, per-page selector, Export */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Show</span>
+                {[20, 50, 100].map(n => (
+                  <button key={n} onClick={() => { setVisitorPerPage(n); setVisitorPage(1); }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${visitorPerPage === n ? 'bg-orange-500 text-white' : 'bg-black/5 dark:bg-white/5 text-black/60 dark:text-white/60 hover:bg-black/10 dark:hover:bg-white/10'}`}>
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => { const token = localStorage.getItem('adminToken'); if (token) fetchVisitors(token); }}
+                  className="px-4 py-2 bg-black/5 dark:bg-white/5 text-black/60 dark:text-white/60 rounded-lg text-xs font-medium uppercase tracking-widest hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                  🔄 Refresh
+                </button>
+                <button onClick={exportVisitorsToCSV}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-green-700 transition-colors">
+                  📥 Export Excel
+                </button>
+              </div>
             </div>
 
             {visitors.length === 0 ? (
@@ -1475,83 +1490,114 @@ export default function AdminDashboard() {
                 <p className="text-black/40 dark:text-white/40">No visitors tracked yet. Visitors will appear here once someone visits your site.</p>
               </div>
             ) : (
-              <div className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-black/5 dark:border-white/5 bg-gray-50 dark:bg-neutral-950">
-                        <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Status</th>
-                        <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">IP Address</th>
-                        <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Location</th>
-                        <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Device</th>
-                        <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Browser</th>
-                        <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Visits</th>
-                        <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Last Seen</th>
-                        <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Last Page</th>
-                        <th className="px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {visitors.map((visitor) => (
-                        <tr key={visitor.id} className="border-b border-black/5 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-neutral-950/50 transition-colors">
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <div className={`w-2 h-2 rounded-full ${visitor.isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-300 dark:bg-neutral-600'}`}></div>
-                              <span className={`text-[10px] font-bold uppercase tracking-widest ${visitor.isOnline ? 'text-green-600 dark:text-green-400' : 'text-black/30 dark:text-white/30'}`}>
-                                {visitor.isOnline ? 'Online' : 'Offline'}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-xs font-mono text-black/60 dark:text-white/60">{visitor.ip}</td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-1 text-xs text-black/80 dark:text-white/80">
-                              <Globe size={12} className="text-black/30 dark:text-white/30" />
-                              <span>{visitor.city !== 'Unknown' ? `${visitor.city}, ` : ''}{visitor.country}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-1 text-xs text-black/60 dark:text-white/60">
-                              {getDeviceIcon(visitor.device)}
-                              <span>{visitor.device}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-xs text-black/60 dark:text-white/60">{visitor.browser}</td>
-                          <td className="px-4 py-3">
-                            <span className="inline-block px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-bold rounded">
-                              {visitor.visitCount}x
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-xs text-black/40 dark:text-white/40">{new Date(visitor.lastSeen).toLocaleString()}</td>
-                          <td className="px-4 py-3 text-xs text-black/40 dark:text-white/40 font-mono">{visitor.lastPage}</td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center justify-end gap-1">
-                              {blockedIPs.some(b => b.ip === visitor.ip) ? (
-                                <button
-                                  onClick={() => { const b = blockedIPs.find(b => b.ip === visitor.ip); if (b) handleUnblockIP(b.id, visitor.ip); }}
-                                  title="Unblock IP"
-                                  className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold uppercase tracking-widest bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 rounded-lg transition-colors">
-                                  <ShieldCheck size={12} /> Unblock
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => handleBlockIP(visitor.ip)}
-                                  title="Block IP"
-                                  className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold uppercase tracking-widest bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-lg transition-colors">
-                                  <ShieldOff size={12} /> Block
-                                </button>
-                              )}
-                              <button onClick={() => handleDeleteVisitor(visitor.id)}
-                                className="p-1.5 text-black/30 dark:text-white/30 hover:text-red-500 transition-colors rounded">
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          </td>
+              <>
+                <div className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-black/5 dark:border-white/5 bg-gray-50 dark:bg-neutral-950">
+                          <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Status</th>
+                          <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">IP Address</th>
+                          <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Location</th>
+                          <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Device</th>
+                          <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Browser</th>
+                          <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Visits</th>
+                          <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Last Seen</th>
+                          <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Last Page</th>
+                          <th className="px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium text-right">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {paginatedVisitors.map((visitor) => (
+                          <tr key={visitor.id} className="border-b border-black/5 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-neutral-950/50 transition-colors">
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${visitor.isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-300 dark:bg-neutral-600'}`}></div>
+                                <span className={`text-[10px] font-bold uppercase tracking-widest ${visitor.isOnline ? 'text-green-600 dark:text-green-400' : 'text-black/30 dark:text-white/30'}`}>
+                                  {visitor.isOnline ? 'Online' : 'Offline'}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-xs font-mono text-black/60 dark:text-white/60">{visitor.ip}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1 text-xs text-black/80 dark:text-white/80">
+                                <Globe size={12} className="text-black/30 dark:text-white/30" />
+                                <span>{visitor.city !== 'Unknown' ? `${visitor.city}, ` : ''}{visitor.country}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1 text-xs text-black/60 dark:text-white/60">
+                                {getDeviceIcon(visitor.device)}
+                                <span>{visitor.device}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-xs text-black/60 dark:text-white/60">{visitor.browser}</td>
+                            <td className="px-4 py-3">
+                              <span className="inline-block px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-bold rounded">
+                                {visitor.visitCount}x
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-xs text-black/40 dark:text-white/40">{new Date(visitor.lastSeen).toLocaleString()}</td>
+                            <td className="px-4 py-3 text-xs text-black/40 dark:text-white/40 font-mono">{visitor.lastPage}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center justify-end gap-1">
+                                {blockedIPs.some(b => b.ip === visitor.ip) ? (
+                                  <button
+                                    onClick={() => { const b = blockedIPs.find(b => b.ip === visitor.ip); if (b) handleUnblockIP(b.id, visitor.ip); }}
+                                    title="Unblock IP"
+                                    className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold uppercase tracking-widest bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 rounded-lg transition-colors">
+                                    <ShieldCheck size={12} /> Unblock
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleBlockIP(visitor.ip)}
+                                    title="Block IP"
+                                    className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold uppercase tracking-widest bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-lg transition-colors">
+                                    <ShieldOff size={12} /> Block
+                                  </button>
+                                )}
+                                <button onClick={() => handleDeleteVisitor(visitor.id)}
+                                  className="p-1.5 text-black/30 dark:text-white/30 hover:text-red-500 transition-colors rounded">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+
+                {/* Pagination controls */}
+                {visitorTotalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4">
+                    <p className="text-xs text-black/40 dark:text-white/40">
+                      Showing {(visitorPage - 1) * visitorPerPage + 1}–{Math.min(visitorPage * visitorPerPage, visitors.length)} of {visitors.length} visitors
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => setVisitorPage(1)} disabled={visitorPage === 1}
+                        className="px-2 py-1.5 rounded-lg text-xs text-black/40 dark:text-white/40 hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 transition-colors">«</button>
+                      <button onClick={() => setVisitorPage(p => Math.max(1, p - 1))} disabled={visitorPage === 1}
+                        className="px-3 py-1.5 rounded-lg text-xs text-black/40 dark:text-white/40 hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 transition-colors">‹ Prev</button>
+                      {Array.from({ length: Math.min(5, visitorTotalPages) }, (_, i) => {
+                        const start = Math.max(1, Math.min(visitorPage - 2, visitorTotalPages - 4));
+                        const page = start + i;
+                        return (
+                          <button key={page} onClick={() => setVisitorPage(page)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${visitorPage === page ? 'bg-orange-500 text-white' : 'text-black/40 dark:text-white/40 hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                            {page}
+                          </button>
+                        );
+                      })}
+                      <button onClick={() => setVisitorPage(p => Math.min(visitorTotalPages, p + 1))} disabled={visitorPage === visitorTotalPages}
+                        className="px-3 py-1.5 rounded-lg text-xs text-black/40 dark:text-white/40 hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 transition-colors">Next ›</button>
+                      <button onClick={() => setVisitorPage(visitorTotalPages)} disabled={visitorPage === visitorTotalPages}
+                        className="px-2 py-1.5 rounded-lg text-xs text-black/40 dark:text-white/40 hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 transition-colors">»</button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Blocked IPs Panel */}
@@ -1566,10 +1612,32 @@ export default function AdminDashboard() {
                 </div>
                 <span className="px-3 py-1 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold rounded-full">{blockedIPs.length} blocked</span>
               </div>
+
+              {/* Manual IP block input */}
+              <div className="px-6 py-4 border-b border-black/5 dark:border-white/5 bg-gray-50 dark:bg-neutral-950">
+                <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium mb-2">Block IP Manually</p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={manualBlockIP}
+                    onChange={e => setManualBlockIP(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && manualBlockIP.trim()) handleBlockIP(manualBlockIP.trim()).then(() => setManualBlockIP('')); }}
+                    placeholder="e.g. 123.456.789.000"
+                    className="flex-1 bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-sm font-mono focus:border-red-400 outline-none transition-colors"
+                  />
+                  <button
+                    onClick={() => { if (manualBlockIP.trim()) handleBlockIP(manualBlockIP.trim()).then(() => setManualBlockIP('')); }}
+                    disabled={!manualBlockIP.trim()}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                    <ShieldOff size={14} /> Block
+                  </button>
+                </div>
+              </div>
+
               {blockedIPs.length === 0 ? (
                 <div className="text-center py-10">
                   <ShieldCheck size={32} className="mx-auto text-green-400 mb-3" />
-                  <p className="text-sm text-black/40 dark:text-white/40">No IPs blocked. Use the Block button in the visitor table above.</p>
+                  <p className="text-sm text-black/40 dark:text-white/40">No IPs blocked. Use the Block button in the visitor table above or enter one manually.</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
