@@ -188,7 +188,7 @@ app.delete('/api/products/:id/reviews/:reviewId', async (req, res) => {
 
 // Orders
 app.post('/api/orders', async (req, res) => {
-  const order = { ...req.body, createdAt: new Date().toISOString(), status: 'pending' };
+  const order = { ...req.body, customerIp: getIP(req), createdAt: new Date().toISOString(), status: 'pending' };
   const result = await db.collection('orders').insertOne(order);
   res.status(201).json({ ...order, id: result.insertedId.toString() });
 });

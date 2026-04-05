@@ -991,6 +991,25 @@ export default function AdminDashboard() {
                             <div className="flex items-start gap-3 text-sm text-black/80 dark:text-white/80"><Mail size={16} className="mt-0.5 shrink-0 text-black/40 dark:text-white/40" /><span>{order.customerInfo?.email}</span></div>
                             <div className="flex items-start gap-3 text-sm text-black/80 dark:text-white/80"><Phone size={16} className="mt-0.5 shrink-0 text-black/40 dark:text-white/40" /><span>{order.customerInfo?.phone}</span></div>
                             <div className="flex items-start gap-3 text-sm text-black/80 dark:text-white/80"><MapPin size={16} className="mt-0.5 shrink-0 text-black/40 dark:text-white/40" /><span>{order.customerInfo?.address}, {order.customerInfo?.region === 'patuakhali' ? 'Inside Patuakhali' : 'Outside Patuakhali'}</span></div>
+                            {order.customerIp && (
+                              <div className="flex items-center gap-3 text-sm">
+                                <Globe size={16} className="shrink-0 text-black/40 dark:text-white/40" />
+                                <span className="font-mono text-xs text-black/60 dark:text-white/60">{order.customerIp}</span>
+                                {blockedIPs.some(b => b.ip === order.customerIp) ? (
+                                  <button
+                                    onClick={() => { const b = blockedIPs.find(b => b.ip === order.customerIp); if (b) handleUnblockIP(b.id, order.customerIp); }}
+                                    className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 rounded-lg transition-colors">
+                                    <ShieldCheck size={10} /> Unblock
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleBlockIP(order.customerIp)}
+                                    className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-lg transition-colors">
+                                    <ShieldOff size={10} /> Block
+                                  </button>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div className="space-y-3">
                             <h3 className="text-[11px] font-medium uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">Payment Info</h3>
