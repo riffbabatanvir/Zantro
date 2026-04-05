@@ -1,6 +1,7 @@
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { MongoClient, ObjectId } from 'mongodb';
 import { PRODUCTS } from './src/constants.js';
@@ -618,6 +619,94 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
+
+    // Product pages: inject JSON-LD into HTML before sending so Google sees it
+    app.get('/product/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const product = ObjectId.isValid(id)
+          ? await db.collection('products').findOne({ _id: new ObjectId(id) })
+          : null;
+
+        const html = await fs.promises.readFile(path.join(distPath, 'index.html'), 'utf-8');
+
+        if (!product) return res.send(html);
+
+        const p = { ...product, id: product._id.toString() };
+        const stock = p.stock;
+        const isOutOfStock = stock !== undefined && stock === 0;
+        const isPreorder = !!p.isPreorder;
+        const preorderTiers: Array<{ label: string; price: number }> = p.preorderPriceTiers || [];
+        const hasTiers = isPreorder && preorderTiers.length > 0;
+        const reviews: any[] = p.customerReviews || [];
+        const avgRating = reviews.length > 0
+          ? (reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length).toFixed(1)
+          : p.rating;
+
+        const jsonLd = {
+          '@context': 'https://schema.org/',
+          '@type': p.isPreowned ? 'IndividualProduct' : 'Product',
+          name: p.name,
+          description: p.description || '',
+          image: [...(p.images || []), p.image].filter(Boolean),
+          url: `https://zantrobd.com/product/${p.id}`,
+          sku: p.id,
+          brand: { '@type': 'Brand', name: 'Zantro' },
+          category: p.category,
+          ...(avgRating ? {
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: String(avgRating),
+              reviewCount: String(reviews.length || p.reviewCount || 1),
+              bestRating: '5',
+              worstRating: '1',
+            }
+          } : {}),
+          ...(reviews.length > 0 ? {
+            review: reviews.slice(0, 5).map((r: any) => ({
+              '@type': 'Review',
+              author: { '@type': 'Person', name: r.name },
+              reviewRating: { '@type': 'Rating', ratingValue: String(r.rating), bestRating: '5', worstRating: '1' },
+              reviewBody: r.comment,
+              datePublished: r.date,
+            }))
+          } : {}),
+          offers: hasTiers
+            ? preorderTiers.map(tier => ({
+                '@type': 'Offer',
+                name: tier.label,
+                price: String(tier.price),
+                priceCurrency: 'BDT',
+                availability: 'https://schema.org/PreOrder',
+                url: `https://zantrobd.com/product/${p.id}`,
+                seller: { '@type': 'Organization', name: 'Zantro' },
+              }))
+            : {
+                '@type': 'Offer',
+                price: String(p.price),
+                priceCurrency: 'BDT',
+                availability: isOutOfStock
+                  ? 'https://schema.org/OutOfStock'
+                  : isPreorder
+                  ? 'https://schema.org/PreOrder'
+                  : 'https://schema.org/InStock',
+                url: `https://zantrobd.com/product/${p.id}`,
+                priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+                seller: { '@type': 'Organization', name: 'Zantro' },
+              },
+        };
+
+        const injected = html.replace(
+          '</head>',
+          `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>\n</head>`
+        );
+        res.send(injected);
+      } catch {
+        const html = await fs.promises.readFile(path.join(distPath, 'index.html'), 'utf-8');
+        res.send(html);
+      }
+    });
+
     app.get('*', (req, res) => { res.sendFile(path.join(distPath, 'index.html')); });
   }
   app.listen(PORT, '0.0.0.0', () => { console.log(`Server running on http://localhost:${PORT}`); });
