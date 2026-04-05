@@ -86,7 +86,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
           <div className="flex items-center w-full md:w-auto gap-4">
             <Link to="/" className="flex items-center shrink-0">
               <span className="flex items-center gap-2 text-2xl font-black tracking-tighter text-orange-600 dark:text-orange-400">
-                <img src="/favicon.png" alt="Zantro" className="h-8 w-8 object-contain" />ZANTRO
+                <img src="/favicon.png" alt="Zantro" className="h-8 w-8 object-contain mb-1" />ZANTRO
               </span>
             </Link>
 
