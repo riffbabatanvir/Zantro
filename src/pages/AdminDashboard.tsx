@@ -353,6 +353,21 @@ export default function AdminDashboard() {
     } catch { toast.error('An error occurred'); }
   };
 
+  const handleToggleRefund = async (orderId: string, currentRefunded: boolean) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ refunded: !currentRefunded }),
+      });
+      if (res.ok) {
+        setOrders(orders.map(o => o.id === orderId ? { ...o, refunded: !currentRefunded } : o));
+        toast.success(!currentRefunded ? 'Marked as refunded' : 'Refund mark removed');
+      } else toast.error('Failed to update refund status');
+    } catch { toast.error('An error occurred'); }
+  };
+
   const handleSaveRemark = async (orderId: string) => {
     const remark = remarkInputs[orderId] ?? '';
     setSavingRemark(orderId);
@@ -975,6 +990,15 @@ export default function AdminDashboard() {
                                   ⚠ Cancel Requested
                                 </span>
                               )}
+                              {order.status === 'cancelled' && (
+                                <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded flex items-center gap-1 ${
+                                  order.refunded
+                                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                                    : 'bg-gray-100 dark:bg-neutral-800 text-black/40 dark:text-white/40'
+                                }`}>
+                                  {order.refunded ? '✓ Refunded' : 'Not Refunded'}
+                                </span>
+                              )}
                             </div>
                             <p className="text-xs text-black/40 dark:text-white/40 mt-2">{new Date(order.createdAt).toLocaleString()}</p>
                           </div>
@@ -1091,6 +1115,16 @@ export default function AdminDashboard() {
                                 <button onClick={() => handleCancelOrder(order.id)}
                                   className="w-full flex items-center justify-center gap-2 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 py-2.5 rounded-lg text-[11px] font-medium uppercase tracking-widest hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors">
                                   <XCircle size={14} /> Cancel Order
+                                </button>
+                              )}
+                              {order.status === 'cancelled' && (
+                                <button onClick={() => handleToggleRefund(order.id, !!order.refunded)}
+                                  className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-[11px] font-medium uppercase tracking-widest transition-colors ${
+                                    order.refunded
+                                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
+                                      : 'bg-gray-100 dark:bg-neutral-800 text-black/50 dark:text-white/50 hover:bg-gray-200 dark:hover:bg-neutral-700'
+                                  }`}>
+                                  {order.refunded ? <><CheckCircle size={14} /> Refunded</> : <><Banknote size={14} /> Mark as Refunded</>}
                                 </button>
                               )}
                               <button onClick={() => handleDeleteOrder(order.id)}
