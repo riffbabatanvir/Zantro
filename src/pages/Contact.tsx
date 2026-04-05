@@ -62,7 +62,7 @@ export default function Contact() {
             <div className="space-y-12">
               <div>
                 <h3 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-4">General Inquiries</h3>
-                <p className="text-sm text-black/60 dark:text-white/60 leading-relaxed">riffbaba@gmail.com</p>
+                <p className="text-sm text-black/60 dark:text-white/60 leading-relaxed">store@zantrobd.com</p>
                 <p className="text-sm text-black/60 dark:text-white/60 leading-relaxed">+8801779102808</p>
               </div>
 

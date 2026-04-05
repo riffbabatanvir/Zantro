@@ -42,7 +42,7 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-black dark:text-white transition-colors flex items-center gap-2">
+                <a href="https://www.instagram.com/zantro.bd" target="_blank" rel="noopener noreferrer" className="hover:text-black dark:text-white transition-colors flex items-center gap-2">
                   <Instagram size={14} /> Instagram
                 </a>
               </li>
