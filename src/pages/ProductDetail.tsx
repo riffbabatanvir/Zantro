@@ -204,6 +204,64 @@ export default function ProductDetail() {
         <meta property="og:url" content={`https://zantrobd.com/product/${product.id}`} />
         <meta property="product:price:amount" content={String(product.price)} />
         <meta property="product:price:currency" content="BDT" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org/",
+          "@type": isPreowned ? "IndividualProduct" : "Product",
+          "name": product.name,
+          "description": product.description || '',
+          "image": [
+            ...(product.images && product.images.length > 0 ? product.images : []),
+            product.image,
+          ].filter(Boolean),
+          "url": `https://zantrobd.com/product/${product.id}`,
+          "sku": product.id,
+          "brand": { "@type": "Brand", "name": "Zantro" },
+          "category": product.category,
+          ...(product.rating ? {
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": String(product.rating),
+              "reviewCount": String(localReviews.length || product.reviewCount || 1),
+              "bestRating": "5",
+              "worstRating": "1",
+            }
+          } : {}),
+          ...(localReviews.length > 0 ? {
+            "review": localReviews.slice(0, 5).map((r: any) => ({
+              "@type": "Review",
+              "author": { "@type": "Person", "name": r.name },
+              "reviewRating": { "@type": "Rating", "ratingValue": String(r.rating), "bestRating": "5", "worstRating": "1" },
+              "reviewBody": r.comment,
+              "datePublished": r.date,
+            }))
+          } : {}),
+          "offers": hasTiers
+            ? preorderTiers.map((tier) => ({
+                "@type": "Offer",
+                "name": tier.label,
+                "price": String(tier.price),
+                "priceCurrency": "BDT",
+                "availability": "https://schema.org/PreOrder",
+                "url": `https://zantrobd.com/product/${product.id}`,
+                "seller": { "@type": "Organization", "name": "Zantro" },
+              }))
+            : {
+                "@type": "Offer",
+                "price": String(product.price),
+                "priceCurrency": "BDT",
+                "availability": isOutOfStock
+                  ? "https://schema.org/OutOfStock"
+                  : isPreorder
+                  ? "https://schema.org/PreOrder"
+                  : stock !== undefined
+                  ? "https://schema.org/InStock"
+                  : "https://schema.org/InStock",
+                "url": `https://zantrobd.com/product/${product.id}`,
+                "priceValidUntil": new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+                "seller": { "@type": "Organization", "name": "Zantro" },
+                ...(stock !== undefined && !isPreorder ? { "inventoryLevel": { "@type": "QuantitativeValue", "value": stock } } : {}),
+              },
+        })}</script>
       </Helmet>
     <div className="bg-transparent min-h-screen">
       <div className="max-w-7xl mx-auto md:px-6 lg:px-12">
