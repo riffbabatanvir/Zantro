@@ -67,9 +67,10 @@ useEffect(() => {
   return (
     <>
       <Helmet>
-        <title>Zantro — Online Shop Bangladesh</title>
-        <meta name="description" content="Shop the best products online at Zantro. Best deals and fast delivery across Bangladesh." />
-        <meta property="og:title" content="Zantro — Online Shop Bangladesh" />
+        <title>Zantro | Bangladesh's Favourite Online Shop — Fashion, Gadgets & More</title>
+        <meta name="description" content="Zantro is Bangladesh's go-to online shop for fashion, gadgets, home essentials & more. Free delivery in Patuakhali. Order now and get it fast!" />
+        <meta property="og:title" content="Zantro | Bangladesh's Favourite Online Shop" />
+        <meta property="og:description" content="Shop fashion, gadgets, home essentials & more at Zantro. Free delivery in Patuakhali. Best prices guaranteed!" />
         <meta property="og:url" content="https://zantrobd.com" />
       </Helmet>
     <div className="bg-transparent">
