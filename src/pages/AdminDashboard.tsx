@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Lock, LogOut, Package, CreditCard, MapPin, Phone, Mail, User, ShoppingCart, Clock, TrendingUp, CheckCircle, Banknote, XCircle, Trash2, MessageSquare, PlusCircle, Image as ImageIcon, Tag, FileText, DollarSign, Percent, Video, Upload, Edit2, Save, Zap, Users, Globe, Monitor, Smartphone, Tablet, Truck } from 'lucide-react';
+import { Lock, LogOut, Package, CreditCard, MapPin, Phone, Mail, User, ShoppingCart, Clock, TrendingUp, CheckCircle, Banknote, XCircle, Trash2, MessageSquare, PlusCircle, Image as ImageIcon, Tag, FileText, DollarSign, Percent, Video, Upload, Edit2, Save, Zap, Users, Globe, Monitor, Smartphone, Tablet, Truck, ShieldOff, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProducts } from '../ProductContext';
 import { useCategoryImages } from '../useCategoryImages';
@@ -14,6 +14,7 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [visitors, setVisitors] = useState<any[]>([]);
+  const [blockedIPs, setBlockedIPs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons' | 'hero' | 'announcement' | 'preorders' | 'preowned' | 'payment'>('orders');
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
@@ -268,6 +269,7 @@ export default function AdminDashboard() {
       fetchMessages(token);
       fetchVisitors(token);
       fetchCoupons(token);
+      fetchBlockedIPs(token);
     }
   }, []);
 
@@ -312,6 +314,7 @@ export default function AdminDashboard() {
         fetchMessages(token);
         fetchVisitors(token);
         fetchCoupons(token);
+        fetchBlockedIPs(token);
         toast.success('Logged in successfully');
       } else toast.error('Invalid credentials');
     } catch { toast.error('Login failed'); }
@@ -463,6 +466,45 @@ export default function AdminDashboard() {
       const res = await fetch(`/api/visitors/${visitorId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
       if (res.ok) { setVisitors(visitors.filter(v => v.id !== visitorId)); toast.success('Visitor deleted'); }
       else toast.error('Failed to delete visitor');
+    } catch { toast.error('An error occurred'); }
+  };
+
+  const fetchBlockedIPs = async (token: string) => {
+    try {
+      const res = await fetch('/api/blocked-ips', { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) setBlockedIPs(await res.json());
+    } catch {}
+  };
+
+  const handleBlockIP = async (ip: string) => {
+    if (!window.confirm(`Block IP ${ip}? They will get a 403 Forbidden error.`)) return;
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch('/api/blocked-ips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ip }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBlockedIPs(prev => [data, ...prev]);
+        toast.success(`IP ${ip} blocked`);
+      } else {
+        const err = await res.json();
+        toast.error(err.error || 'Failed to block IP');
+      }
+    } catch { toast.error('An error occurred'); }
+  };
+
+  const handleUnblockIP = async (blockedId: string, ip: string) => {
+    if (!window.confirm(`Unblock IP ${ip}?`)) return;
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`/api/blocked-ips/${blockedId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) {
+        setBlockedIPs(prev => prev.filter(b => b.id !== blockedId));
+        toast.success(`IP ${ip} unblocked`);
+      } else toast.error('Failed to unblock IP');
     } catch { toast.error('An error occurred'); }
   };
 
@@ -1446,7 +1488,7 @@ export default function AdminDashboard() {
                         <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Visits</th>
                         <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Last Seen</th>
                         <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Last Page</th>
-                        <th className="px-4 py-3"></th>
+                        <th className="px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1482,10 +1524,27 @@ export default function AdminDashboard() {
                           <td className="px-4 py-3 text-xs text-black/40 dark:text-white/40">{new Date(visitor.lastSeen).toLocaleString()}</td>
                           <td className="px-4 py-3 text-xs text-black/40 dark:text-white/40 font-mono">{visitor.lastPage}</td>
                           <td className="px-4 py-3">
-                            <button onClick={() => handleDeleteVisitor(visitor.id)}
-                              className="p-1.5 text-black/30 dark:text-white/30 hover:text-red-500 transition-colors rounded">
-                              <Trash2 size={14} />
-                            </button>
+                            <div className="flex items-center justify-end gap-1">
+                              {blockedIPs.some(b => b.ip === visitor.ip) ? (
+                                <button
+                                  onClick={() => { const b = blockedIPs.find(b => b.ip === visitor.ip); if (b) handleUnblockIP(b.id, visitor.ip); }}
+                                  title="Unblock IP"
+                                  className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold uppercase tracking-widest bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 rounded-lg transition-colors">
+                                  <ShieldCheck size={12} /> Unblock
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleBlockIP(visitor.ip)}
+                                  title="Block IP"
+                                  className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold uppercase tracking-widest bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-lg transition-colors">
+                                  <ShieldOff size={12} /> Block
+                                </button>
+                              )}
+                              <button onClick={() => handleDeleteVisitor(visitor.id)}
+                                className="p-1.5 text-black/30 dark:text-white/30 hover:text-red-500 transition-colors rounded">
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -1494,6 +1553,53 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
+
+            {/* Blocked IPs Panel */}
+            <div className="mt-8 bg-white dark:bg-neutral-900 border border-red-200 dark:border-red-900/40 rounded-2xl overflow-hidden shadow-sm">
+              <div className="flex items-center justify-between px-6 py-4 bg-red-50 dark:bg-red-950/20 border-b border-red-100 dark:border-red-900/30">
+                <div className="flex items-center gap-3">
+                  <ShieldOff size={18} className="text-red-500" />
+                  <div>
+                    <p className="text-sm font-bold text-black dark:text-white">Blocked IPs</p>
+                    <p className="text-[11px] text-black/40 dark:text-white/40 mt-0.5">Blocked visitors receive a 403 Forbidden error on all requests</p>
+                  </div>
+                </div>
+                <span className="px-3 py-1 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold rounded-full">{blockedIPs.length} blocked</span>
+              </div>
+              {blockedIPs.length === 0 ? (
+                <div className="text-center py-10">
+                  <ShieldCheck size={32} className="mx-auto text-green-400 mb-3" />
+                  <p className="text-sm text-black/40 dark:text-white/40">No IPs blocked. Use the Block button in the visitor table above.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-black/5 dark:border-white/5 bg-gray-50 dark:bg-neutral-950">
+                        <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">IP Address</th>
+                        <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">Blocked At</th>
+                        <th className="px-4 py-3"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {blockedIPs.map((blocked) => (
+                        <tr key={blocked.id} className="border-b border-black/5 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-neutral-950/50 transition-colors">
+                          <td className="px-4 py-3 font-mono text-sm text-red-600 dark:text-red-400 font-medium">{blocked.ip}</td>
+                          <td className="px-4 py-3 text-xs text-black/40 dark:text-white/40">{new Date(blocked.blockedAt).toLocaleString()}</td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              onClick={() => handleUnblockIP(blocked.id, blocked.ip)}
+                              className="flex items-center gap-1 ml-auto px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 rounded-lg transition-colors">
+                              <ShieldCheck size={12} /> Unblock
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </>
         ) : activeTab === 'preowned' ? (
           <div className="max-w-5xl mx-auto space-y-8">

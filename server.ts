@@ -15,6 +15,26 @@ const PORT = 3000;
 
 app.use(express.json());
 
+// ─── IP Blocklist (loaded into memory, refreshed per request from DB) ──────────
+let blockedIPs = new Set<string>();
+
+async function loadBlockedIPs() {
+  try {
+    const docs = await db.collection('blockedIPs').find({}).toArray();
+    blockedIPs = new Set(docs.map((d: any) => d.ip));
+  } catch {}
+}
+
+app.use(async (req, res, next) => {
+  // Skip the block check for the admin login endpoint itself
+  if (req.path === '/api/admin/login') return next();
+  const ip = getIP(req);
+  if (blockedIPs.has(ip)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  next();
+});
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'di4byoc2w',
   api_key: process.env.CLOUDINARY_API_KEY || '783818254271344',
@@ -35,6 +55,7 @@ async function connectDB() {
     await productsCol.insertMany(PRODUCTS.map(p => ({ ...p, _id: undefined })));
     console.log('Seeded initial products');
   }
+  await loadBlockedIPs();
 }
 
 // 50 MB limit for videos
@@ -427,6 +448,40 @@ app.delete('/api/visitors/:id', async (req, res) => {
     res.json({ success: true });
   } catch {
     res.status(404).json({ error: 'Visitor not found' });
+  }
+});
+
+// ─── Blocked IPs ───────────────────────────────────────────────────────────────
+
+app.get('/api/blocked-ips', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const docs = await db.collection('blockedIPs').find({}).sort({ blockedAt: -1 }).toArray();
+  res.json(docs.map((d: any) => ({ ...d, id: d._id.toString() })));
+});
+
+app.post('/api/blocked-ips', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const { ip } = req.body;
+  if (!ip) return res.status(400).json({ error: 'IP required' });
+  const existing = await db.collection('blockedIPs').findOne({ ip });
+  if (existing) return res.status(409).json({ error: 'IP already blocked' });
+  const doc = { ip, blockedAt: new Date().toISOString() };
+  const result = await db.collection('blockedIPs').insertOne(doc);
+  blockedIPs.add(ip);
+  res.status(201).json({ ...doc, id: result.insertedId.toString() });
+});
+
+app.delete('/api/blocked-ips/:id', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const { id } = req.params;
+  try {
+    const doc = await db.collection('blockedIPs').findOne({ _id: new ObjectId(id) });
+    if (!doc) return res.status(404).json({ error: 'Not found' });
+    await db.collection('blockedIPs').deleteOne({ _id: new ObjectId(id) });
+    blockedIPs.delete(doc.ip);
+    res.json({ success: true });
+  } catch {
+    res.status(404).json({ error: 'Not found' });
   }
 });
 
