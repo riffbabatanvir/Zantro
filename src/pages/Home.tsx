@@ -118,7 +118,7 @@ useEffect(() => {
       <section className="py-8 md:py-20">
         <div className="max-w-7xl mx-auto px-4 lg:px-12">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl md:text-3xl font-black text-gray-900 tracking-tight">Recommended For You</h2>
+            <h2 className="text-xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Recommended For You</h2>
             <Link to="/shop" className="text-sm font-bold text-gray-400 hover:text-orange-500">View More</Link>
           </div>
 

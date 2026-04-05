@@ -168,7 +168,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <Link key={link.name} to={link.path} className="text-sm font-bold text-gray-600 hover:text-orange-600 dark:text-orange-400 transition-all whitespace-nowrap">
+              <Link key={link.name} to={link.path} className="text-sm font-bold text-gray-600 hover:text-orange-600 dark:text-orange-400 dark:hover:text-white transition-all whitespace-nowrap">
                 {link.name}
               </Link>
             ))}
@@ -257,7 +257,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
             <div className="px-4 py-6 space-y-4">
               {navLinks.map((link) => (
                 <Link key={link.name} to={link.path} onClick={() => setIsMenuOpen(false)}
-                  className="block text-lg font-bold text-gray-800 hover:text-orange-600 dark:text-orange-400 transition-colors">
+                  className="block text-lg font-bold text-gray-800 hover:text-orange-600 dark:text-orange-400 dark:hover:text-white transition-colors">
                   {link.name}
                 </Link>
               ))}
