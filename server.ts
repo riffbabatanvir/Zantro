@@ -289,6 +289,24 @@ app.patch('/api/categories/:id', async (req, res) => {
   res.json({ id, image });
 });
 
+// Category name management (add / rename / delete)
+app.get('/api/category-list', async (req, res) => {
+  const doc = await db.collection('settings').findOne({ key: 'categoryList' });
+  res.json(doc ? doc.categories : null); // null = use defaults
+});
+
+app.post('/api/category-list', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const { categories } = req.body;
+  if (!Array.isArray(categories)) return res.status(400).json({ error: 'categories must be an array' });
+  await db.collection('settings').updateOne(
+    { key: 'categoryList' },
+    { $set: { key: 'categoryList', categories } },
+    { upsert: true }
+  );
+  res.json({ ok: true, categories });
+});
+
 // Flash Sale settings
 app.get('/api/settings/flashsale', async (req, res) => {
   const setting = await db.collection('settings').findOne({ key: 'flashsale' });

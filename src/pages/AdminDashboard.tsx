@@ -90,7 +90,7 @@ export default function AdminDashboard() {
 
   const [newProduct, setNewProduct] = useState({
     name: '', price: '', discount: '', description: '',
-    category: CATEGORIES[0]?.name || 'Fashion',
+    category: categoryList[0]?.name || 'Fashion',
     image: '', rating: '', soldCount: '', reviewCount: '', stock: '',
     sizes: '', colors: '', isPreorder: false, isPreowned: false, yearsUsed: '', percentNew: ''
   });
@@ -116,6 +116,61 @@ export default function AdminDashboard() {
   const preownedImageInputRef = useRef<HTMLInputElement>(null);
   // Category images
   const { images: categoryImages, refetch: refetchCategoryImages } = useCategoryImages();
+
+  // Category name management
+  const [categoryList, setCategoryList] = useState<Array<{id: string; name: string; image: string}>>([...CATEGORIES]);
+  const [isSavingCatList, setIsSavingCatList] = useState(false);
+  const [catNameEditId, setCatNameEditId] = useState<string | null>(null);
+  const [catNameInput, setCatNameInput] = useState('');
+  const [newCatName, setNewCatName] = useState('');
+  const [isAddingCat, setIsAddingCat] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/category-list').then(r => r.json()).then(data => {
+      if (Array.isArray(data)) setCategoryList(data);
+    }).catch(() => {});
+  }, []);
+
+  const saveCategoryList = async (updated: typeof categoryList) => {
+    setIsSavingCatList(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch('/api/category-list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ categories: updated }),
+      });
+      if (res.ok) { setCategoryList(updated); toast.success('Categories saved!'); }
+      else toast.error('Failed to save');
+    } catch { toast.error('Failed to save'); }
+    finally { setIsSavingCatList(false); }
+  };
+
+  const handleAddCategory = async () => {
+    const name = newCatName.trim();
+    if (!name) return;
+    const newCat = { id: Date.now().toString(), name, image: 'https://images.unsplash.com/photo-1553481187-be93c21490a9?auto=format&fit=crop&q=80&w=400&h=400' };
+    const updated = [...categoryList, newCat];
+    await saveCategoryList(updated);
+    setNewCatName('');
+    setIsAddingCat(false);
+  };
+
+  const handleRenameCat = async (id: string) => {
+    const name = catNameInput.trim();
+    if (!name) return;
+    const updated = categoryList.map(c => c.id === id ? { ...c, name } : c);
+    await saveCategoryList(updated);
+    setCatNameEditId(null);
+    setCatNameInput('');
+  };
+
+  const handleDeleteCat = async (id: string) => {
+    if (!window.confirm('Delete this category? Products assigned to it will become uncategorized.')) return;
+    const updated = categoryList.filter(c => c.id !== id);
+    await saveCategoryList(updated);
+  };
+
   // Coupons
   const [coupons, setCoupons] = useState<any[]>([]);
   const [newCoupon, setNewCoupon] = useState({ code: '', discount: '' });
@@ -580,7 +635,7 @@ export default function AdminDashboard() {
         ] as any,
       });
       toast.success('Product added successfully!');
-      setNewProduct({ name: '', price: '', discount: '', description: '', category: CATEGORIES[0]?.name || 'Fashion', image: '', rating: '', soldCount: '', reviewCount: '', stock: '', sizes: '', colors: '', isPreorder: false, isPreowned: false, yearsUsed: '', percentNew: '' });
+      setNewProduct({ name: '', price: '', discount: '', description: '', category: categoryList[0]?.name || 'Fashion', image: '', rating: '', soldCount: '', reviewCount: '', stock: '', sizes: '', colors: '', isPreorder: false, isPreowned: false, yearsUsed: '', percentNew: '' });
       setNewProductPriceTiers([{ minQty: '1', maxQty: '1', label: '1 piece', price: '' }]);
       setImageFiles([]); setVideoFile(null);
       if (imageInputRef.current) imageInputRef.current.value = '';
@@ -1204,7 +1259,119 @@ export default function AdminDashboard() {
           </>
         
         ) : activeTab === 'categories' ? (
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* ── Category Name Management ── */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 md:p-8 shadow-sm">
+              <div className="flex items-center justify-between mb-6 border-b border-black/5 dark:border-white/5 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center"><Tag size={20} /></div>
+                  <div>
+                    <h2 className="text-xl font-medium text-black dark:text-white">Category Names</h2>
+                    <p className="text-xs text-black/40 dark:text-white/40 mt-1">Add, rename or delete categories</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setIsAddingCat(true); setTimeout(() => document.getElementById('new-cat-input')?.focus(), 50); }}
+                  className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold hover:bg-orange-700 transition-colors"
+                >
+                  <PlusCircle size={14} /> Add Category
+                </button>
+              </div>
+
+              {/* Add new category row */}
+              {isAddingCat && (
+                <div className="flex items-center gap-3 mb-4 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700/40 rounded-xl">
+                  <input
+                    id="new-cat-input"
+                    type="text"
+                    placeholder="Category name..."
+                    value={newCatName}
+                    onChange={e => setNewCatName(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleAddCategory(); if (e.key === 'Escape') { setIsAddingCat(false); setNewCatName(''); } }}
+                    className="flex-1 bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-orange-500 outline-none"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleAddCategory}
+                    disabled={isSavingCatList || !newCatName.trim()}
+                    className="flex items-center gap-1 px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold hover:bg-orange-700 transition-colors disabled:opacity-50"
+                  >
+                    <Save size={12} /> {isSavingCatList ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    onClick={() => { setIsAddingCat(false); setNewCatName(''); }}
+                    className="flex items-center gap-1 px-3 py-2 bg-gray-200 dark:bg-neutral-800 text-black dark:text-white rounded-lg text-xs font-bold hover:bg-gray-300 transition-colors"
+                  >
+                    <XCircle size={12} />
+                  </button>
+                </div>
+              )}
+
+              {/* Category list */}
+              <div className="space-y-2">
+                {categoryList.map((cat, idx) => (
+                  <div key={cat.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-neutral-950 border border-black/5 dark:border-white/5 rounded-xl group">
+                    <span className="text-[10px] font-bold text-black/20 dark:text-white/20 w-5 text-right shrink-0">{idx + 1}</span>
+                    {catNameEditId === cat.id ? (
+                      <input
+                        type="text"
+                        value={catNameInput}
+                        onChange={e => setCatNameInput(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') handleRenameCat(cat.id); if (e.key === 'Escape') { setCatNameEditId(null); setCatNameInput(''); } }}
+                        className="flex-1 bg-white dark:bg-neutral-900 border border-orange-400 rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                        autoFocus
+                      />
+                    ) : (
+                      <span className="flex-1 text-sm font-medium text-black dark:text-white">{cat.name}</span>
+                    )}
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {catNameEditId === cat.id ? (
+                        <>
+                          <button
+                            onClick={() => handleRenameCat(cat.id)}
+                            disabled={isSavingCatList}
+                            className="p-1.5 rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-colors disabled:opacity-50"
+                            title="Save"
+                          >
+                            <Save size={13} />
+                          </button>
+                          <button
+                            onClick={() => { setCatNameEditId(null); setCatNameInput(''); }}
+                            className="p-1.5 rounded-lg bg-gray-200 dark:bg-neutral-700 text-black dark:text-white hover:bg-gray-300 transition-colors"
+                            title="Cancel"
+                          >
+                            <XCircle size={13} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => { setCatNameEditId(cat.id); setCatNameInput(cat.name); }}
+                            className="p-1.5 rounded-lg text-black/40 dark:text-white/40 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
+                            title="Rename"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCat(cat.id)}
+                            className="p-1.5 rounded-lg text-black/40 dark:text-white/40 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {categoryList.length === 0 && (
+                  <p className="text-center text-sm text-black/30 dark:text-white/30 py-8">No categories yet. Click "Add Category" to create one.</p>
+                )}
+              </div>
+            </motion.div>
+
+            {/* ── Category Images ── */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 md:p-8 shadow-sm">
               <div className="flex items-center gap-3 mb-8 border-b border-black/5 dark:border-white/5 pb-4">
@@ -1215,7 +1382,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {CATEGORIES.map(cat => {
+                {categoryList.map(cat => {
                   const currentImg = categoryImages[cat.id] || cat.image;
                   const isEditing = catEditId === cat.id;
                   return (
@@ -2213,13 +2380,13 @@ export default function AdminDashboard() {
                   const filtered = products.filter((p: any) =>
                     !manageSearch || p.name.toLowerCase().includes(manageSearch.toLowerCase())
                   );
-                  const grouped = CATEGORIES.reduce((acc: Record<string, any[]>, cat) => {
+                  const grouped = categoryList.reduce((acc: Record<string, any[]>, cat) => {
                     const catProducts = filtered.filter((p: any) => p.category === cat.name);
                     if (catProducts.length > 0) acc[cat.name] = catProducts;
                     return acc;
                   }, {});
                   // Products with unrecognized / missing categories
-                  const knownCatNames = CATEGORIES.map(c => c.name);
+                  const knownCatNames = categoryList.map(c => c.name);
                   const uncategorized = filtered.filter((p: any) => !knownCatNames.includes(p.category));
                   if (uncategorized.length > 0) grouped['Other'] = uncategorized;
 
@@ -2261,7 +2428,7 @@ export default function AdminDashboard() {
                         </div>
                         <select value={editProductData.category} onChange={(e) => setEditProductData({...editProductData, category: e.target.value})}
                           className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none">
-                          {CATEGORIES.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
+                          {categoryList.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
                         </select>
                         <input type="text" value={editProductData.image} onChange={(e) => setEditProductData({...editProductData, image: e.target.value})}
                           className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none" placeholder="Image URL" />
@@ -2529,7 +2696,7 @@ export default function AdminDashboard() {
                     <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40"><Tag size={14} /> Category</label>
                     <select required value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
                       className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-black dark:text-white focus:border-orange-500 outline-none transition-colors appearance-none">
-                      {CATEGORIES.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
+                      {categoryList.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
                     </select>
                   </div>
                   <div className="space-y-2">
