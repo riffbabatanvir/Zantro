@@ -13,7 +13,7 @@ export default function BottomNav() {
     { name: 'Home', path: '/', icon: Home },
     { name: 'Shop', path: '/shop', icon: Grid },
     { name: 'Cart', path: '/cart', icon: ShoppingCart, badge: totalItems },
-    { name: 'My Zantro', path: '/my', icon: Heart, badge: 0 },
+    { name: 'My Zantro', path: '/my?tab=history', icon: Heart, badge: 0 },
   ];
 
   const isProductPage = location.pathname.startsWith('/product/');
@@ -22,7 +22,7 @@ export default function BottomNav() {
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-950 border-t border-gray-100 dark:border-neutral-800 z-50 px-6 py-3 flex justify-between items-center">
       {navItems.map((item) => {
-        const isActive = location.pathname === item.path;
+        const isActive = location.pathname === item.path.split('?')[0];
         return (
           <Link
             key={item.name}

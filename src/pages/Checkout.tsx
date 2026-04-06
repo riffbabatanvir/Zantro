@@ -172,6 +172,12 @@ export default function Checkout() {
               </button>
             </div>
             <p className="text-[10px] text-black/30 dark:text-white/30 text-center">Use this ID to track your order</p>
+            <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700/40 rounded-xl px-4 py-3 max-w-xs">
+              <span className="text-amber-500 text-base leading-none mt-0.5">💾</span>
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
+                <strong>Save your Order ID</strong> — screenshot or note it down so you can track your order anytime.
+              </p>
+            </div>
             <Link to={`/order-tracking`} className="text-[11px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400 hover:underline">
               Track Order →
             </Link>
