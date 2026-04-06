@@ -81,9 +81,100 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
   return (
     <nav className="fixed top-0 w-full z-50 bg-white dark:bg-neutral-950 border-b border-gray-100 dark:border-neutral-800">
       <div className="max-w-7xl mx-auto px-4 lg:px-12">
-        <div className="flex flex-col md:flex-row justify-between items-center py-3 md:h-20 gap-4">
+
+        {/* ── Mobile layout: everything on one row ── */}
+        <div className="md:hidden flex items-center gap-2 h-14">
+          {/* Logo */}
+          <Link to="/" className="flex items-center shrink-0">
+            <span className="flex items-center gap-1 text-lg font-black tracking-tighter text-orange-600 dark:text-orange-400">
+              <img src="/favicon.png" alt="Zantro" className="h-6 w-6 object-contain" />ZANTRO
+            </span>
+          </Link>
+
+          {/* Search bar — grows to fill remaining space */}
+          <div ref={searchRef} className="flex-1 relative">
+            <form onSubmit={handleSearch} className="relative group">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setShowSuggestions(true)}
+                className="w-full bg-gray-100 dark:bg-white border-2 border-transparent focus:border-orange-500 rounded-full py-1.5 pl-7 pr-14 text-xs text-black dark:text-black outline-none transition-all placeholder:text-gray-400"
+              />
+              <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500" />
+              <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 bg-orange-500 text-white px-2.5 py-1 rounded-full text-[10px] font-bold hover:bg-orange-600 transition-colors">
+                Go
+              </button>
+            </form>
+
+            {/* Mobile search dropdown */}
+            <AnimatePresence>
+              {showDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-gray-100 dark:border-neutral-800 overflow-hidden z-50"
+                >
+                  {suggestions.length > 0 && (
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-gray-400 px-4 pt-3 pb-1 font-bold">Suggestions</p>
+                      {suggestions.map(product => (
+                        <Link key={product.id} to={`/product/${product.id}`}
+                          onClick={() => { setShowSuggestions(false); setSearchQuery(''); }}
+                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors">
+                          <img src={product.image} alt={product.name} className="w-10 h-10 rounded-lg object-cover shrink-0" referrerPolicy="no-referrer" />
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{product.name}</p>
+                            <p className="text-xs text-orange-500 font-bold">৳{product.price}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                  {searchQuery.trim() === '' && recentlyViewed.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 px-4 pt-3 pb-1">
+                        <Clock size={11} className="text-gray-400" />
+                        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Recently Viewed</p>
+                      </div>
+                      {recentlyViewed.map((item: any) => (
+                        <Link key={item.id} to={`/product/${item.id}`}
+                          onClick={() => setShowSuggestions(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors">
+                          <img src={item.image} alt={item.name} className="w-10 h-10 rounded-lg object-cover shrink-0" referrerPolicy="no-referrer" />
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{item.name}</p>
+                            <p className="text-xs text-orange-500 font-bold">৳{item.price}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                  {suggestions.length === 0 && searchQuery.trim().length > 0 && (
+                    <p className="px-4 py-4 text-sm text-gray-400">No products found for "{searchQuery}"</p>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Icons — dark mode + three-dot, no cart */}
+          <div className="flex items-center shrink-0">
+            <button onClick={toggleTheme} className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
+              {theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
+            </button>
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
+              {isMenuOpen ? <X size={19} /> : <MoreHorizontal size={19} />}
+            </button>
+          </div>
+        </div>
+
+        {/* ── Desktop layout ── */}
+        <div className="hidden md:flex justify-between items-center h-20">
           {/* Logo & Search Bar */}
-          <div className="flex items-center w-full md:w-auto gap-4">
+          <div className="flex items-center gap-4">
             <Link to="/" className="flex items-center shrink-0">
               <span className="flex items-center gap-2 text-2xl font-black tracking-tighter text-orange-600 dark:text-orange-400">
                 <img src="/favicon.png" alt="Zantro" className="h-8 w-8 object-contain mb-1" />ZANTRO
@@ -91,7 +182,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
             </Link>
 
             {/* Search Bar with Suggestions */}
-            <div ref={searchRef} className="flex-1 md:w-[400px] relative">
+            <div ref={searchRef} className="w-[400px] relative">
               <form onSubmit={handleSearch} className="relative group">
                 <input
                   type="text"
@@ -99,15 +190,15 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setShowSuggestions(true)}
-                  className="w-full bg-gray-100 dark:bg-white border-2 border-transparent focus:border-orange-500 rounded-full py-1.5 md:py-2.5 px-8 md:px-12 text-xs md:text-sm text-black dark:text-black outline-none transition-all placeholder:text-gray-400"
+                  className="w-full bg-gray-100 dark:bg-white border-2 border-transparent focus:border-orange-500 rounded-full py-2.5 px-12 text-sm text-black dark:text-black outline-none transition-all placeholder:text-gray-400"
                 />
-                <Search size={14} className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500" />
-                <button type="submit" className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-orange-500 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold hover:bg-orange-600 transition-colors">
+                <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500" />
+                <button type="submit" className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-orange-500 text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-orange-600 transition-colors">
                   Search
                 </button>
               </form>
 
-              {/* Dropdown */}
+              {/* Desktop Dropdown */}
               <AnimatePresence>
                 {showDropdown && (
                   <motion.div
@@ -116,7 +207,6 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                     exit={{ opacity: 0, y: -8 }}
                     className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-gray-100 dark:border-neutral-800 overflow-hidden z-50"
                   >
-                    {/* Search Suggestions */}
                     {suggestions.length > 0 && (
                       <div>
                         <p className="text-[10px] uppercase tracking-widest text-gray-400 px-4 pt-3 pb-1 font-bold">Suggestions</p>
@@ -133,8 +223,6 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                         ))}
                       </div>
                     )}
-
-                    {/* Recently Viewed */}
                     {searchQuery.trim() === '' && recentlyViewed.length > 0 && (
                       <div>
                         <div className="flex items-center gap-2 px-4 pt-3 pb-1">
@@ -154,8 +242,6 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                         ))}
                       </div>
                     )}
-
-                    {/* No results */}
                     {suggestions.length === 0 && searchQuery.trim().length > 0 && (
                       <p className="px-4 py-4 text-sm text-gray-400">No products found for "{searchQuery}"</p>
                     )}
@@ -166,7 +252,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link key={link.name} to={link.path} className="text-sm font-bold text-gray-600 hover:text-orange-600 dark:text-orange-400 dark:hover:text-white transition-all whitespace-nowrap">
                 {link.name}
@@ -226,20 +312,6 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
               <ShoppingCart size={18} className="text-gray-600 group-hover:text-orange-600 dark:text-gray-400 dark:group-hover:text-orange-400" />
               <span className="text-sm font-bold text-gray-900 dark:text-gray-100">Cart</span>
               <span className="bg-orange-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">{totalItems}</span>
-            </button>
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <div className="md:hidden flex items-center gap-3">
-            <button onClick={toggleTheme} className="text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
-              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-            <button onClick={onCartClick} className="relative p-1.5 text-gray-600 dark:text-gray-400">
-              <ShoppingCart size={20} />
-              <span className="absolute top-0.5 right-0.5 bg-orange-500 text-white text-[7px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">{totalItems}</span>
-            </button>
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
-              {isMenuOpen ? <X size={20} /> : <MoreHorizontal size={20} />}
             </button>
           </div>
         </div>

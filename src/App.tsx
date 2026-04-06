@@ -48,7 +48,7 @@ export default function App() {
               <Toaster position="bottom-center" duration={2000} theme="system" />
               <AnnouncementBanner />
               <Navbar onCartClick={() => setCartOpen(true)} />
-            <main className="flex-grow pt-32 md:pt-24 pb-20 md:pb-0">
+            <main className="flex-grow pt-16 md:pt-24 pb-20 md:pb-0">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/shop" element={<Shop />} />
