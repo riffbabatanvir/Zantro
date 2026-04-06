@@ -1,10 +1,9 @@
 import { Link } from 'react-router-dom';
-import { CATEGORIES } from '../constants';
 import { useCategoryImages } from '../useCategoryImages';
 import { motion } from 'motion/react';
 
 export default function CategorySection() {
-  const { images } = useCategoryImages();
+  const { images, categories } = useCategoryImages();
 
   return (
     <section className="py-8 md:py-20 bg-white dark:bg-neutral-950">
@@ -15,7 +14,7 @@ export default function CategorySection() {
         </div>
 
         <div className="flex md:grid md:grid-cols-5 lg:grid-cols-9 gap-4 md:gap-6 overflow-x-auto pb-4 md:pb-0 scrollbar-hide snap-x">
-          {CATEGORIES.map((category, index) => {
+          {categories.map((category, index) => {
             const imgSrc = images[category.id] || category.image;
             return (
               <motion.div

@@ -1,19 +1,19 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
-import { CATEGORIES, CATEGORY_GROUPS } from '../constants';
 import { useProducts } from '../ProductContext';
-import { X, ChevronDown } from 'lucide-react';
+import { useCategoryImages } from '../useCategoryImages';
+import { X } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 
 export default function Shop() {
   const { products } = useProducts();
+  const { categories } = useCategoryImages();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryFilter = searchParams.get('category') || 'All';
   const searchQuery = searchParams.get('q') || '';
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ 'Clothing & Apparel': true });
 
   // Price range state
   const [minInput, setMinInput] = useState('');
@@ -74,8 +74,6 @@ export default function Shop() {
     setSearchParams(newParams);
   };
 
-  const toggleGroup = (label: string) =>
-    setOpenGroups(prev => ({ ...prev, [label]: !prev[label] }));
 
   const setCategory = (name: string) =>
     setSearchParams(name === 'All' ? {} : { category: name });
@@ -106,7 +104,7 @@ export default function Shop() {
                   className={cn('snap-start shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap',
                     categoryFilter === 'All' ? 'bg-orange-600 text-white shadow-lg shadow-orange-200' : 'bg-orange-100/50 text-orange-700 dark:text-orange-300 hover:bg-orange-100')}
                 >All</button>
-                {CATEGORIES.map(cat => (
+                {categories.map(cat => (
                   <button key={cat.id}
                     onClick={() => setCategory(cat.name)}
                     className={cn('snap-start shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap',
@@ -115,65 +113,20 @@ export default function Shop() {
                 ))}
               </div>
 
-              {/* Desktop: grouped collapsible list */}
+              {/* Desktop: flat dynamic list from DB */}
               <div className="hidden md:flex flex-col gap-1">
                 <button
                   onClick={() => setCategory('All')}
                   className={cn('px-4 py-2.5 rounded-xl text-sm font-bold transition-all text-left',
                     categoryFilter === 'All' ? 'bg-orange-600 text-white shadow-lg shadow-orange-200 dark:shadow-none' : 'text-gray-500 dark:text-gray-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600')}
                 >All Products</button>
-
-                {CATEGORY_GROUPS.map(group => {
-                  const isSingleCat = group.categories.length === 1;
-                  const isOpen = openGroups[group.label] ?? false;
-
-                  if (isSingleCat) {
-                    const catName = group.categories[0];
-                    const isActive = categoryFilter === catName;
-                    return (
-                      <button key={group.label}
-                        onClick={() => setCategory(catName)}
-                        className={cn('px-4 py-2.5 rounded-xl text-sm font-bold transition-all text-left',
-                          isActive ? 'bg-orange-600 text-white shadow-lg shadow-orange-200 dark:shadow-none' : 'text-gray-500 dark:text-gray-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600')}
-                      >{group.label}</button>
-                    );
-                  }
-
-                  const anyActive = group.categories.includes(categoryFilter);
-                  return (
-                    <div key={group.label}>
-                      <button
-                        onClick={() => toggleGroup(group.label)}
-                        className={cn('w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all text-left',
-                          anyActive ? 'text-orange-600 dark:text-orange-400' : 'text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600')}
-                      >
-                        <span>{group.label}</span>
-                        <ChevronDown size={14} className={cn('transition-transform duration-200', isOpen && 'rotate-180')} />
-                      </button>
-                      <AnimatePresence initial={false}>
-                        {isOpen && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="pl-4 flex flex-col gap-0.5 pb-1">
-                              {group.categories.map(catName => (
-                                <button key={catName}
-                                  onClick={() => setCategory(catName)}
-                                  className={cn('px-4 py-2 rounded-lg text-xs font-bold transition-all text-left',
-                                    categoryFilter === catName ? 'bg-orange-600 text-white shadow-md shadow-orange-200 dark:shadow-none' : 'text-gray-500 dark:text-gray-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600')}
-                                >{catName}</button>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  );
-                })}
+                {categories.map(cat => (
+                  <button key={cat.id}
+                    onClick={() => setCategory(cat.name)}
+                    className={cn('px-4 py-2.5 rounded-xl text-sm font-bold transition-all text-left',
+                      categoryFilter === cat.name ? 'bg-orange-600 text-white shadow-lg shadow-orange-200 dark:shadow-none' : 'text-gray-500 dark:text-gray-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600')}
+                  >{cat.name}</button>
+                ))}
               </div>
 
               {/* Price Range — desktop only */}
