@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Heart, Package, Search, Star, ShoppingCart, Check, Trash2 } from 'lucide-react';
+import { Heart, Package, Search, Star, ShoppingCart, Check, Trash2, History, Phone, ChevronDown, ChevronUp, Clock, CheckCircle, Truck, XCircle } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
 import { useWishlist } from '../WishlistContext';
@@ -8,14 +8,21 @@ import { useProducts } from '../ProductContext';
 import { useCart } from '../CartContext';
 import { toast } from 'sonner';
 
-type Tab = 'wishlist' | 'tracking';
+type Tab = 'wishlist' | 'tracking' | 'history';
 
 export default function MyZantro() {
   const [searchParams] = useSearchParams();
-  const [tab, setTab] = useState<Tab>(() => searchParams.get('tab') === 'tracking' ? 'tracking' : 'wishlist');
+  const [tab, setTab] = useState<Tab>(() => {
+    const t = searchParams.get('tab');
+    if (t === 'tracking') return 'tracking';
+    if (t === 'history') return 'history';
+    return 'wishlist';
+  });
 
   useEffect(() => {
-    if (searchParams.get('tab') === 'tracking') setTab('tracking');
+    const t = searchParams.get('tab');
+    if (t === 'tracking') setTab('tracking');
+    else if (t === 'history') setTab('history');
   }, [searchParams]);
   const { wishlist, toggle } = useWishlist();
   const { products } = useProducts();
@@ -26,6 +33,34 @@ export default function MyZantro() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Order history state
+  const [historyPhone, setHistoryPhone] = useState('');
+  const [historyOrders, setHistoryOrders] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState('');
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+
+  const handleHistorySearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!historyPhone.trim()) return;
+    setHistoryLoading(true); setHistoryError(''); setHistoryOrders([]);
+    try {
+      const res = await fetch(`/api/orders/by-phone/${encodeURIComponent(historyPhone.trim())}`);
+      if (res.ok) setHistoryOrders(await res.json());
+      else setHistoryError('No orders found for this phone number. Please double-check the number you used at checkout.');
+    } catch { setHistoryError('Something went wrong. Please try again.'); }
+    finally { setHistoryLoading(false); }
+  };
+
+  const STATUS_STEPS_H = ['pending', 'confirmed', 'shipped', 'delivered'];
+  const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: any }> = {
+    pending:   { label: 'Pending',   color: 'text-orange-500', bg: 'bg-orange-100 dark:bg-orange-900/30', icon: Clock },
+    confirmed: { label: 'Confirmed', color: 'text-blue-500',   bg: 'bg-blue-100 dark:bg-blue-900/30',   icon: CheckCircle },
+    shipped:   { label: 'Shipped',   color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-900/30', icon: Truck },
+    delivered: { label: 'Delivered', color: 'text-green-500',  bg: 'bg-green-100 dark:bg-green-900/30', icon: CheckCircle },
+    cancelled: { label: 'Cancelled', color: 'text-red-500',    bg: 'bg-red-100 dark:bg-red-900/30',     icon: XCircle },
+  };
 
   const wishlistProducts = products.filter(p => wishlist.includes(p.id));
 
@@ -55,7 +90,7 @@ export default function MyZantro() {
   return (
     <>
       <Helmet>
-        <title>My Zantro — Wishlist & Order Tracking</title>
+        <title>My Zantro — Wishlist, Orders & Tracking</title>
         <meta name="robots" content="noindex" />
       </Helmet>
     <div className="min-h-screen bg-white dark:bg-neutral-950">
@@ -64,7 +99,7 @@ export default function MyZantro() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">My Zantro</h1>
-          <p className="text-sm text-gray-400 mt-1">Your wishlist & order tracking</p>
+          <p className="text-sm text-gray-400 mt-1">Your wishlist, orders & tracking</p>
         </div>
 
         {/* Tabs */}
@@ -81,6 +116,17 @@ export default function MyZantro() {
             Wishlist {wishlist.length > 0 && <span className="bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">{wishlist.length}</span>}
           </button>
           <button
+            onClick={() => setTab('history')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              tab === 'history'
+                ? 'bg-white dark:bg-neutral-800 text-orange-500 shadow-sm'
+                : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+            }`}
+          >
+            <History size={16} />
+            Orders
+          </button>
+          <button
             onClick={() => setTab('tracking')}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
               tab === 'tracking'
@@ -89,7 +135,7 @@ export default function MyZantro() {
             }`}
           >
             <Package size={16} />
-            Track Order
+            Track
           </button>
         </div>
 
@@ -148,6 +194,163 @@ export default function MyZantro() {
                       </motion.div>
                     );
                   })}
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* ── Order History Tab ── */}
+          {tab === 'history' && (
+            <motion.div key="history" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              <div className="mb-6">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Enter the phone number you used when placing your order.</p>
+                <form onSubmit={handleHistorySearch} className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <Phone size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="tel"
+                      value={historyPhone}
+                      onChange={e => setHistoryPhone(e.target.value)}
+                      placeholder="e.g. 01XXXXXXXXX"
+                      className="w-full bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl pl-10 pr-4 py-3 text-sm outline-none focus:border-orange-500 transition-colors"
+                    />
+                  </div>
+                  <button type="submit" disabled={historyLoading}
+                    className="bg-orange-600 text-white px-5 py-3 rounded-2xl text-sm font-black hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center gap-2">
+                    <Search size={15} /> {historyLoading ? '...' : 'Find'}
+                  </button>
+                </form>
+              </div>
+
+              {historyError && (
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-sm text-red-600 dark:text-red-400 text-center mb-4">
+                  {historyError}
+                </div>
+              )}
+
+              {historyOrders.length > 0 && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">{historyOrders.length} order{historyOrders.length !== 1 ? 's' : ''} found</p>
+                  {historyOrders.map((order: any) => {
+                    const meta = STATUS_META[order.status] || STATUS_META['pending'];
+                    const StatusIcon = meta.icon;
+                    const isExpanded = expandedOrderId === order.id;
+                    const currentStep = STATUS_STEPS_H.indexOf(order.status);
+                    return (
+                      <motion.div key={order.id} layout className="bg-gray-50 dark:bg-neutral-900 rounded-2xl border border-gray-100 dark:border-neutral-800 overflow-hidden">
+                        {/* Order summary row — always visible */}
+                        <button
+                          onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
+                          className="w-full flex items-center gap-3 p-4 text-left"
+                        >
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${meta.bg}`}>
+                            <StatusIcon size={16} className={meta.color} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-black text-gray-800 dark:text-gray-200 font-mono">#{order.id?.slice(-6).toUpperCase()}</span>
+                              <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${meta.bg} ${meta.color}`}>{meta.label}</span>
+                            </div>
+                            <p className="text-[11px] text-gray-400 mt-0.5">
+                              {new Date(order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                              {' · '}
+                              {order.items?.length} item{order.items?.length !== 1 ? 's' : ''}
+                            </p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-sm font-black text-orange-500">৳{order.finalTotal?.toFixed(0)}</p>
+                            {isExpanded ? <ChevronUp size={14} className="text-gray-400 ml-auto mt-1" /> : <ChevronDown size={14} className="text-gray-400 ml-auto mt-1" />}
+                          </div>
+                        </button>
+
+                        {/* Expanded detail */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-4 pb-4 space-y-4 border-t border-gray-200 dark:border-neutral-700 pt-4">
+
+                                {/* Progress bar */}
+                                {order.status !== 'cancelled' && (
+                                  <div className="flex items-center justify-between relative">
+                                    <div className="absolute left-0 right-0 top-4 h-0.5 bg-gray-200 dark:bg-neutral-700" />
+                                    <div
+                                      className="absolute left-0 top-4 h-0.5 bg-orange-500 transition-all duration-500"
+                                      style={{ width: currentStep >= 0 ? `${(currentStep / (STATUS_STEPS_H.length - 1)) * 100}%` : '0%' }}
+                                    />
+                                    {STATUS_STEPS_H.map((step, i) => {
+                                      const done = i <= currentStep;
+                                      return (
+                                        <div key={step} className="flex flex-col items-center gap-1 z-10">
+                                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black transition-colors ${done ? 'bg-orange-500 text-white' : 'bg-gray-200 dark:bg-neutral-700 text-gray-400'}`}>
+                                            {done ? <Check size={11} /> : i + 1}
+                                          </div>
+                                          <span className={`text-[9px] font-bold uppercase tracking-wide ${done ? 'text-orange-500' : 'text-gray-400'}`}>
+                                            {STATUS_META[step].label}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+
+                                {/* Items */}
+                                <div>
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Items</p>
+                                  <div className="space-y-2">
+                                    {order.items?.map((item: any, i: number) => (
+                                      <div key={i} className="flex items-center gap-2">
+                                        <img src={item.image} alt={item.name} className="w-9 h-9 rounded-xl object-contain bg-white dark:bg-neutral-800 p-1 shrink-0" referrerPolicy="no-referrer" />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-xs font-bold text-gray-800 dark:text-gray-200 truncate">{item.name}</p>
+                                          <p className="text-[10px] text-gray-400">x{item.quantity} · ৳{item.price}</p>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Payment info */}
+                                <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-neutral-700">
+                                  <span className="text-xs font-bold text-gray-400">Total Paid</span>
+                                  <span className="text-sm font-black text-orange-500">৳{order.finalTotal?.toFixed(0)}</span>
+                                </div>
+
+                                {/* Remark */}
+                                {order.remark && (
+                                  <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-3">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-1">Message from Store</p>
+                                    <p className="text-xs text-gray-700 dark:text-gray-300">{order.remark}</p>
+                                  </div>
+                                )}
+
+                                {/* Track link */}
+                                <Link
+                                  to={`/order-tracking?id=${order.id}`}
+                                  className="block text-center text-xs font-black uppercase tracking-widest text-orange-500 hover:underline"
+                                >
+                                  Full Tracking Details →
+                                </Link>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
+              )}
+
+              {!historyLoading && historyOrders.length === 0 && !historyError && (
+                <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
+                  <History size={44} className="text-gray-200 dark:text-neutral-700" />
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Enter your phone number above</p>
+                  <p className="text-xs text-gray-400">We'll pull up all orders linked to that number</p>
                 </div>
               )}
             </motion.div>

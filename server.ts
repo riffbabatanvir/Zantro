@@ -563,6 +563,47 @@ app.get('/api/orders/track/:id', async (req, res) => {
   }
 });
 
+// Order history by phone number (public — customer looks up their own orders)
+app.get('/api/orders/by-phone/:phone', async (req, res) => {
+  const rawPhone = (req.params.phone || '').trim();
+  // Normalise: strip spaces/dashes, allow optional leading +88
+  const phone = rawPhone.replace(/[\s\-]/g, '');
+  if (!phone || phone.length < 7) return res.status(400).json({ error: 'Invalid phone number' });
+  try {
+    const all = await db.collection('orders').find({}).toArray();
+    const matched = all.filter((o: any) => {
+      const p = (o.customerInfo?.phone || '').replace(/[\s\-]/g, '');
+      return p === phone || p.endsWith(phone) || phone.endsWith(p);
+    });
+    if (matched.length === 0) return res.status(404).json({ error: 'No orders found for this phone number' });
+    const safe = matched
+      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .map((order: any) => ({
+        id: order._id.toString(),
+        status: order.status || 'pending',
+        createdAt: order.createdAt,
+        finalTotal: order.finalTotal,
+        remark: order.remark || '',
+        paymentMethod: order.paymentMethod,
+        selectedBank: order.selectedBank,
+        preorderPayOption: order.preorderPayOption,
+        preorderRemainingAmount: order.preorderRemainingAmount,
+        fullPaid: order.fullPaid || false,
+        isPreorderOrder: order.isPreorderOrder || false,
+        cancelRequest: order.cancelRequest || null,
+        items: order.items?.map((i: any) => ({ name: i.name, price: i.price, quantity: i.quantity, image: i.image, isPreorder: i.isPreorder })),
+        customerInfo: {
+          fullName: order.customerInfo?.fullName,
+          phone: order.customerInfo?.phone,
+          address: order.customerInfo?.address,
+        },
+      }));
+    res.json(safe);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+});
+
 // Admin login
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
