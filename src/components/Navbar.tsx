@@ -82,90 +82,110 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
     <nav className="fixed top-0 w-full z-50 bg-white dark:bg-neutral-950 border-b border-gray-100 dark:border-neutral-800">
       <div className="max-w-7xl mx-auto px-4 lg:px-12">
 
-        {/* ── Mobile layout: everything on one row ── */}
-        <div className="md:hidden flex items-center gap-2 h-14">
+        {/* ── Mobile layout: single row ── */}
+        <div className="md:hidden flex items-center h-14">
           {/* Logo */}
-          <Link to="/" className="flex items-center shrink-0">
-            <span className="flex items-center gap-1 text-lg font-black tracking-tighter text-orange-600 dark:text-orange-400">
-              <img src="/favicon.png" alt="Zantro" className="h-6 w-6 object-contain" />ZANTRO
+          <Link to="/" className="flex items-center shrink-0 mr-auto">
+            <span className="flex items-center gap-1.5 text-xl font-black tracking-tighter text-orange-600 dark:text-orange-400">
+              <img src="/favicon.png" alt="Zantro" className="h-7 w-7 object-contain" />ZANTRO
             </span>
           </Link>
 
-          {/* Search bar — grows to fill remaining space */}
-          <div ref={searchRef} className="flex-1 relative">
-            <form onSubmit={handleSearch} className="relative group">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setShowSuggestions(true)}
-                className="w-full bg-gray-100 dark:bg-white border-2 border-transparent focus:border-orange-500 rounded-full py-1.5 pl-7 pr-14 text-xs text-black dark:text-black outline-none transition-all placeholder:text-gray-400"
-              />
-              <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500" />
-              <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 bg-orange-500 text-white px-2.5 py-1 rounded-full text-[10px] font-bold hover:bg-orange-600 transition-colors">
-                Go
+          {/* Right-side icons */}
+          <div className="flex items-center gap-0.5">
+            {/* Search — expands on tap */}
+            <div ref={searchRef} className="relative flex items-center">
+              <AnimatePresence initial={false}>
+                {showSuggestions ? (
+                  <motion.div
+                    key="search-open"
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: 160, opacity: 1 }}
+                    exit={{ width: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <form onSubmit={(e) => { handleSearch(e); setShowSuggestions(false); }} className="relative">
+                      <input
+                        autoFocus
+                        type="text"
+                        placeholder="Search..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-gray-100 dark:bg-neutral-800 border-2 border-orange-500 rounded-full py-1.5 pl-3 pr-8 text-xs text-black dark:text-white outline-none placeholder:text-gray-400"
+                      />
+                      <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
+                        <Search size={13} className="text-orange-500" />
+                      </button>
+                    </form>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+
+              {/* Search icon button */}
+              <button
+                onClick={() => setShowSuggestions(v => !v)}
+                className="p-2 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+              >
+                {showSuggestions ? <X size={19} /> : <Search size={19} />}
               </button>
-            </form>
 
-            {/* Mobile search dropdown */}
-            <AnimatePresence>
-              {showDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-gray-100 dark:border-neutral-800 overflow-hidden z-50"
-                >
-                  {suggestions.length > 0 && (
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-gray-400 px-4 pt-3 pb-1 font-bold">Suggestions</p>
-                      {suggestions.map(product => (
-                        <Link key={product.id} to={`/product/${product.id}`}
-                          onClick={() => { setShowSuggestions(false); setSearchQuery(''); }}
-                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors">
-                          <img src={product.image} alt={product.name} className="w-10 h-10 rounded-lg object-cover shrink-0" referrerPolicy="no-referrer" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{product.name}</p>
-                            <p className="text-xs text-orange-500 font-bold">৳{product.price}</p>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                  {searchQuery.trim() === '' && recentlyViewed.length > 0 && (
-                    <div>
-                      <div className="flex items-center gap-2 px-4 pt-3 pb-1">
-                        <Clock size={11} className="text-gray-400" />
-                        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Recently Viewed</p>
+              {/* Dropdown results */}
+              <AnimatePresence>
+                {showSuggestions && (suggestions.length > 0 || (searchQuery.trim() === '' && recentlyViewed.length > 0)) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className="absolute top-full right-0 w-72 mt-2 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-gray-100 dark:border-neutral-800 overflow-hidden z-50"
+                  >
+                    {suggestions.length > 0 && (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest text-gray-400 px-4 pt-3 pb-1 font-bold">Suggestions</p>
+                        {suggestions.map(product => (
+                          <Link key={product.id} to={`/product/${product.id}`}
+                            onClick={() => { setShowSuggestions(false); setSearchQuery(''); }}
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors">
+                            <img src={product.image} alt={product.name} className="w-10 h-10 rounded-lg object-cover shrink-0" referrerPolicy="no-referrer" />
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{product.name}</p>
+                              <p className="text-xs text-orange-500 font-bold">৳{product.price}</p>
+                            </div>
+                          </Link>
+                        ))}
                       </div>
-                      {recentlyViewed.map((item: any) => (
-                        <Link key={item.id} to={`/product/${item.id}`}
-                          onClick={() => setShowSuggestions(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors">
-                          <img src={item.image} alt={item.name} className="w-10 h-10 rounded-lg object-cover shrink-0" referrerPolicy="no-referrer" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{item.name}</p>
-                            <p className="text-xs text-orange-500 font-bold">৳{item.price}</p>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                  {suggestions.length === 0 && searchQuery.trim().length > 0 && (
-                    <p className="px-4 py-4 text-sm text-gray-400">No products found for "{searchQuery}"</p>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                    )}
+                    {searchQuery.trim() === '' && recentlyViewed.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 px-4 pt-3 pb-1">
+                          <Clock size={11} className="text-gray-400" />
+                          <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Recently Viewed</p>
+                        </div>
+                        {recentlyViewed.map((item: any) => (
+                          <Link key={item.id} to={`/product/${item.id}`}
+                            onClick={() => setShowSuggestions(false)}
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors">
+                            <img src={item.image} alt={item.name} className="w-10 h-10 rounded-lg object-cover shrink-0" referrerPolicy="no-referrer" />
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{item.name}</p>
+                              <p className="text-xs text-orange-500 font-bold">৳{item.price}</p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                    {suggestions.length === 0 && searchQuery.trim().length > 0 && (
+                      <p className="px-4 py-4 text-sm text-gray-400">No products found for "{searchQuery}"</p>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-          {/* Icons — dark mode + three-dot, no cart */}
-          <div className="flex items-center shrink-0">
-            <button onClick={toggleTheme} className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
+            <button onClick={toggleTheme} className="p-2 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
               {theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
             </button>
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
               {isMenuOpen ? <X size={19} /> : <MoreHorizontal size={19} />}
             </button>
           </div>
