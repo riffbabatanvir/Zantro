@@ -90,7 +90,7 @@ export default function AdminDashboard() {
 
   const [newProduct, setNewProduct] = useState({
     name: '', price: '', discount: '', description: '',
-    category: categoryList[0]?.name || 'Fashion',
+    category: CATEGORIES[0]?.name || 'Fashion',
     image: '', rating: '', soldCount: '', reviewCount: '', stock: '',
     sizes: '', colors: '', isPreorder: false, isPreowned: false, yearsUsed: '', percentNew: ''
   });
@@ -635,7 +635,7 @@ export default function AdminDashboard() {
         ] as any,
       });
       toast.success('Product added successfully!');
-      setNewProduct({ name: '', price: '', discount: '', description: '', category: categoryList[0]?.name || 'Fashion', image: '', rating: '', soldCount: '', reviewCount: '', stock: '', sizes: '', colors: '', isPreorder: false, isPreowned: false, yearsUsed: '', percentNew: '' });
+      setNewProduct({ name: '', price: '', discount: '', description: '', category: categoryList[0]?.name || CATEGORIES[0]?.name || 'Fashion', image: '', rating: '', soldCount: '', reviewCount: '', stock: '', sizes: '', colors: '', isPreorder: false, isPreowned: false, yearsUsed: '', percentNew: '' });
       setNewProductPriceTiers([{ minQty: '1', maxQty: '1', label: '1 piece', price: '' }]);
       setImageFiles([]); setVideoFile(null);
       if (imageInputRef.current) imageInputRef.current.value = '';
