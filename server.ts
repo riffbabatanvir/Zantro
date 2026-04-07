@@ -635,35 +635,63 @@ app.post('/api/admin/login', (req, res) => {
 // ─── Robots.txt ───────────────────────────────────────────────────────────────
 app.get('/robots.txt', (req, res) => {
   res.type('text/plain');
-  res.send('User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /checkout\nDisallow: /cart\nSitemap: https://zantrobd.com/sitemap.xml');
+  res.send('User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /checkout\nDisallow: /cart\nDisallow: /order-tracking\nDisallow: /my\nSitemap: https://zantrobd.com/sitemap.xml');
 });
 
 // ─── Sitemap ──────────────────────────────────────────────────────────────────
 app.get('/sitemap.xml', async (req, res) => {
   try {
-    const products = await db.collection('products').find({}).toArray();
+    const products = await db.collection('products').find(
+      {},
+      { projection: { _id: 1, name: 1, category: 1, updatedAt: 1 } }
+    ).toArray();
+
+    const categories = await db.collection('categories').find(
+      {},
+      { projection: { name: 1 } }
+    ).toArray();
+
+    const now = new Date().toISOString().split('T')[0];
+
     const staticUrls = [
-      { loc: 'https://zantrobd.com', priority: '1.0', changefreq: 'daily' },
-      { loc: 'https://zantrobd.com/shop', priority: '0.9', changefreq: 'daily' },
-      { loc: 'https://zantrobd.com/about', priority: '0.6', changefreq: 'monthly' },
-      { loc: 'https://zantrobd.com/contact', priority: '0.6', changefreq: 'monthly' },
-      { loc: 'https://zantrobd.com/faq', priority: '0.5', changefreq: 'monthly' },
+      { loc: 'https://zantrobd.com',               priority: '1.0', changefreq: 'daily',   lastmod: now },
+      { loc: 'https://zantrobd.com/shop',           priority: '0.9', changefreq: 'daily',   lastmod: now },
+      { loc: 'https://zantrobd.com/preorder',       priority: '0.8', changefreq: 'weekly',  lastmod: now },
+      { loc: 'https://zantrobd.com/about',          priority: '0.6', changefreq: 'monthly', lastmod: now },
+      { loc: 'https://zantrobd.com/contact',        priority: '0.6', changefreq: 'monthly', lastmod: now },
+      { loc: 'https://zantrobd.com/faq',            priority: '0.5', changefreq: 'monthly', lastmod: now },
     ];
+
+    const categoryUrls = categories.map((c: any) => ({
+      loc: `https://zantrobd.com/shop?category=${encodeURIComponent(c.name)}`,
+      priority: '0.7',
+      changefreq: 'daily',
+      lastmod: now,
+    }));
+
     const productUrls = products.map((p: any) => ({
       loc: `https://zantrobd.com/product/${p._id}`,
       priority: '0.8',
       changefreq: 'weekly',
+      lastmod: p.updatedAt
+        ? new Date(p.updatedAt).toISOString().split('T')[0]
+        : now,
     }));
-    const allUrls = [...staticUrls, ...productUrls];
+
+    const allUrls = [...staticUrls, ...categoryUrls, ...productUrls];
+
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${allUrls.map(u => `  <url>
     <loc>${u.loc}</loc>
+    <lastmod>${u.lastmod}</lastmod>
     <changefreq>${u.changefreq}</changefreq>
     <priority>${u.priority}</priority>
   </url>`).join('\n')}
 </urlset>`;
+
     res.header('Content-Type', 'application/xml');
+    res.header('Cache-Control', 'public, max-age=3600');
     res.send(xml);
   } catch {
     res.status(500).send('Error generating sitemap');
