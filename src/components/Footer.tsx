@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Phone, Mail } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
+import LanguageToggle from './LanguageToggle';
 
 export default function Footer() {
   const { t } = useLanguage();
@@ -63,11 +64,12 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-black/5 dark:border-white/5">
+        <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-black/5 dark:border-white/5 gap-4">
           <p className="text-[10px] text-black/20 dark:text-white/20 uppercase tracking-widest">
             © 2026 <Link to="/admin" className="cursor-default">Zantro</Link>. {t('All rights reserved.')}
           </p>
-          <div className="flex space-x-8 mt-6 md:mt-0">
+          <div className="flex items-center gap-6">
+            <LanguageToggle />
             <span className="text-[10px] text-black/20 dark:text-white/20 uppercase tracking-widest">{t('Privacy')}</span>
             <span className="text-[10px] text-black/20 dark:text-white/20 uppercase tracking-widest">{t('Terms')}</span>
           </div>
