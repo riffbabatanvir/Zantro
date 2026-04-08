@@ -1,3 +1,4 @@
+import { useLanguage } from '../LanguageContext';
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
@@ -79,6 +80,7 @@ const FAQS = [
 ];
 
 export default function FAQ() {
+  const { t } = useLanguage();
   const [openItem, setOpenItem] = useState<string | null>(null);
 
   return (
@@ -95,7 +97,7 @@ export default function FAQ() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-16">
           <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black/40 dark:text-white/40 mb-6">Support</h2>
           <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-black dark:text-white mb-4">
-            Frequently Asked <span className="text-orange-500">Questions</span>
+            {t('Frequently Asked Questions')}
           </h1>
           <p className="text-sm text-black/50 dark:text-white/50 font-light">
             Can't find your answer? <a href="/contact" className="text-orange-500 hover:underline font-medium">Contact us</a>

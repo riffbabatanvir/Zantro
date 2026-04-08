@@ -3,6 +3,7 @@ import { useProducts } from '../ProductContext';
 import { useCart } from '../CartContext';
 import { Star, ShoppingCart, Truck, ChevronRight, Minus, Plus, Play, Send, Trash2, Share2, Heart, X, ZoomIn } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
+import { useLanguage } from '../LanguageContext';
 import { motion } from 'motion/react';
 import ProductCard from '../components/ProductCard';
 import { toast } from 'sonner';
@@ -13,6 +14,7 @@ export default function ProductDetail() {
   const { id } = useParams();
   const { products, isLoading } = useProducts();
   const { addToCart, cart, removeFromCart } = useCart();
+  const { t } = useLanguage();
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
@@ -503,11 +505,11 @@ export default function ProductDetail() {
                     showPreorderButton ? 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200' :
                     'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 hover:bg-orange-200 shadow-orange-100'
                   }`}>
-                  {hasTiers && isInCart ? '🔄 Update Cart' : showPreorderButton ? 'Add Pre-order to Cart' : 'Add to Cart'}
+                  {hasTiers && isInCart ? t('Update Cart') : showPreorderButton ? t('Add Pre-order to Cart') : t('Add to Cart')}
                 </button>
                 <Link to="/checkout" onClick={() => !(isOutOfStock && !isPreorder) && handleAddToCart()}
                   className={`flex-1 py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg text-center active:scale-95 flex items-center justify-center ${isOutOfStock && !isPreorder ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none' : 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200'}`}>
-                  {showPreorderButton ? 'Pre-Order & Checkout' : 'Buy Now'}
+                  {showPreorderButton ? t('Pre-Order & Checkout') : t('Buy Now')}
                 </Link>
               </div>
             </div>
@@ -628,11 +630,11 @@ export default function ProductDetail() {
             showPreorderButton ? 'bg-orange-600 text-white' :
             'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400'
           }`}>
-          {hasTiers && isInCart ? '🔄 Update' : showPreorderButton ? 'Add Pre-order' : 'Add to Cart'}
+          {hasTiers && isInCart ? t('Update') : showPreorderButton ? t('Add Pre-order') : t('Add to Cart')}
         </button>
         <Link to="/checkout" onClick={() => !(isOutOfStock && !isPreorder) && handleAddToCart()}
           className={`flex-1 py-4 rounded-xl text-sm font-black uppercase tracking-widest text-center active:scale-95 transition-transform flex items-center justify-center ${isOutOfStock && !isPreorder ? 'bg-gray-300 text-gray-500 pointer-events-none' : 'bg-orange-600 text-white'}`}>
-          {showPreorderButton ? 'Pre-Order & Buy' : 'Buy Now'}
+          {showPreorderButton ? t('Pre-Order & Buy') : t('Buy Now')}
         </Link>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { useLanguage } from '../LanguageContext';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
@@ -19,6 +20,7 @@ export const GRADIENT_OPTIONS = [
 ];
 
 export default function Hero() {
+  const { t } = useLanguage();
   const [slides, setSlides] = useState(DEFAULT_SLIDES);
   const [current, setCurrent] = useState(0);
 
@@ -54,11 +56,11 @@ export default function Hero() {
               <div className="max-w-xl text-white">
                 <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-bold tracking-widest uppercase mb-4">
-                  {slides[current]?.subtitle}
+                  {t(slides[current]?.subtitle || '')}
                 </motion.span>
                 <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
                   className="text-4xl md:text-7xl font-black leading-tight mb-4 tracking-tighter">
-                  {slides[current]?.title}
+                  {t(slides[current]?.title || '')}
                 </motion.h1>
                 <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                   className="text-sm md:text-lg text-white/90 mb-8 font-medium">
@@ -67,7 +69,7 @@ export default function Hero() {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
                   <Link to="/shop"
                     className="inline-flex items-center gap-2 bg-white text-orange-600 px-8 py-3 rounded-full text-sm font-black hover:bg-orange-50 transition-all shadow-lg shadow-black/10">
-                    SHOP NOW <ArrowRight size={16} />
+                    {t('Shop Now')} <ArrowRight size={16} />
                   </Link>
                 </motion.div>
               </div>

@@ -5,11 +5,13 @@ import { CreditCard, Smartphone, Bitcoin, CheckCircle2, ChevronLeft, Lock, Minus
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
+import { useLanguage } from '../LanguageContext';
 
 type PaymentMethod = 'card' | 'bkash' | 'nagad' | 'crypto' | 'cod' | 'bank';
 
 export default function Checkout() {
   const { cart, totalPrice, clearCart, updateQuantity, removeFromCart } = useCart();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -156,11 +158,11 @@ export default function Checkout() {
       </Helmet>
       <div ref={successRef} className="min-h-screen bg-white dark:bg-neutral-950 flex flex-col items-center justify-center p-6">
         <CheckCircle2 size={48} className="text-green-500 mb-6" />
-        <h2 className="text-4xl font-light tracking-tight text-black dark:text-white mb-4">Order Placed!</h2>
-        <p className="text-sm text-black/40 dark:text-white/40 uppercase tracking-widest mb-6">Thank you for your purchase</p>
+        <h2 className="text-4xl font-light tracking-tight text-black dark:text-white mb-4">{t('Order Placed!')}/h2>
+        <p className="text-sm text-black/40 dark:text-white/40 uppercase tracking-widest mb-6"{t('Thank you for your purchase')}</p>
         {placedOrderId && (
           <div className="mb-8 flex flex-col items-center gap-3">
-            <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Your Order ID</p>
+            <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40"{t('Your Order ID')}</p>
             <div className="flex items-center gap-2 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl px-4 py-3">
               <span className="font-mono text-sm font-bold text-gray-800 dark:text-gray-200 select-all">#{placedOrderId.slice(-6).toUpperCase()}</span>
               <button
@@ -171,7 +173,7 @@ export default function Checkout() {
                 <Copy size={14} />
               </button>
             </div>
-            <p className="text-[10px] text-black/30 dark:text-white/30 text-center">Use this ID to track your order</p>
+            <p className="text-[10px] text-black/30 dark:text-white/30 text-center"{t('Use this ID to track your order')}</p>
             <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700/40 rounded-xl px-4 py-3 max-w-xs">
               <span className="text-amber-500 text-base leading-none mt-0.5">💾</span>
               <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
@@ -195,9 +197,9 @@ export default function Checkout() {
     <div className="min-h-screen bg-white dark:bg-neutral-950 pt-20 lg:pt-0">
       <div className="lg:hidden px-6 pt-8 pb-4">
         <Link to="/cart" className="text-[10px] font-medium uppercase tracking-widest text-black/40 dark:text-white/40 hover:text-black dark:text-white transition-colors flex items-center gap-2 mb-4">
-          <ChevronLeft size={12} /> Back to Cart
+          {t('Back to Cart')}
         </Link>
-        <h1 className="text-4xl font-light tracking-tight text-black dark:text-white">Checkout</h1>
+        <h1 className="text-4xl font-light tracking-tight text-black dark:text-white">{t('Checkout')}</h1>
       </div>
 
       <div className="flex flex-col-reverse lg:flex-row">
@@ -206,26 +208,26 @@ export default function Checkout() {
           <div className="max-w-xl mx-auto lg:mx-0">
             <div className="hidden lg:block mb-12">
               <Link to="/cart" className="text-[10px] font-medium uppercase tracking-widest text-black/40 dark:text-white/40 hover:text-black dark:text-white transition-colors flex items-center gap-2 mb-8">
-                <ChevronLeft size={12} /> Back to Cart
+                {t('Back to Cart')}
               </Link>
-              <h1 className="text-4xl font-light tracking-tight text-black dark:text-white">Checkout</h1>
+              <h1 className="text-4xl font-light tracking-tight text-black dark:text-white">{t('Checkout')}</h1>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-12">
               {/* Shipping Section */}
               <section>
-                <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-6">01. Shipping Information</h2>
+                <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-6">01. {t('Shipping Information')}</h2>
                 <div className="grid grid-cols-2 gap-6">
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">Full Name</label>
+                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">{ t('Full Name')}</label>
                     <input required type="text" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm" />
                   </div>
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">Email</label>
+                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">{ t('Email')}</label>
                     <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm" />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">Address</label>
+                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">{ t('Address')}</label>
                     <input required type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm" />
                   </div>
                   <div className="col-span-2 sm:col-span-1">
@@ -237,7 +239,7 @@ export default function Checkout() {
                     </select>
                   </div>
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">Phone</label>
+                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">{ t('Phone')}</label>
                     <input required type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm" />
                   </div>
                 </div>
@@ -245,7 +247,7 @@ export default function Checkout() {
 
               {/* Payment Section */}
               <section>
-                <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-6">02. Payment Method</h2>
+                <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-6">02. {t('Payment Method')}</h2>
                 <div className="grid grid-cols-2 gap-4">
                   {[
                     ...(cardEnabled ? [{ id: 'card', name: 'Card', icon: CreditCard }] : []),
@@ -468,7 +470,7 @@ export default function Checkout() {
                       className="flex-1 border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm bg-transparent uppercase tracking-widest" />
                     <button type="button" onClick={handleApplyCoupon} disabled={isValidatingCoupon || !couponInput.trim()}
                       className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-xs font-black uppercase tracking-widest hover:bg-black/80 transition-colors disabled:opacity-50 rounded-lg">
-                      {isValidatingCoupon ? '...' : 'Apply'}
+                      {isValidatingCoupon ? '...' : t('Apply')}
                     </button>
                   </div>
                 )}
@@ -476,7 +478,7 @@ export default function Checkout() {
 
               <button disabled={isProcessing}
                 className="w-full bg-orange-600 text-white py-5 text-[11px] font-medium uppercase tracking-[0.3em] hover:bg-orange-700 transition-all disabled:opacity-50 shadow-lg shadow-orange-100 dark:shadow-none">
-                {isProcessing ? 'Processing...' : 'Complete Purchase'}
+                {isProcessing ? t('Processing...') : t('Complete Purchase')}
               </button>
             </form>
           </div>
@@ -485,7 +487,7 @@ export default function Checkout() {
         {/* Right Pane: Summary */}
         <div className="lg:w-[450px] bg-gray-50 dark:bg-neutral-900 px-6 lg:px-12 py-8 lg:py-12 border-b lg:border-b-0 lg:border-l border-black/5 dark:border-white/5">
           <div className="sticky top-24">
-            <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-6">Order Summary</h2>
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-6">{ t('Order Summary')}</h2>
 
             <div className="space-y-3 mb-2 max-h-[400px] overflow-y-auto pr-4">
               {cart.map((item) => (
@@ -531,12 +533,12 @@ export default function Checkout() {
 
             <div className="space-y-3 pt-3 border-t border-black/5 dark:border-white/5">
               <div className="flex justify-between text-[11px] uppercase tracking-widest text-black/40 dark:text-white/40">
-                <span>Subtotal</span>
+                <span>{t('Subtotal')}</span>
                 <span className="text-black dark:text-white">৳{totalPrice.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-[11px] uppercase tracking-widest text-black/40 dark:text-white/40">
-                <span>Shipping</span>
-                <span className="text-black dark:text-white">{shippingCost === 0 ? 'Free' : `৳${shippingCost.toFixed(2)}`}</span>
+                <span>{t('Shipping')}</span>
+                <span className="text-black dark:text-white">{shippingCost === 0 ? t('Free') : `৳${shippingCost.toFixed(2)}`}</span>
               </div>
               {appliedCoupon && (
                 <div className="flex justify-between text-[11px] uppercase tracking-widest text-green-600 dark:text-green-400">
@@ -561,7 +563,7 @@ export default function Checkout() {
                 </>
               )}
               <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest text-black dark:text-white pt-4 border-t border-black/5 dark:border-white/5">
-                <span>{isPreorderCart && preorderPayOption === '50' ? 'Pay Now' : 'Total'}</span>
+                <span>{isPreorderCart && preorderPayOption === '50' ? t('Pay Now') : t('Total')}</span>
                 <span>৳{finalTotal.toFixed(2)}</span>
               </div>
             </div>

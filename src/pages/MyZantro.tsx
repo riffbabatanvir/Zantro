@@ -1,3 +1,4 @@
+import { useLanguage } from '../LanguageContext';
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Heart, Package, Search, Star, ShoppingCart, Check, Trash2, History, Phone, ChevronDown, ChevronUp, Clock, CheckCircle, Truck, XCircle, MapPin, User, Mail, AlertTriangle } from 'lucide-react';
@@ -11,6 +12,7 @@ import { toast } from 'sonner';
 type Tab = 'wishlist' | 'tracking' | 'history';
 
 export default function MyZantro() {
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState<Tab>(() => {
     const t = searchParams.get('tab');
@@ -122,7 +124,7 @@ export default function MyZantro() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">My Zantro</h1>
+          <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">{ t('My Zantro')}</h1>
           <p className="text-sm text-gray-400 mt-1">Your wishlist, orders & tracking</p>
         </div>
 

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useLanguage } from '../LanguageContext';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { useProducts } from '../ProductContext';
@@ -10,6 +11,7 @@ import { cn } from '../lib/utils';
 
 export default function Shop() {
   const { products } = useProducts();
+  const { t } = useLanguage();
   const { categories } = useCategoryImages();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryFilter = searchParams.get('category') || 'All';
@@ -103,7 +105,7 @@ export default function Shop() {
                   onClick={() => setCategory('All')}
                   className={cn('snap-start shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap',
                     categoryFilter === 'All' ? 'bg-orange-600 text-white shadow-lg shadow-orange-200' : 'bg-orange-100/50 text-orange-700 dark:text-orange-300 hover:bg-orange-100')}
-                >All</button>
+                >{ t('All')}</button>/button>
                 {categories.map(cat => (
                   <button key={cat.id}
                     onClick={() => setCategory(cat.name)}
@@ -119,7 +121,7 @@ export default function Shop() {
                   onClick={() => setCategory('All')}
                   className={cn('px-4 py-2.5 rounded-xl text-sm font-bold transition-all text-left',
                     categoryFilter === 'All' ? 'bg-orange-600 text-white shadow-lg shadow-orange-200 dark:shadow-none' : 'text-gray-500 dark:text-gray-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600')}
-                >All Products</button>
+                >{ t('All Products')}</button>
                 {categories.map(cat => (
                   <button key={cat.id}
                     onClick={() => setCategory(cat.name)}
@@ -132,10 +134,10 @@ export default function Shop() {
               {/* Price Range — desktop only */}
               <div className="mt-8 hidden md:block">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">Price Range (৳)</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">{ t('Price Range') } (৳)</h3>
                   {priceFilterActive && (
                     <button onClick={clearPriceFilter} className="text-[10px] font-bold text-orange-500 hover:text-orange-600 flex items-center gap-1">
-                      <X size={10} /> Clear
+                      <X size={10} /> {t('Clear')}
                     </button>
                   )}
                 </div>
@@ -175,7 +177,7 @@ export default function Shop() {
             <div className="flex flex-col mb-6 gap-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
-                  {categoryFilter === 'All' ? 'Everything' : categoryFilter}
+                  {categoryFilter === 'All' ? t('Everything') : categoryFilter}
                   <span className="ml-2 text-sm font-medium text-gray-400">({filteredProducts.length})</span>
                 </h2>
                 <div className="flex items-center gap-2">
@@ -187,9 +189,9 @@ export default function Shop() {
                   >
                     <option>Popularity</option>
                     <option>Newest</option>
-                    <option>Top Rated</option>
-                    <option>Price: Low to High</option>
-                    <option>Price: High to Low</option>
+                    <option>{t('Top Rated')}</option>
+                    <option>{t('Price: Low to High')}</option>
+                    <option>{t('Price: High to Low')}</option>
                   </select>
                 </div>
               </div>
@@ -197,7 +199,7 @@ export default function Shop() {
               {searchQuery && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-500">
-                    Showing results for "<span className="font-bold text-gray-900">{searchQuery}</span>"
+                    { t('Showing results for') } "<span className="font-bold text-gray-900">{searchQuery}</span>"
                   </span>
                   <button onClick={clearSearch} className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
                     <X size={12} /> Clear
@@ -214,7 +216,7 @@ export default function Shop() {
               </div>
             ) : (
               <div className="py-24 text-center bg-white dark:bg-neutral-950 rounded-3xl border border-dashed border-gray-200 dark:border-neutral-700">
-                <p className="text-sm text-gray-400 font-bold italic uppercase tracking-widest">No products found</p>
+                <p className="text-sm text-gray-400 font-bold italic uppercase tracking-widest">{ t('No products found')}</p>
                 {priceFilterActive && (
                   <button onClick={clearPriceFilter} className="mt-4 text-xs font-bold text-orange-500 hover:underline">
                     Clear price filter

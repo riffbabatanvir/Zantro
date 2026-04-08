@@ -159,6 +159,92 @@ export const DEFAULT_TRANSLATIONS: Record<string, string> = {
   'Spring 2026': 'বসন্ত ২০২৬',
   'Up to 69% Off': 'সর্বোচ্চ ৬৯% ছাড়',
   'Innovation Week': 'উদ্ভাবন সপ্তাহ',
+
+  // Buy / CTA buttons
+  'Buy Now': 'এখনই কিনুন',
+  'Complete Purchase': 'অর্ডার সম্পন্ন করুন',
+  'Processing...': 'প্রক্রিয়া চলছে...',
+  'View Full Cart': 'পুরো কার্ট দেখুন',
+  'Update Cart': '🔄 কার্ট আপডেট করুন',
+  'Add Pre-order to Cart': 'প্রি-অর্ডার কার্টে যোগ করুন',
+  'Pre-Order & Checkout': 'প্রি-অর্ডার ও চেকআউট',
+  'Pre-Order & Buy': 'প্রি-অর্ডার ও কিনুন',
+  'Add Pre-order': 'প্রি-অর্ডার যোগ করুন',
+  'Update': 'আপডেট',
+
+  // Cart page
+  'Shopping Cart': 'শপিং কার্ট',
+  'Your Selection': 'আপনার বাছাই',
+  'Summary': 'সারসংক্ষেপ',
+  'Shipping': 'শিপিং',
+  'Calculated at next step': 'পরবর্তী ধাপে হিসাব হবে',
+  'Taxes and shipping calculated at checkout': 'চেকআউটে কর ও শিপিং হিসাব হবে',
+  'Pre-Order Notice': 'প্রি-অর্ডার নোটিশ',
+  'Your cart contains pre-order item(s). These may take 1–2 months to deliver after your order is confirmed.': 'আপনার কার্টে প্রি-অর্ডার পণ্য আছে। অর্ডার নিশ্চিত হওয়ার পর ডেলিভারি ১–২ মাস সময় নিতে পারে।',
+
+  // Checkout page
+  'Checkout': 'চেকআউট',
+  'Save your Order ID': 'আপনার অর্ডার আইডি সংরক্ষণ করুন',
+  'screenshot or note it down so you can track your order anytime.': 'স্ক্রিনশট নিন বা লিখে রাখুন যাতে যেকোনো সময় অর্ডার ট্র্যাক করতে পারেন।',
+  'Pay in Full': 'সম্পূর্ণ পরিশোধ',
+  '100% now': '১০০% এখনই',
+  'No balance due at delivery': 'ডেলিভারিতে কোনো বাকি নেই',
+  '50% Advance': '৫০% অগ্রিম',
+  'Pay half now': 'অর্ধেক এখনই দিন',
+  'Pay Now': 'এখনই পরিশোধ করুন',
+  'Order Total': 'অর্ডার মোট',
+  'Shipping': 'শিপিং',
+  'Enter coupon code': 'কুপন কোড লিখুন',
+  'Copy Order ID': 'অর্ডার আইডি কপি করুন',
+  'Order ID copied!': 'অর্ডার আইডি কপি হয়েছে!',
+
+  // Shop page
+  'All Products': 'সব পণ্য',
+  'All': 'সব',
+  'Everything': 'সকল পণ্য',
+  'Price Range': 'মূল্য পরিসর',
+  'Top Rated': 'শীর্ষ রেটেড',
+  'Price: Low to High': 'মূল্য: কম থেকে বেশি',
+  'Price: High to Low': 'মূল্য: বেশি থেকে কম',
+  'No products found': 'কোনো পণ্য পাওয়া যায়নি',
+  'Clear price filter': 'মূল্য ফিল্টার সরান',
+  'Clear': 'সরান',
+  'Filtering': 'ফিল্টার করা হচ্ছে',
+  'Showing results for': 'ফলাফল দেখানো হচ্ছে',
+  'any': 'যেকোনো',
+  'Apply': 'প্রয়োগ করুন',
+
+  // CartDrawer
+  'Cart': 'কার্ট',
+  'Your cart is empty': 'আপনার কার্ট খালি',
+  'Continue Shopping': 'কেনাকাটা চালিয়ে যান',
+  'Subtotal': 'সাবটোটাল',
+  'Checkout': 'চেকআউট',
+
+  // ProductDetail
+  'Share your experience with this product...': 'এই পণ্যটি নিয়ে আপনার অভিজ্ঞতা শেয়ার করুন...',
+  'Size': 'সাইজ',
+  'Color': 'রঙ',
+
+  // MyZantro / OrderTracking misc
+  'No orders yet': 'এখনো কোনো অর্ডার নেই',
+  'No items in wishlist': 'উইশলিস্টে কোনো পণ্য নেই',
+  'Track': 'ট্র্যাক করুন',
+
+
+  'Select Quantity Tier': 'পরিমাণ টিয়ার বাছুন',
+
+  // Order success screen
+  'Order Placed!': 'অর্ডার সম্পন্ন হয়েছে!',
+  'Thank you for your purchase': 'আপনার ক্রয়ের জন্য ধন্যবাদ',
+  'Your Order ID': 'আপনার অর্ডার আইডি',
+  'Use this ID to track your order': 'এই আইডি দিয়ে আপনার অর্ডার ট্র্যাক করুন',
+
+  // Checkout form
+  'Shipping Information': 'শিপিং তথ্য',
+  'Back to Cart': 'কার্টে ফিরুন',
+  // Language toggle
+  'Switch to English': 'ইংরেজিতে পরিবর্তন করুন',
 };
 
 interface LanguageContextType {

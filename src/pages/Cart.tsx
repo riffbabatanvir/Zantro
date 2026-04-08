@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { Trash2, Minus, Plus, ShoppingCart, ArrowRight, ChevronLeft } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'motion/react';
+import { useLanguage } from '../LanguageContext';
 
 export default function Cart() {
   const { cart, removeFromCart, updateQuantity, totalPrice } = useCart();
+  const { t } = useLanguage();
 
   if (cart.length === 0) {
     return (
@@ -15,12 +17,12 @@ export default function Cart() {
           <meta name="robots" content="noindex" />
         </Helmet>
         <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-neutral-950 pt-20">
-        <h2 className="text-3xl font-light tracking-tight text-black dark:text-white mb-8">Your cart is empty</h2>
+        <h2 className="text-3xl font-light tracking-tight text-black dark:text-white mb-8">{t('Your cart is empty')}</h2>
         <Link 
           to="/shop" 
           className="text-[11px] font-medium uppercase tracking-[0.2em] text-black dark:text-white border-b border-black dark:border-white pb-1 hover:text-black/60 dark:text-white/60 hover:border-black/20 dark:border-white/20 transition-all"
         >
-          Continue Shopping
+          {t('Continue Shopping')}
         </Link>
       </div>
       </>
@@ -31,8 +33,8 @@ export default function Cart() {
     <div className="bg-white dark:bg-neutral-950 min-h-screen pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <div className="mb-20">
-          <h1 className="text-[11px] font-medium uppercase tracking-[0.4em] text-black/40 dark:text-white/40 mb-4">Shopping Cart</h1>
-          <h2 className="text-5xl font-light tracking-tight text-black dark:text-white">Your Selection</h2>
+          <h1 className="text-[11px] font-medium uppercase tracking-[0.4em] text-black/40 dark:text-white/40 mb-4">{t('Shopping Cart')}</h1>
+          <h2 className="text-5xl font-light tracking-tight text-black dark:text-white">{t('Your Selection')}</h2>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-24">
@@ -48,7 +50,7 @@ export default function Cart() {
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="text-[11px] font-medium uppercase tracking-widest text-black dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{item.name}</h3>
                         {(item as any).isPreorder && (
-                          <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shrink-0">🕐 Pre-Order</span>
+                          <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shrink-0">🕐 {t('Pre-Order')}</span>
                         )}
                       </div>
                       <p className="text-[10px] text-black/30 dark:text-white/30 uppercase tracking-widest">{item.category}</p>
@@ -85,7 +87,7 @@ export default function Cart() {
                       onClick={() => removeFromCart(item.id)}
                       className="text-[10px] font-medium uppercase tracking-widest text-black/30 dark:text-white/30 hover:text-black dark:text-white transition-colors"
                     >
-                      Remove
+                      {t('Remove')}
                     </button>
                   </div>
                 </div>
@@ -95,19 +97,19 @@ export default function Cart() {
 
           <div className="lg:col-span-1">
             <div className="sticky top-32 bg-gray-50 dark:bg-neutral-900 p-12">
-              <h3 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-12">Summary</h3>
+              <h3 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-12">{t('Summary')}</h3>
               
               <div className="space-y-6 mb-12">
                 <div className="flex justify-between text-[11px] uppercase tracking-widest text-black/40 dark:text-white/40">
-                  <span>Subtotal</span>
+                  <span>{t('Subtotal')}</span>
                   <span className="text-black dark:text-white">৳{totalPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-[11px] uppercase tracking-widest text-black/40 dark:text-white/40">
-                  <span>Shipping</span>
-                  <span className="text-black dark:text-white">Calculated at next step</span>
+                  <span>{t('Shipping')}</span>
+                  <span className="text-black dark:text-white">{t('Calculated at next step')}</span>
                 </div>
                 <div className="pt-6 border-t border-black/5 dark:border-white/5 flex justify-between text-[11px] font-bold uppercase tracking-widest text-black dark:text-white">
-                  <span>Total</span>
+                  <span>{t('Total')}</span>
                   <span>৳{totalPrice.toFixed(2)}</span>
                 </div>
               </div>
@@ -116,18 +118,18 @@ export default function Cart() {
                 to="/checkout" 
                 className="block w-full bg-orange-600 text-white text-center py-4 text-[11px] font-medium uppercase tracking-[0.2em] hover:bg-orange-700 transition-all shadow-lg shadow-orange-100"
               >
-                Checkout
+                {t('Checkout')}
               </Link>
               
               {cart.some((item: any) => item.isPreorder) && (
                 <div className="mt-6 bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-xl p-4">
-                  <p className="text-[10px] text-orange-600 dark:text-orange-400 font-bold uppercase tracking-widest mb-1">🕐 Pre-Order Notice</p>
-                  <p className="text-[10px] text-black/50 dark:text-white/50 leading-relaxed">Your cart contains pre-order item(s). These may take 1–2 months to deliver after your order is confirmed.</p>
+                  <p className="text-[10px] text-orange-600 dark:text-orange-400 font-bold uppercase tracking-widest mb-1">🕐 {t('Pre-Order Notice')}</p>
+                  <p className="text-[10px] text-black/50 dark:text-white/50 leading-relaxed">{t('Your cart contains pre-order item(s). These may take 1–2 months to deliver after your order is confirmed.')}</p>
                 </div>
               )}
               
               <p className="mt-8 text-[10px] text-black/30 dark:text-white/30 text-center uppercase tracking-widest leading-relaxed">
-                Taxes and shipping calculated at checkout
+                {t('Taxes and shipping calculated at checkout')}
               </p>
             </div>
           </div>

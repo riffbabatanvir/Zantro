@@ -1,3 +1,4 @@
+import { useLanguage } from '../LanguageContext';
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Search, Package, CheckCircle, XCircle, Clock, Truck, MapPin, Phone, Mail, User, AlertTriangle } from 'lucide-react';
@@ -13,6 +14,7 @@ const STATUS_INFO: Record<string, { label: string; color: string; icon: any; bg:
 };
 
 export default function OrderTracking() {
+  const { t } = useLanguage();
   const [orderId, setOrderId] = useState('');
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -72,7 +74,7 @@ export default function OrderTracking() {
           <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <Package size={28} className="text-orange-500" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-gray-900 dark:text-white mb-2">Track Your Order</h1>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-gray-900 dark:text-white mb-2">{ t('Track Your Order')}</h1>
           <p className="text-sm text-gray-400">Enter your Order ID to check the status</p>
         </motion.div>
 

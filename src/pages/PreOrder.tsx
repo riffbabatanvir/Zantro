@@ -1,3 +1,4 @@
+import { useLanguage } from '../LanguageContext';
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useProducts } from '../ProductContext';
@@ -14,6 +15,7 @@ interface PreorderPriceTier {
 }
 
 function PreorderProductCard({ product }: { product: any }) {
+  const { t } = useLanguage();
   const { addToCart, cart, removeFromCart } = useCart();
   const tiers: PreorderPriceTier[] = product.preorderPriceTiers || [];
   const hasTiers = tiers.length > 0;
@@ -51,7 +53,7 @@ function PreorderProductCard({ product }: { product: any }) {
           referrerPolicy="no-referrer"
         />
         <div className="absolute top-3 left-3 bg-orange-600 text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full">
-          Pre-Order
+          {t('Pre-Order')}
         </div>
         {product.discount && (
           <div className="absolute top-3 right-3 bg-black text-white text-[10px] font-bold px-2 py-1 rounded-full">
@@ -74,7 +76,7 @@ function PreorderProductCard({ product }: { product: any }) {
         {/* Tier Selector */}
         {hasTiers ? (
           <div className="space-y-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-black/40 dark:text-white/40">Select Quantity Tier</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-black/40 dark:text-white/40">{t('Select Quantity Tier')}</p>
             <div className="space-y-1.5">
               {tiers.map((tier, idx) => (
                 <button
@@ -126,7 +128,7 @@ function PreorderProductCard({ product }: { product: any }) {
                 : 'bg-black dark:bg-white text-white dark:text-black hover:bg-orange-600 dark:hover:bg-orange-400 dark:hover:text-black'
             }`}
           >
-            {isInCart ? <><Check size={13} /> Update Cart</> : <><ShoppingCart size={13} /> Pre-Order</>}
+            {isInCart ? <><Check size={13} /> {t('Update Cart')}</> : <><ShoppingCart size={13} /> {t('Pre-Order')}</>}
           </button>
           <Link
             to="/checkout"
@@ -142,6 +144,7 @@ function PreorderProductCard({ product }: { product: any }) {
 }
 
 export default function PreOrder() {
+  const { t } = useLanguage();
   const { products } = useProducts();
   const preorderProducts = products.filter((p: any) => p.isPreorder);
 

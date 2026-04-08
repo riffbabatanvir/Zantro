@@ -1,9 +1,11 @@
+import { useLanguage } from '../LanguageContext';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
 export default function About() {
+  const { t } = useLanguage();
   return (
     <>
     <Helmet>
@@ -22,7 +24,7 @@ export default function About() {
           transition={{ duration: 0.6 }}
           className="max-w-3xl"
         >
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black/40 dark:text-white/40 mb-6">About Us</h2>
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black/40 dark:text-white/40 mb-6">{ t('About Us')}</h2>
           <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-tight mb-8">
             We are <span className="text-orange-500">Zantro.</span>
           </h1>
@@ -43,7 +45,7 @@ export default function About() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black/40 dark:text-white/40 mb-6">Our Story</h2>
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black/40 dark:text-white/40 mb-6">{ t('Our Story')}</h2>
             <h3 className="text-3xl md:text-4xl font-black tracking-tighter mb-8">Built for everyday people.</h3>
             <p className="text-sm text-black/50 dark:text-white/50 font-light leading-relaxed mb-6">
               Zantro was founded with a simple mission — to make high-quality products accessible to everyone. We carefully source and curate every item in our store to ensure it meets our standards of quality, design, and value.

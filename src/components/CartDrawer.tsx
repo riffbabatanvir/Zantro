@@ -2,6 +2,7 @@ import { X, ShoppingCart, Trash2, Plus, Minus, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../CartContext';
+import { useLanguage } from '../LanguageContext';
 
 interface Props {
   open: boolean;
@@ -10,6 +11,7 @@ interface Props {
 
 export default function CartDrawer({ open, onClose }: Props) {
   const { cart, removeFromCart, updateQuantity, totalPrice, totalItems } = useCart();
+  const { t } = useLanguage();
 
   return (
     <AnimatePresence>
@@ -36,7 +38,7 @@ export default function CartDrawer({ open, onClose }: Props) {
               <div className="flex items-center gap-2">
                 <ShoppingCart size={18} className="text-orange-500" />
                 <h2 className="font-black text-gray-900 dark:text-white tracking-tight">
-                  Cart <span className="text-orange-500">({totalItems})</span>
+                  {t('Cart')} <span className="text-orange-500">({totalItems})</span>
                 </h2>
               </div>
               <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors">
@@ -49,10 +51,10 @@ export default function CartDrawer({ open, onClose }: Props) {
               {cart.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
                   <ShoppingCart size={48} className="text-gray-200 dark:text-neutral-700" />
-                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Your cart is empty</p>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">{t('Your cart is empty')}</p>
                   <button onClick={onClose}
                     className="text-xs font-bold text-orange-500 hover:underline">
-                    Continue Shopping
+                    {t('Continue Shopping')}
                   </button>
                 </div>
               ) : (
@@ -108,16 +110,16 @@ export default function CartDrawer({ open, onClose }: Props) {
             {cart.length > 0 && (
               <div className="px-6 py-4 border-t border-gray-100 dark:border-neutral-800 space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-bold text-gray-500 dark:text-gray-400">Subtotal</span>
+                  <span className="text-sm font-bold text-gray-500 dark:text-gray-400">{t('Subtotal')}</span>
                   <span className="text-lg font-black text-gray-900 dark:text-white">৳{totalPrice.toFixed(2)}</span>
                 </div>
                 <Link to="/checkout" onClick={onClose}
                   className="w-full bg-orange-600 text-white py-3.5 rounded-2xl text-sm font-black uppercase tracking-widest text-center hover:bg-orange-700 transition-colors flex items-center justify-center gap-2">
-                  Checkout <ArrowRight size={16} />
+                  {t('Checkout')} <ArrowRight size={16} />
                 </Link>
                 <Link to="/cart" onClick={onClose}
                   className="w-full py-3 rounded-2xl text-sm font-bold text-gray-500 dark:text-gray-400 text-center hover:text-orange-500 transition-colors">
-                  View Full Cart
+                  {t('View Full Cart')}
                 </Link>
               </div>
             )}

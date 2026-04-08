@@ -1,3 +1,4 @@
+import { useLanguage } from '../LanguageContext';
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare, Clock } from 'lucide-react';
 // WhatsApp SVG icon component
@@ -11,6 +12,7 @@ import { motion } from 'motion/react';
 import { toast } from 'sonner';
 
 export default function Contact() {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -61,7 +63,7 @@ export default function Contact() {
           {/* Left Side: Info */}
           <div>
             <div className="mb-16">
-              <h1 className="text-[11px] font-medium uppercase tracking-[0.4em] text-black/40 dark:text-white/40 mb-4">Contact</h1>
+              <h1 className="text-[11px] font-medium uppercase tracking-[0.4em] text-black/40 dark:text-white/40 mb-4">{ t('Contact')}</h1>
               <h2 className="text-5xl font-light tracking-tight text-black dark:text-white leading-tight">We're here to assist you.</h2>
             </div>
 
@@ -121,7 +123,7 @@ export default function Contact() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">Phone</label>
+                <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">{ t('Phone')}</label>
                 <input 
                   type="tel" 
                   value={formData.phone}
