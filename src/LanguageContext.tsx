@@ -2,8 +2,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 
 export type Language = 'en' | 'bn';
 
-// Default English → Bengali translations
-// Admin can override any key via the dashboard
 export const DEFAULT_TRANSLATIONS: Record<string, string> = {
   // Navbar
   'Shop All': 'সব পণ্য',
@@ -168,8 +166,11 @@ interface LanguageContextType {
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
   translations: Record<string, string>;
+  overrides: Record<string, string>;
   updateTranslation: (key: string, value: string) => void;
   resetTranslation: (key: string) => void;
+  resetAllTranslations: () => void;
+  isSyncing: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -179,17 +180,24 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     try { return (localStorage.getItem('zantro_language') as Language) || 'en'; } catch { return 'en'; }
   });
 
-  // User-overridden translations (stored in localStorage)
-  const [overrides, setOverrides] = useState<Record<string, string>>(() => {
-    try { return JSON.parse(localStorage.getItem('zantro_translation_overrides') || '{}'); } catch { return {}; }
-  });
+  // Server-side overrides — shared across all users
+  const [overrides, setOverrides] = useState<Record<string, string>>({});
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Fetch server overrides on mount
+  useEffect(() => {
+    fetch('/api/translations')
+      .then(r => r.json())
+      .then(data => { if (data && typeof data === 'object') setOverrides(data); })
+      .catch(() => {});
+  }, []);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     try { localStorage.setItem('zantro_language', lang); } catch {}
   };
 
-  // Merged translations (defaults + admin overrides)
+  // Merged: defaults + server overrides
   const translations: Record<string, string> = { ...DEFAULT_TRANSLATIONS, ...overrides };
 
   const t = (key: string): string => {
@@ -197,21 +205,49 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return translations[key] || key;
   };
 
+  // Save the full overrides object to the server
+  const saveToServer = async (newOverrides: Record<string, string>) => {
+    setIsSyncing(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      await fetch('/api/translations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ overrides: newOverrides }),
+      });
+    } catch (e) {
+      console.error('Failed to save translations', e);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const updateTranslation = (key: string, value: string) => {
     const newOverrides = { ...overrides, [key]: value };
     setOverrides(newOverrides);
-    try { localStorage.setItem('zantro_translation_overrides', JSON.stringify(newOverrides)); } catch {}
+    saveToServer(newOverrides);
   };
 
   const resetTranslation = (key: string) => {
     const newOverrides = { ...overrides };
     delete newOverrides[key];
     setOverrides(newOverrides);
-    try { localStorage.setItem('zantro_translation_overrides', JSON.stringify(newOverrides)); } catch {}
+    saveToServer(newOverrides);
+  };
+
+  const resetAllTranslations = () => {
+    setOverrides({});
+    saveToServer({});
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, translations, updateTranslation, resetTranslation }}>
+    <LanguageContext.Provider value={{
+      language, setLanguage, t, translations, overrides,
+      updateTranslation, resetTranslation, resetAllTranslations, isSyncing,
+    }}>
       {children}
     </LanguageContext.Provider>
   );

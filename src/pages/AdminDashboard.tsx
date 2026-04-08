@@ -40,7 +40,7 @@ export default function AdminDashboard() {
   const [isSavingPayment, setIsSavingPayment] = useState(false);
 
   // Language / translation management
-  const { translations, updateTranslation, resetTranslation, language, setLanguage } = useLanguage();
+  const { translations, overrides, updateTranslation, resetTranslation, resetAllTranslations, language, setLanguage, isSyncing } = useLanguage();
   const [translationSearch, setTranslationSearch] = useState('');
   const [editingTranslationKey, setEditingTranslationKey] = useState<string | null>(null);
   const [editingTranslationValue, setEditingTranslationValue] = useState('');
@@ -2341,8 +2341,11 @@ export default function AdminDashboard() {
               className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-xl font-medium text-black dark:text-white">🇧🇩 Bengali Translations</h2>
-                  <p className="text-xs text-black/40 dark:text-white/40 mt-1">Edit any mistranslated Bangla text. Changes apply site-wide instantly.</p>
+                  <h2 className="text-xl font-medium text-black dark:text-white flex items-center gap-3">
+                    🇧🇩 Bengali Translations
+                    {isSyncing && <span className="text-xs font-bold text-orange-500 animate-pulse uppercase tracking-widest">Saving…</span>}
+                  </h2>
+                  <p className="text-xs text-black/40 dark:text-white/40 mt-1">Edit any mistranslated Bangla text. Changes save to the server and apply to <strong>all users</strong> instantly.</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-black/40 dark:text-white/40 uppercase tracking-widest">Preview in:</span>
@@ -2378,7 +2381,7 @@ export default function AdminDashboard() {
                   )
                   .map(([key, defaultBn]) => {
                     const currentBn = translations[key] || defaultBn;
-                    const isOverridden = translations[key] !== undefined && translations[key] !== defaultBn;
+                    const isOverridden = key in overrides;
                     const isEditing = editingTranslationKey === key;
 
                     return (
@@ -2466,7 +2469,7 @@ export default function AdminDashboard() {
                 <button
                   onClick={() => {
                     if (confirm('Reset ALL translations to default?')) {
-                      Object.keys(DEFAULT_TRANSLATIONS).forEach(k => resetTranslation(k));
+                      resetAllTranslations();
                       toast.success('All translations reset');
                     }
                   }}

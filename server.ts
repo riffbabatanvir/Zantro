@@ -324,6 +324,25 @@ app.post('/api/settings/flashsale', async (req, res) => {
   res.json({ enabled });
 });
 
+// ─── Translations ─────────────────────────────────────────────────────────────
+
+app.get('/api/translations', async (req, res) => {
+  const doc = await db.collection('settings').findOne({ key: 'translations' });
+  res.json(doc ? doc.overrides : {});
+});
+
+app.post('/api/translations', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const { overrides } = req.body;
+  if (!overrides || typeof overrides !== 'object') return res.status(400).json({ error: 'Invalid payload' });
+  await db.collection('settings').updateOne(
+    { key: 'translations' },
+    { $set: { key: 'translations', overrides } },
+    { upsert: true }
+  );
+  res.json({ ok: true });
+});
+
 // ─── Payment Settings ────────────────────────────────────────────────────────
 
 app.get('/api/settings/payment', async (req, res) => {
