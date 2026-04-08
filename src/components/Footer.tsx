@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram } from 'lucide-react';
+import { Facebook, Instagram, Phone, Mail } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -10,9 +10,21 @@ export default function Footer() {
             <Link to="/" className="text-xl font-medium tracking-[0.2em] text-black dark:text-white mb-8 block">
               ZANTRO
             </Link>
-            <p className="text-sm text-black/40 dark:text-white/40 max-w-xs leading-relaxed font-light">
+            <p className="text-sm text-black/40 dark:text-white/40 max-w-xs leading-relaxed font-light mb-6">
               Curated essentials for the modern lifestyle. Quality, simplicity, and purpose in every detail.
             </p>
+            <ul className="space-y-3 text-[11px] font-medium uppercase tracking-widest text-black/40 dark:text-white/40">
+              <li>
+                <a href="tel:+8801779102808" className="hover:text-black dark:hover:text-white transition-colors flex items-center gap-2">
+                  <Phone size={13} /> +880 1779-102808
+                </a>
+              </li>
+              <li>
+                <a href="mailto:store@zantrobd.com" className="hover:text-black dark:hover:text-white transition-colors flex items-center gap-2">
+                  <Mail size={13} /> store@zantrobd.com
+                </a>
+              </li>
+            </ul>
           </div>
 
           <div>

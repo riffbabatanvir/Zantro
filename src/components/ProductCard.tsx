@@ -50,7 +50,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
         {/* Discount / Hot badge */}
         {!isOutOfStock && !isPreowned && (
           <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">
-            {product.discount ? `-${product.discount}%` : 'Hot'}
+            {product.discount ? `Limited offer: ${product.discount}% Discount` : 'Hot'}
           </div>
         )}
 
@@ -93,30 +93,34 @@ export default function ProductCard({ product }: { product: Product; key?: strin
         </div>
 
         <div className="flex flex-col gap-2 pt-2">
-          <div className="flex justify-between items-end">
-            <div className="flex flex-col">
-              <span className="text-[10px] text-gray-400 line-through">৳{originalPrice.toFixed(2)}</span>
-              <span className="text-lg font-black text-orange-600 dark:text-orange-400">৳{product.price.toFixed(2)}</span>
-            </div>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                if (isOutOfStock && !isPreorder) return;
-                if (isInCart) navigate('/cart');
-                else addToCart({ ...product, isPreorder: canPreorder } as any);
-              }}
-              disabled={isOutOfStock && !isPreorder}
-              className={isInCart
-                ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 p-2 rounded-xl hover:bg-green-200 transition-colors'
-                : isOutOfStock && !isPreorder
-                  ? 'bg-gray-100 dark:bg-neutral-800 text-gray-300 p-2 rounded-xl cursor-not-allowed'
-                  : 'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 p-2 rounded-xl hover:bg-orange-200 transition-colors'
-              }
-              title={isOutOfStock && !isPreorder ? 'Out of Stock' : isInCart ? 'Go to Cart' : canPreorder ? 'Pre-Order' : 'Add to Cart'}
-            >
-              {isInCart ? <Check size={16} strokeWidth={2.5} /> : <ShoppingCart size={16} strokeWidth={2.5} />}
-            </button>
+          <div className="flex flex-col">
+            <span className="text-[10px] text-gray-400 line-through">৳{originalPrice.toFixed(2)}</span>
+            <span className="text-lg font-black text-orange-600 dark:text-orange-400">৳{product.price.toFixed(2)}</span>
           </div>
+
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              if (isOutOfStock && !isPreorder) return;
+              if (isInCart) navigate('/cart');
+              else addToCart({ ...product, isPreorder: canPreorder } as any);
+            }}
+            disabled={isOutOfStock && !isPreorder}
+            className={`w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-center transition-colors flex items-center justify-center gap-1.5 ${
+              isInCart
+                ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 hover:bg-green-200'
+                : isOutOfStock && !isPreorder
+                  ? 'bg-gray-100 dark:bg-neutral-800 text-gray-300 cursor-not-allowed'
+                  : 'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 hover:bg-orange-200'
+            }`}
+          >
+            {isInCart
+              ? <><Check size={13} strokeWidth={2.5} /> In Cart</>
+              : isOutOfStock && !isPreorder
+                ? 'Out of Stock'
+                : <><ShoppingCart size={13} strokeWidth={2.5} /> Add to Cart</>
+            }
+          </button>
 
           <Link
             to={isOutOfStock && !isPreorder ? '#' : isPreorder ? `/product/${product.id}` : '/checkout'}
