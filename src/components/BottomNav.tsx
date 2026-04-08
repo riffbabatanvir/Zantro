@@ -3,11 +3,13 @@ import { Home, Grid, ShoppingCart, Heart } from 'lucide-react';
 import { useCart } from '../CartContext';
 import { useWishlist } from '../WishlistContext';
 import { cn } from '../lib/utils';
+import { useLanguage } from '../LanguageContext';
 
 export default function BottomNav() {
   const location = useLocation();
   const { totalItems } = useCart();
   const { wishlist } = useWishlist();
+  const { t } = useLanguage();
 
   const navItems = [
     { name: 'Home', path: '/', icon: Home },
@@ -33,7 +35,7 @@ export default function BottomNav() {
             )}
           >
             <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} fill={item.path === '/my' && (isActive || wishlist.length > 0) ? 'currentColor' : 'none'} />
-            <span className="text-[10px] font-medium">{item.name}</span>
+            <span className="text-[10px] font-medium">{t(item.name)}</span>
             {item.badge !== undefined && item.badge > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                 {item.badge}

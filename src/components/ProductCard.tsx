@@ -4,11 +4,13 @@ import { Product } from '../types';
 import { useCart } from '../CartContext';
 import { useWishlist } from '../WishlistContext';
 import { motion } from 'motion/react';
+import { useLanguage } from '../LanguageContext';
 
 export default function ProductCard({ product }: { product: Product; key?: string | number }) {
   const { addToCart, cart } = useCart();
   const { toggle, isWishlisted } = useWishlist();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const isInCart = cart.some((item) => item.id === product.id);
   const originalPrice = product.discount ? product.price / (1 - product.discount / 100) : product.price * 1.5;
   const isOutOfStock = (product as any).stock === 0;
@@ -37,11 +39,11 @@ export default function ProductCard({ product }: { product: Product; key?: strin
         {isOutOfStock && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
             <span className="bg-black/70 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
-              Out of Stock
+              {t('Out of Stock')}
             </span>
             {isPreorder && (
               <Link to={`/product/${product.id}`} className="bg-orange-500 hover:bg-orange-600 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest transition-colors">
-                Click to Pre-Order
+                {t('Pre-Order Now')}
               </Link>
             )}
           </div>
@@ -57,7 +59,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
         {/* Pre-Owned badge */}
         {isPreowned && (
           <div className="absolute top-2 left-2 flex flex-col gap-1">
-            <span className="bg-amber-600 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">Pre-Owned</span>
+            <span className="bg-amber-600 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">{t('Pre-Owned')}</span>
             {(product as any).percentNew != null && (
               <span className="bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded-md">{(product as any).percentNew}% new</span>
             )}
@@ -117,8 +119,8 @@ export default function ProductCard({ product }: { product: Product; key?: strin
             {isInCart
               ? <><Check size={13} strokeWidth={2.5} /> In Cart</>
               : isOutOfStock && !isPreorder
-                ? 'Out of Stock'
-                : <><ShoppingCart size={13} strokeWidth={2.5} /> Add to Cart</>
+                ? t('Out of Stock')
+                : <><ShoppingCart size={13} strokeWidth={2.5} /> {t('Add to Cart')}</>
             }
           </button>
 
@@ -133,7 +135,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
                   : 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200'
             }`}
           >
-            {isOutOfStock && !isPreorder ? 'Unavailable' : canPreorder ? '🕐 Pre-Order' : 'Buy Now'}
+            {isOutOfStock && !isPreorder ? t('Out of Stock') : canPreorder ? `🕐 ${t('Pre-Order')}` : 'Buy Now'}
           </Link>
         </div>
       </div>

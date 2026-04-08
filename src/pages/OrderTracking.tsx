@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { useState } from 'react';
 import { Search, Package, CheckCircle, XCircle, Clock, Truck, MapPin, Phone, Mail, User, AlertTriangle } from 'lucide-react';
 
 const STATUS_STEPS = ['pending', 'confirmed', 'shipped', 'delivered'];

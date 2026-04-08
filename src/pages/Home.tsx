@@ -7,8 +7,10 @@ import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useLanguage } from '../LanguageContext';
 
 export default function Home() {
+  const { t } = useLanguage();
   const { products } = useProducts();
   const featuredProducts = products.filter(p => !p.isPreowned && p.category !== 'Pre-Owned').slice(0, 8);
   const flashSaleProducts = products.filter(p => p.isFlashSale);
@@ -88,7 +90,7 @@ useEffect(() => {
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                  <h2 className="text-xl md:text-3xl font-black text-gray-900 italic tracking-tighter">FLASH SALE</h2>
+                  <h2 className="text-xl md:text-3xl font-black text-gray-900 italic tracking-tighter">{t('FLASH SALE')}</h2>
                   <div className="flex items-center gap-2">
                     <span className="bg-orange-600 text-white px-2 py-1 rounded text-sm font-bold w-8 text-center">{formatTime(timeLeft.hours)}</span>
                     <span className="text-orange-600 dark:text-orange-400 font-bold">:</span>
@@ -98,7 +100,7 @@ useEffect(() => {
                   </div>
                 </div>
                 <Link to="/shop" className="text-sm font-bold text-orange-500 flex items-center gap-1">
-                  View All <ArrowRight size={16} />
+                  {t('View All')} <ArrowRight size={16} />
                 </Link>
               </div>
 
@@ -119,8 +121,8 @@ useEffect(() => {
       <section className="py-8 md:py-20">
         <div className="max-w-7xl mx-auto px-4 lg:px-12">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Recommended For You</h2>
-            <Link to="/shop" className="text-sm font-bold text-gray-400 hover:text-orange-500">View More</Link>
+            <h2 className="text-xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">{t('Recommended For You')}</h2>
+            <Link to="/shop" className="text-sm font-bold text-gray-400 hover:text-orange-500">{t('View More')}</Link>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">

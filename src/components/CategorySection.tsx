@@ -1,16 +1,18 @@
 import { Link } from 'react-router-dom';
 import { useCategoryImages } from '../useCategoryImages';
 import { motion } from 'motion/react';
+import { useLanguage } from '../LanguageContext';
 
 export default function CategorySection() {
   const { images, categories } = useCategoryImages();
+  const { t } = useLanguage();
 
   return (
     <section className="py-8 md:py-20 bg-white dark:bg-neutral-950">
       <div className="max-w-7xl mx-auto px-4 lg:px-12">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Shop by Category</h2>
-          <Link to="/shop" className="text-sm font-bold text-orange-500 hover:text-orange-600 dark:text-orange-400">See All</Link>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t('Shop by Category')}</h2>
+          <Link to="/shop" className="text-sm font-bold text-orange-500 hover:text-orange-600 dark:text-orange-400">{t('See All')}</Link>
         </div>
 
         <div className="flex md:grid md:grid-cols-5 lg:grid-cols-9 gap-4 md:gap-6 overflow-x-auto pb-4 md:pb-0 scrollbar-hide snap-x">
@@ -38,7 +40,7 @@ export default function CategorySection() {
                     />
                   </div>
                   <h3 className="text-[10px] md:text-[11px] font-bold text-gray-700 dark:text-gray-300 text-center group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors leading-tight w-full line-clamp-2">
-                    {category.name}
+                    {t(category.name)}
                   </h3>
                 </Link>
               </motion.div>

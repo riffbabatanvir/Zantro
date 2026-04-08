@@ -6,6 +6,7 @@ import { useWishlist } from '../WishlistContext';
 import { useTheme } from '../ThemeContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { useProducts } from '../ProductContext';
+import { useLanguage } from '../LanguageContext';
 
 export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -19,6 +20,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
   const { totalItems } = useCart();
   const { wishlist } = useWishlist();
   const { theme, toggleTheme } = useTheme();
+  const { t } = useLanguage();
   const { products } = useProducts();
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -159,7 +161,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                       <div>
                         <div className="flex items-center gap-2 px-4 pt-3 pb-1">
                           <Clock size={11} className="text-gray-400" />
-                          <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Recently Viewed</p>
+                          <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">{t("Recently Viewed")}</p>
                         </div>
                         {recentlyViewed.map((item: any) => (
                           <Link key={item.id} to={`/product/${item.id}`}
@@ -247,7 +249,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                       <div>
                         <div className="flex items-center gap-2 px-4 pt-3 pb-1">
                           <Clock size={11} className="text-gray-400" />
-                          <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Recently Viewed</p>
+                          <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">{t("Recently Viewed")}</p>
                         </div>
                         {recentlyViewed.map((item: any) => (
                           <Link key={item.id} to={`/product/${item.id}`}
@@ -275,7 +277,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
           <div className="flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link key={link.name} to={link.path} className="text-sm font-bold text-gray-600 hover:text-orange-600 dark:text-orange-400 dark:hover:text-white transition-all whitespace-nowrap">
-                {link.name}
+                {t(link.name)}
               </Link>
             ))}
             <button onClick={toggleTheme} className="text-gray-600 hover:text-orange-600 dark:text-gray-400 dark:hover:text-orange-400 transition-colors">
@@ -289,7 +291,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                 className={`relative group flex items-center gap-2 bg-gray-50 dark:bg-neutral-900 px-4 py-2 rounded-full border transition-all ${myZantroOpen ? 'border-orange-400' : 'border-gray-100 dark:border-neutral-800 hover:border-orange-200'}`}
               >
                 <Heart size={18} className={`transition-colors ${wishlist.length > 0 ? 'fill-orange-500 text-orange-500' : 'text-gray-600 dark:text-gray-400 group-hover:text-orange-600 dark:group-hover:text-orange-400'}`} />
-                <span className="text-sm font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">My Zantro</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">{t("My Zantro")}</span>
               </button>
 
               <AnimatePresence>
@@ -308,7 +310,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                           <Heart size={15} className={`text-red-500 ${wishlist.length > 0 ? 'fill-red-500' : ''}`} />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-800 dark:text-white">Wishlist</p>
+                          <p className="text-sm font-bold text-gray-800 dark:text-white">{t("Wishlist")}</p>
                           <p className="text-[11px] text-gray-400">{wishlist.length} {wishlist.length === 1 ? 'item' : 'items'} saved</p>
                         </div>
                       </Link>
@@ -318,7 +320,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                           <Package size={15} className="text-orange-500" />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-800 dark:text-white">Track Order</p>
+                          <p className="text-sm font-bold text-gray-800 dark:text-white">{t("Track Order")}</p>
                           <p className="text-[11px] text-gray-400">Check order status</p>
                         </div>
                       </Link>
@@ -350,7 +352,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
               {navLinks.map((link) => (
                 <Link key={link.name} to={link.path} onClick={() => setIsMenuOpen(false)}
                   className="block text-lg font-bold text-gray-800 hover:text-orange-600 dark:text-orange-400 dark:hover:text-white transition-colors">
-                  {link.name}
+                  {t(link.name)}
                 </Link>
               ))}
             </div>

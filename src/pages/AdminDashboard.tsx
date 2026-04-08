@@ -6,6 +6,7 @@ import { useProducts } from '../ProductContext';
 import { useCategoryImages } from '../useCategoryImages';
 import { CATEGORIES } from '../constants';
 import { GRADIENT_OPTIONS } from '../components/Hero';
+import { useLanguage, DEFAULT_TRANSLATIONS } from '../LanguageContext';
 
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -16,7 +17,7 @@ export default function AdminDashboard() {
   const [visitors, setVisitors] = useState<any[]>([]);
   const [blockedIPs, setBlockedIPs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons' | 'hero' | 'announcement' | 'preorders' | 'preowned' | 'payment'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons' | 'hero' | 'announcement' | 'preorders' | 'preowned' | 'payment' | 'translations'>('orders');
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
 
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
@@ -37,6 +38,12 @@ export default function AdminDashboard() {
     ]
   });
   const [isSavingPayment, setIsSavingPayment] = useState(false);
+
+  // Language / translation management
+  const { translations, updateTranslation, resetTranslation, language, setLanguage } = useLanguage();
+  const [translationSearch, setTranslationSearch] = useState('');
+  const [editingTranslationKey, setEditingTranslationKey] = useState<string | null>(null);
+  const [editingTranslationValue, setEditingTranslationValue] = useState('');
 
   useEffect(() => {
     fetch('/api/settings/payment')
@@ -901,12 +908,12 @@ export default function AdminDashboard() {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-lg flex-wrap gap-1">
-              {(['orders', 'messages', 'products', 'preowned', 'preorders', 'categories', 'coupons', 'hero', 'announcement', 'visitors', 'payment'] as const).map(tab => (
+              {(['orders', 'messages', 'products', 'preowned', 'preorders', 'categories', 'coupons', 'hero', 'announcement', 'visitors', 'payment', 'translations'] as const).map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
                   className={`px-4 py-2 rounded-md text-[11px] font-medium uppercase tracking-widest transition-all ${
                     activeTab === tab ? 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white'
                   }`}>
-                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab === 'coupons' ? 'Coupons' : tab === 'hero' ? 'Hero Slides' : tab === 'announcement' ? 'Banner' : tab === 'preorders' ? '🕐 Pre-Orders' : tab === 'preowned' ? '♻️ Pre-Owned' : tab === 'payment' ? '💳 Payment' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab === 'coupons' ? 'Coupons' : tab === 'hero' ? 'Hero Slides' : tab === 'announcement' ? 'Banner' : tab === 'preorders' ? '🕐 Pre-Orders' : tab === 'preowned' ? '♻️ Pre-Owned' : tab === 'payment' ? '💳 Payment' : tab === 'translations' ? '🇧🇩 Translations' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </button>
               ))}
             </div>
@@ -2328,6 +2335,147 @@ export default function AdminDashboard() {
               </div>
             </motion.div>
           </div>
+        ) : activeTab === 'translations' ? (
+          <div className="max-w-4xl mx-auto space-y-6">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-medium text-black dark:text-white">🇧🇩 Bengali Translations</h2>
+                  <p className="text-xs text-black/40 dark:text-white/40 mt-1">Edit any mistranslated Bangla text. Changes apply site-wide instantly.</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-black/40 dark:text-white/40 uppercase tracking-widest">Preview in:</span>
+                  <button
+                    onClick={() => setLanguage(language === 'bn' ? 'en' : 'bn')}
+                    className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-colors ${language === 'bn' ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-neutral-800 text-black/60 dark:text-white/60'}`}>
+                    {language === 'bn' ? '🇧🇩 Bangla ON' : '🇬🇧 English'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Search */}
+              <div className="relative mb-6">
+                <input
+                  type="text"
+                  value={translationSearch}
+                  onChange={e => setTranslationSearch(e.target.value)}
+                  placeholder="Search translations..."
+                  className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 outline-none transition-colors"
+                />
+                {translationSearch && (
+                  <button onClick={() => setTranslationSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-black/30 hover:text-black dark:text-white/30 dark:hover:text-white text-lg">×</button>
+                )}
+              </div>
+
+              {/* Translation rows */}
+              <div className="space-y-2">
+                {Object.entries(DEFAULT_TRANSLATIONS)
+                  .filter(([key]) =>
+                    !translationSearch ||
+                    key.toLowerCase().includes(translationSearch.toLowerCase()) ||
+                    (translations[key] || '').toLowerCase().includes(translationSearch.toLowerCase())
+                  )
+                  .map(([key, defaultBn]) => {
+                    const currentBn = translations[key] || defaultBn;
+                    const isOverridden = translations[key] !== undefined && translations[key] !== defaultBn;
+                    const isEditing = editingTranslationKey === key;
+
+                    return (
+                      <div key={key} className={`rounded-xl border p-3 transition-colors ${isOverridden ? 'border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20' : 'border-black/5 dark:border-white/5 bg-gray-50 dark:bg-neutral-950'}`}>
+                        <div className="flex items-start gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/30 mb-0.5 font-bold">English</p>
+                            <p className="text-xs text-black/70 dark:text-white/70 font-medium truncate">{key}</p>
+                          </div>
+                          <div className="text-black/20 dark:text-white/20 mt-4 shrink-0">→</div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/30 mb-0.5 font-bold flex items-center gap-1">
+                              বাংলা {isOverridden && <span className="text-orange-500 normal-case tracking-normal">(edited)</span>}
+                            </p>
+                            {isEditing ? (
+                              <div className="flex items-center gap-2">
+                                <input
+                                  autoFocus
+                                  type="text"
+                                  value={editingTranslationValue}
+                                  onChange={e => setEditingTranslationValue(e.target.value)}
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter') {
+                                      updateTranslation(key, editingTranslationValue);
+                                      setEditingTranslationKey(null);
+                                      toast.success('Translation updated!');
+                                    }
+                                    if (e.key === 'Escape') setEditingTranslationKey(null);
+                                  }}
+                                  className="flex-1 bg-white dark:bg-neutral-900 border border-orange-400 rounded-lg px-2 py-1 text-xs focus:outline-none"
+                                />
+                                <button
+                                  onClick={() => {
+                                    updateTranslation(key, editingTranslationValue);
+                                    setEditingTranslationKey(null);
+                                    toast.success('Translation updated!');
+                                  }}
+                                  className="px-2 py-1 bg-orange-500 text-white rounded-lg text-[10px] font-bold hover:bg-orange-600 transition-colors shrink-0">
+                                  Save
+                                </button>
+                                <button
+                                  onClick={() => setEditingTranslationKey(null)}
+                                  className="px-2 py-1 bg-gray-200 dark:bg-neutral-700 text-black/60 dark:text-white/60 rounded-lg text-[10px] font-bold hover:bg-gray-300 transition-colors shrink-0">
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <p className="text-xs text-black/70 dark:text-white/70 font-medium truncate">{currentBn}</p>
+                            )}
+                          </div>
+                          {!isEditing && (
+                            <div className="flex items-center gap-1 shrink-0 mt-3">
+                              <button
+                                onClick={() => {
+                                  setEditingTranslationKey(key);
+                                  setEditingTranslationValue(currentBn);
+                                }}
+                                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 text-black/40 dark:text-white/40 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                                title="Edit translation">
+                                <Edit2 size={12} />
+                              </button>
+                              {isOverridden && (
+                                <button
+                                  onClick={() => {
+                                    resetTranslation(key);
+                                    toast.success('Reset to default');
+                                  }}
+                                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-black/40 dark:text-white/40 hover:text-red-500 transition-colors"
+                                  title="Reset to default">
+                                  <XCircle size={12} />
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
+                <p className="text-xs text-black/40 dark:text-white/40">
+                  {Object.keys(DEFAULT_TRANSLATIONS).length} strings · {Object.values(translations).filter((v, i) => v !== Object.values(DEFAULT_TRANSLATIONS)[i]).length} customised
+                </p>
+                <button
+                  onClick={() => {
+                    if (confirm('Reset ALL translations to default?')) {
+                      Object.keys(DEFAULT_TRANSLATIONS).forEach(k => resetTranslation(k));
+                      toast.success('All translations reset');
+                    }
+                  }}
+                  className="text-xs font-bold text-red-400 hover:text-red-600 transition-colors uppercase tracking-widest">
+                  Reset All
+                </button>
+              </div>
+            </motion.div>
+          </div>
         ) : (
           <div className="max-w-5xl mx-auto space-y-8">
 
@@ -2395,6 +2543,7 @@ export default function AdminDashboard() {
                   );
 
                   return Object.entries(grouped).map(([catName, catProducts]) => {
+                    const catProductList = catProducts as any[];
                     const isCollapsed = collapsedCategories[catName];
                     return (
                       <div key={catName} className="border border-black/5 dark:border-white/5 rounded-xl overflow-hidden">
@@ -2406,7 +2555,7 @@ export default function AdminDashboard() {
                         >
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-black uppercase tracking-widest text-black dark:text-white">{catName}</span>
-                            <span className="text-[10px] font-bold bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-full">{catProducts.length}</span>
+                            <span className="text-[10px] font-bold bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-full">{catProductList.length}</span>
                           </div>
                           <svg className={`w-4 h-4 text-black/40 dark:text-white/40 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                         </button>
@@ -2414,7 +2563,7 @@ export default function AdminDashboard() {
                         {/* Products in this category */}
                         {!isCollapsed && (
                           <div className="divide-y divide-black/5 dark:divide-white/5">
-                            {catProducts.map((product: any) => (
+                            {catProductList.map((product: any) => (
                               <div key={product.id} className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between p-4 bg-white dark:bg-neutral-900">
                                 {editingProduct === product.id ? (
                       <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-4">

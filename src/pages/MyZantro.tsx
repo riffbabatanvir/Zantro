@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Heart, Package, Search, Star, ShoppingCart, Check, Trash2, History, Phone, ChevronDown, ChevronUp, Clock, CheckCircle, Truck, XCircle, MapPin, User, Mail, AlertTriangle } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';

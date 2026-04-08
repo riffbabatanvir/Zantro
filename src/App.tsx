@@ -4,6 +4,8 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import BottomNav from './components/BottomNav';
 import FloatingCart from './components/FloatingCart';
+import LanguageToggle from './components/LanguageToggle';
+import { LanguageProvider } from './LanguageContext';
 import Home from './pages/Home';
 import Shop from './pages/Shop';
 import ProductDetail from './pages/ProductDetail';
@@ -38,6 +40,7 @@ export default function App() {
   const [cartOpen, setCartOpen] = useState(false);
   return (
     <HelmetProvider>
+    <LanguageProvider>
     <ThemeProvider>
       <Router>
         <ProductProvider>
@@ -68,12 +71,14 @@ export default function App() {
             <BottomNav />
             <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
             <FloatingCart onCartClick={() => setCartOpen(true)} />
+            <LanguageToggle />
           </div>
           </CartProvider>
           </WishlistProvider>
         </ProductProvider>
       </Router>
     </ThemeProvider>
+    </LanguageProvider>
     </HelmetProvider>
   );
 }
