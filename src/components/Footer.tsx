@@ -20,7 +20,6 @@ export default function Footer() {
             <ul className="space-y-4 text-[11px] font-medium uppercase tracking-widest text-black/40 dark:text-white/40">
               <li><Link to="/shop" className="hover:text-black dark:text-white transition-colors">Shop All</Link></li>
               <li><Link to="/contact" className="hover:text-black dark:text-white transition-colors">Contact</Link></li>
-              <li><Link to="/admin" className="hover:text-black dark:text-white transition-colors">Admin Dashboard</Link></li>
               <li><Link to="/about" className="hover:text-black dark:text-white transition-colors">About</Link></li>
 			  <li><Link to="/faq" className="hover:text-black dark:text-white transition-colors">FAQ</Link></li>
 			  <li><Link to="/order-tracking" className="hover:text-black dark:text-white transition-colors">Track Order</Link></li>
@@ -52,7 +51,7 @@ export default function Footer() {
 
         <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-black/5 dark:border-white/5">
           <p className="text-[10px] text-black/20 dark:text-white/20 uppercase tracking-widest">
-            © 2026 Zantro. All rights reserved.
+            © 2026 <Link to="/admin" className="cursor-default">Zantro</Link>. All rights reserved.
           </p>
           <div className="flex space-x-8 mt-6 md:mt-0">
             <span className="text-[10px] text-black/20 dark:text-white/20 uppercase tracking-widest">Privacy</span>
