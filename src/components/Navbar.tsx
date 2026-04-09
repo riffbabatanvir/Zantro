@@ -59,6 +59,14 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
+  // Close mobile menu on scroll
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleScroll = () => setIsMenuOpen(false);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isMenuOpen]);
+
   const handleSearch = (e?: FormEvent) => {
     e?.preventDefault();
     if (searchQuery.trim()) {
