@@ -160,6 +160,13 @@ export const DEFAULT_TRANSLATIONS: Record<string, string> = {
   'Up to 69% Off': 'সর্বোচ্চ ৬৯% ছাড়',
   'Innovation Week': 'উদ্ভাবন সপ্তাহ',
 
+
+  // ProductCard misc
+  'In Cart': 'কার্টে আছে',
+  'sold': 'বিক্রিত',
+  'Hot': 'জনপ্রিয়',
+  'new': 'নতুন',
+
   // New translations added for full Bangla support
 
   // Buy / CTA buttons (new)

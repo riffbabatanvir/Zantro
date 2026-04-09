@@ -4,7 +4,8 @@ import { useLanguage } from '../LanguageContext';
 import LanguageToggle from './LanguageToggle';
 
 export default function Footer() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const tracking = language === 'bn' ? 'tracking-normal' : 'tracking-widest';
   return (
     <footer className="bg-white dark:bg-neutral-950 border-t border-black/5 dark:border-white/5 pt-24 pb-24 md:pb-12">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -16,7 +17,7 @@ export default function Footer() {
             <p className="text-sm text-black/40 dark:text-white/40 max-w-xs leading-relaxed font-light mb-6">
               {t('Curated essentials for the modern lifestyle. Quality, simplicity, and purpose in every detail.')}
             </p>
-            <ul className="space-y-3 text-[11px] font-medium uppercase tracking-widest text-black/40 dark:text-white/40">
+            <ul className={`space-y-3 text-[11px] font-medium uppercase ${tracking} text-black/40 dark:text-white/40`}>
               <li>
                 <a href="tel:+8801779102808" className="hover:text-black dark:hover:text-white transition-colors flex items-center gap-2">
                   <Phone size={13} /> +880 1779-102808
@@ -32,7 +33,7 @@ export default function Footer() {
 
           <div>
             <h4 className="text-[10px] font-medium uppercase tracking-[0.2em] text-black dark:text-white mb-6">{t('Explore')}</h4>
-            <ul className="space-y-4 text-[11px] font-medium uppercase tracking-widest text-black/40 dark:text-white/40">
+            <ul className={`space-y-4 text-[11px] font-medium uppercase ${tracking} text-black/40 dark:text-white/40`}>
               <li><Link to="/shop" className="hover:text-black dark:text-white transition-colors">{t('Shop All')}</Link></li>
               <li><Link to="/contact" className="hover:text-black dark:text-white transition-colors">{t('Contact')}</Link></li>
               <li><Link to="/about" className="hover:text-black dark:text-white transition-colors">{t('About')}</Link></li>
@@ -43,7 +44,7 @@ export default function Footer() {
 
           <div>
             <h4 className="text-[10px] font-medium uppercase tracking-[0.2em] text-black dark:text-white mb-6">{t('Social')}</h4>
-            <ul className="space-y-4 text-[11px] font-medium uppercase tracking-widest text-black/40 dark:text-white/40">
+            <ul className={`space-y-4 text-[11px] font-medium uppercase ${tracking} text-black/40 dark:text-white/40`}>
               <li>
                 <a href="https://facebook.com/zantro.bd" target="_blank" className="hover:text-black dark:text-white transition-colors flex items-center gap-2">
                   <Facebook size={14} /> Facebook
@@ -65,13 +66,13 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-black/5 dark:border-white/5 gap-4">
-          <p className="text-[10px] text-black/20 dark:text-white/20 uppercase tracking-widest">
+          <p className={`text-[10px] text-black/20 dark:text-white/20 uppercase ${tracking}`}>
             © 2026 <Link to="/admin" className="cursor-default">Zantro</Link>. {t('All rights reserved.')}
           </p>
           <div className="flex items-center gap-6">
             <LanguageToggle />
-            <span className="text-[10px] text-black/20 dark:text-white/20 uppercase tracking-widest">{t('Privacy')}</span>
-            <span className="text-[10px] text-black/20 dark:text-white/20 uppercase tracking-widest">{t('Terms')}</span>
+            <span className={`text-[10px] text-black/20 dark:text-white/20 uppercase ${tracking}`}>{t('Privacy')}</span>
+            <span className={`text-[10px] text-black/20 dark:text-white/20 uppercase ${tracking}`}>{t('Terms')}</span>
           </div>
         </div>
       </div>

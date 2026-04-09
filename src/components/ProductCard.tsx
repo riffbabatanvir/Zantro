@@ -10,7 +10,8 @@ export default function ProductCard({ product }: { product: Product; key?: strin
   const { addToCart, cart } = useCart();
   const { toggle, isWishlisted } = useWishlist();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const tracking = language === 'bn' ? 'tracking-normal' : 'tracking-widest';
   const isInCart = cart.some((item) => item.id === product.id);
   const originalPrice = product.discount ? product.price / (1 - product.discount / 100) : product.price * 1.5;
   const isOutOfStock = (product as any).stock === 0;
@@ -52,7 +53,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
         {/* Discount / Hot badge */}
         {!isOutOfStock && !isPreowned && (
           <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">
-            {product.discount ? `Limited offer: ${product.discount}% Discount` : 'Hot'}
+            {product.discount ? `Limited offer: ${product.discount}% Discount` : t('Hot')}
           </div>
         )}
 
@@ -61,7 +62,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             <span className="bg-amber-600 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">{t('Pre-Owned')}</span>
             {(product as any).percentNew != null && (
-              <span className="bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded-md">{(product as any).percentNew}% new</span>
+              <span className="bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded-md">{(product as any).percentNew}% {t('new')}</span>
             )}
           </div>
         )}
@@ -90,7 +91,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
             ))}
           </div>
           <span className="text-[10px] text-gray-400">
-            {product.soldCount ? (product.soldCount >= 1000 ? (product.soldCount / 1000).toFixed(1) + 'k+' : product.soldCount) : '0'} sold
+            {product.soldCount ? (product.soldCount >= 1000 ? (product.soldCount / 1000).toFixed(1) + 'k+' : product.soldCount) : '0'} {t('sold')}
           </span>
         </div>
 
@@ -108,7 +109,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
               else addToCart({ ...product, isPreorder: canPreorder } as any);
             }}
             disabled={isOutOfStock && !isPreorder}
-            className={`w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-center transition-colors flex items-center justify-center gap-1.5 ${
+            className={`w-full py-2 rounded-xl text-[10px] font-black uppercase ${tracking} text-center transition-colors flex items-center justify-center gap-1.5 ${
               isInCart
                 ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 hover:bg-green-200'
                 : isOutOfStock && !isPreorder
@@ -117,7 +118,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
             }`}
           >
             {isInCart
-              ? <><Check size={13} strokeWidth={2.5} /> In Cart</>
+              ? <><Check size={13} strokeWidth={2.5} /> {t('In Cart')}</>
               : isOutOfStock && !isPreorder
                 ? t('Out of Stock')
                 : <><ShoppingCart size={13} strokeWidth={2.5} /> {t('Add to Cart')}</>
@@ -127,7 +128,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
           <Link
             to={isOutOfStock && !isPreorder ? '#' : isPreorder ? `/product/${product.id}` : '/checkout'}
             onClick={(e) => { if (isOutOfStock && !isPreorder) { e.preventDefault(); return; } if (!isPreorder && !isInCart) addToCart({ ...product, isPreorder: canPreorder } as any); }}
-            className={`w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-center transition-all shadow-lg ${
+            className={`w-full py-2 rounded-xl text-[10px] font-black uppercase ${tracking} text-center transition-all shadow-lg ${
               isOutOfStock && !isPreorder
                 ? 'bg-gray-200 dark:bg-neutral-800 text-gray-400 cursor-not-allowed shadow-none'
                 : canPreorder
@@ -135,7 +136,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
                   : 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200'
             }`}
           >
-            {isOutOfStock && !isPreorder ? t('Out of Stock') : canPreorder ? `🕐 ${t('Pre-Order')}` : 'Buy Now'}
+            {isOutOfStock && !isPreorder ? t('Out of Stock') : canPreorder ? `🕐 ${t('Pre-Order')}` : t('Buy Now')}
           </Link>
         </div>
       </div>

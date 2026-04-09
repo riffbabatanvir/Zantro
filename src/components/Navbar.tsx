@@ -20,7 +20,8 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
   const { totalItems } = useCart();
   const { wishlist } = useWishlist();
   const { theme, toggleTheme } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const tracking = language === 'bn' ? 'tracking-normal' : 'tracking-widest';
   const { products } = useProducts();
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -143,7 +144,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                   >
                     {suggestions.length > 0 && (
                       <div>
-                        <p className="text-[10px] uppercase tracking-widest text-gray-400 px-4 pt-3 pb-1 font-bold">Suggestions</p>
+                        <p className={`text-[10px] uppercase ${tracking} text-gray-400 px-4 pt-3 pb-1 font-bold`}>Suggestions</p>
                         {suggestions.map(product => (
                           <Link key={product.id} to={`/product/${product.id}`}
                             onClick={() => { setShowSuggestions(false); setSearchQuery(''); }}
@@ -161,7 +162,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                       <div>
                         <div className="flex items-center gap-2 px-4 pt-3 pb-1">
                           <Clock size={11} className="text-gray-400" />
-                          <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">{t("Recently Viewed")}</p>
+                          <p className={`text-[10px] uppercase ${tracking} text-gray-400 font-bold`}>{t("Recently Viewed")}</p>
                         </div>
                         {recentlyViewed.map((item: any) => (
                           <Link key={item.id} to={`/product/${item.id}`}
@@ -231,7 +232,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                   >
                     {suggestions.length > 0 && (
                       <div>
-                        <p className="text-[10px] uppercase tracking-widest text-gray-400 px-4 pt-3 pb-1 font-bold">Suggestions</p>
+                        <p className={`text-[10px] uppercase ${tracking} text-gray-400 px-4 pt-3 pb-1 font-bold`}>Suggestions</p>
                         {suggestions.map(product => (
                           <Link key={product.id} to={`/product/${product.id}`}
                             onClick={() => { setShowSuggestions(false); setSearchQuery(''); }}
@@ -249,7 +250,7 @@ export default function Navbar({ onCartClick }: { onCartClick?: () => void }) {
                       <div>
                         <div className="flex items-center gap-2 px-4 pt-3 pb-1">
                           <Clock size={11} className="text-gray-400" />
-                          <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">{t("Recently Viewed")}</p>
+                          <p className={`text-[10px] uppercase ${tracking} text-gray-400 font-bold`}>{t("Recently Viewed")}</p>
                         </div>
                         {recentlyViewed.map((item: any) => (
                           <Link key={item.id} to={`/product/${item.id}`}
