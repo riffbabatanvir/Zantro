@@ -80,26 +80,28 @@ export default function Checkout() {
     toast.success('Coupon removed');
   };
 
-  const [paymentSettings, setPaymentSettings] = useState<any>(null);
+  const [paymentSettings, setPaymentSettings] = useState<any>(undefined);
 
   useEffect(() => {
     fetch('/api/settings/payment')
       .then(r => r.json())
       .then(data => setPaymentSettings(data))
-      .catch(() => {});
+      .catch(() => setPaymentSettings({}));
   }, []);
+
+  const settingsLoaded = paymentSettings !== undefined;
 
   const bkashNumber = paymentSettings?.bkashNumber || '01922929033';
   const nagadNumber = paymentSettings?.nagadNumber || '01922929033';
   const bkashQr = paymentSettings?.bkashQr || 'https://res.cloudinary.com/di4byoc2w/image/upload/v1774930027/Image_20260331100303_170_72_ixlgcn.jpg';
-  const codEnabled = paymentSettings?.codEnabled !== false;
-  const codDisabledForPreorder = paymentSettings?.codDisabledForPreorder !== false;
+  const codEnabled = settingsLoaded && paymentSettings?.codEnabled !== false;
+  const codDisabledForPreorder = settingsLoaded && paymentSettings?.codDisabledForPreorder !== false;
 
-  const cardEnabled = paymentSettings?.cardEnabled !== false;
-  const bkashEnabled = paymentSettings?.bkashEnabled !== false;
-  const nagadEnabled = paymentSettings?.nagadEnabled !== false;
-  const cryptoEnabled = paymentSettings?.cryptoEnabled !== false;
-  const bankEnabled = paymentSettings?.bankEnabled !== false;
+  const cardEnabled = settingsLoaded && paymentSettings?.cardEnabled !== false;
+  const bkashEnabled = settingsLoaded && paymentSettings?.bkashEnabled !== false;
+  const nagadEnabled = settingsLoaded && paymentSettings?.nagadEnabled !== false;
+  const cryptoEnabled = settingsLoaded && paymentSettings?.cryptoEnabled !== false;
+  const bankEnabled = settingsLoaded && paymentSettings?.bankEnabled !== false;
   const binancePayQr = paymentSettings?.binancePayQr || '';
   const binancePayId = paymentSettings?.binancePayId || 'riffbaba';
   const cryptoAddresses = paymentSettings?.cryptoAddresses || [
