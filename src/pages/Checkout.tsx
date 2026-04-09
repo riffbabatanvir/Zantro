@@ -158,11 +158,11 @@ export default function Checkout() {
       </Helmet>
       <div ref={successRef} className="min-h-screen bg-white dark:bg-neutral-950 flex flex-col items-center justify-center p-6">
         <CheckCircle2 size={48} className="text-green-500 mb-6" />
-        <h2 className="text-4xl font-light tracking-tight text-black dark:text-white mb-4">{t('Order Placed!')}/h2>
-        <p className="text-sm text-black/40 dark:text-white/40 uppercase tracking-widest mb-6"{t('Thank you for your purchase')}</p>
+        <h2 className="text-4xl font-light tracking-tight text-black dark:text-white mb-4">{t('Order Placed!')}</h2>
+        <p className="text-sm text-black/40 dark:text-white/40 uppercase tracking-widest mb-6">{t('Thank you for your purchase')}</p>
         {placedOrderId && (
           <div className="mb-8 flex flex-col items-center gap-3">
-            <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40"{t('Your Order ID')}</p>
+            <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">{t('Your Order ID')}</p>
             <div className="flex items-center gap-2 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl px-4 py-3">
               <span className="font-mono text-sm font-bold text-gray-800 dark:text-gray-200 select-all">#{placedOrderId.slice(-6).toUpperCase()}</span>
               <button
@@ -173,7 +173,7 @@ export default function Checkout() {
                 <Copy size={14} />
               </button>
             </div>
-            <p className="text-[10px] text-black/30 dark:text-white/30 text-center"{t('Use this ID to track your order')}</p>
+            <p className="text-[10px] text-black/30 dark:text-white/30 text-center">{t('Use this ID to track your order')}</p>
             <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700/40 rounded-xl px-4 py-3 max-w-xs">
               <span className="text-amber-500 text-base leading-none mt-0.5">💾</span>
               <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
