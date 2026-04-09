@@ -224,8 +224,8 @@ export default function Checkout() {
                     <input required type="text" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm" />
                   </div>
                   <div className="col-span-2 sm:col-span-1">
-                    <label className={`block text-[10px] uppercase ${tracking} text-black/40 dark:text-white/40 mb-2`}>{t('Email')}</label>
-                    <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm" />
+                    <label className={`block text-[10px] uppercase ${tracking} text-black/40 dark:text-white/40 mb-2`}>{t('Email')} <span className="normal-case tracking-normal text-black/30 dark:text-white/30">{language === 'bn' ? '(না দিলেও চলবে)' : '(Optional)'}</span></label>
+                    <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm" />
                   </div>
                   <div className="col-span-2">
                     <label className={`block text-[10px] uppercase ${tracking} text-black/40 dark:text-white/40 mb-2`}>{t('Address')}</label>
@@ -493,12 +493,12 @@ export default function Checkout() {
             <div className="space-y-3 mb-2 max-h-[400px] overflow-y-auto pr-4">
               {cart.map((item) => (
                 <div key={item.id} className="flex gap-4">
-                  <div className="w-16 h-20 bg-white dark:bg-neutral-950 shrink-0">
+                  <Link to={`/product/${item.id}`} className="w-16 h-20 bg-white dark:bg-neutral-950 shrink-0 hover:opacity-75 transition-opacity">
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  </div>
+                  </Link>
                   <div className="flex-1 flex flex-col justify-between">
                     <div className="flex justify-between items-start">
-                      <h3 className={`text-[10px] font-medium ${tracking} text-black dark:text-white mb-1 pr-4`}>{item.name}</h3>
+                      <Link to={`/product/${item.id}`} className={`text-[10px] font-medium ${tracking} text-black dark:text-white mb-1 pr-4 hover:text-orange-500 transition-colors block`}>{item.name}</Link>
                       <button type="button" onClick={() => removeFromCart(item.id)} className="text-black/30 dark:text-white/30 hover:text-red-500 transition-colors">
                         <Trash2 size={14} />
                       </button>
