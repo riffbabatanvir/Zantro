@@ -105,7 +105,7 @@ export default function Shop() {
                   onClick={() => setCategory('All')}
                   className={cn('snap-start shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap',
                     categoryFilter === 'All' ? 'bg-orange-600 text-white shadow-lg shadow-orange-200' : 'bg-orange-100/50 text-orange-700 dark:text-orange-300 hover:bg-orange-100')}
-                >{ t('All')}</button>/button>
+                >{ t('All')}</button>
                 {categories.map(cat => (
                   <button key={cat.id}
                     onClick={() => setCategory(cat.name)}
