@@ -75,7 +75,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateQuantity = (productId: string, quantity: number, selectedSize?: string, selectedColor?: string) => {
-    const newQuantity = Math.max(1, quantity);
+    const newQuantity = Math.max(1, Math.min(20, quantity));
     setCart((prevCart) =>
       prevCart.map((item) =>
         item.id === productId &&

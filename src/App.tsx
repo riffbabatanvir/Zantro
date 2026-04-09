@@ -20,6 +20,7 @@ import { Toaster } from 'sonner';
 import { HelmetProvider } from 'react-helmet-async';
 
 import AdminDashboard from './pages/AdminDashboard';
+import NotFound from './pages/NotFound';
 import About from './pages/About';
 import FAQ from './pages/FAQ';
 import OrderTracking from './pages/OrderTracking';
@@ -64,6 +65,7 @@ export default function App() {
 				<Route path="/faq" element={<FAQ />} />
 				<Route path="/order-tracking" element={<OrderTracking />} />
 				<Route path="/my" element={<MyZantro />} />
+				<Route path="*" element={<NotFound />} />
               </Routes>
             </main>
             <Footer />

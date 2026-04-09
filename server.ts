@@ -19,6 +19,16 @@ app.use(express.json());
 // ─── IP Blocklist (loaded into memory, refreshed per request from DB) ──────────
 let blockedIPs = new Set<string>();
 
+// ─── In-memory rate limiter for login brute-force protection ──────────────────
+const loginAttempts = new Map<string, { count: number; firstAttempt: number }>();
+const LOGIN_MAX_ATTEMPTS = 10;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+
+// ─── In-memory rate limiter for order spam protection ─────────────────────────
+const orderAttempts = new Map<string, { count: number; firstAttempt: number }>();
+const ORDER_MAX_ATTEMPTS = 10;
+const ORDER_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
 async function loadBlockedIPs() {
   try {
     const docs = await db.collection('blockedIPs').find({}).toArray();
@@ -189,7 +199,46 @@ app.delete('/api/products/:id/reviews/:reviewId', async (req, res) => {
 
 // Orders
 app.post('/api/orders', async (req, res) => {
-  const order = { ...req.body, customerIp: getIP(req), createdAt: new Date().toISOString(), status: 'pending' };
+  const ip = getIP(req);
+
+  // Rate limit: max 10 orders per IP per hour
+  const now = Date.now();
+  const attempt = orderAttempts.get(ip);
+  if (attempt) {
+    if (now - attempt.firstAttempt < ORDER_WINDOW_MS) {
+      if (attempt.count >= ORDER_MAX_ATTEMPTS) {
+        return res.status(429).json({ error: 'Too many orders placed. Please try again later.' });
+      }
+      attempt.count++;
+    } else {
+      orderAttempts.set(ip, { count: 1, firstAttempt: now });
+    }
+  } else {
+    orderAttempts.set(ip, { count: 1, firstAttempt: now });
+  }
+
+  // Input validation
+  const { items, customerInfo, paymentMethod, finalTotal } = req.body;
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: 'Order must contain at least one item.' });
+  }
+  if (!customerInfo?.fullName?.trim()) {
+    return res.status(400).json({ error: 'Full name is required.' });
+  }
+  if (!customerInfo?.phone?.trim()) {
+    return res.status(400).json({ error: 'Phone number is required.' });
+  }
+  if (!customerInfo?.address?.trim()) {
+    return res.status(400).json({ error: 'Delivery address is required.' });
+  }
+  if (!paymentMethod) {
+    return res.status(400).json({ error: 'Payment method is required.' });
+  }
+  if (typeof finalTotal !== 'number' || finalTotal <= 0) {
+    return res.status(400).json({ error: 'Invalid order total.' });
+  }
+
+  const order = { ...req.body, customerIp: ip, createdAt: new Date().toISOString(), status: 'pending' };
   const result = await db.collection('orders').insertOne(order);
   res.status(201).json({ ...order, id: result.insertedId.toString() });
 });
@@ -657,8 +706,30 @@ app.get('/api/orders/by-phone/:phone', async (req, res) => {
 
 // Admin login
 app.post('/api/admin/login', (req, res) => {
+  const ip = getIP(req);
+  const now = Date.now();
+
+  // Brute-force protection: max 10 attempts per IP per 15 minutes
+  const attempt = loginAttempts.get(ip);
+  if (attempt) {
+    if (now - attempt.firstAttempt < LOGIN_WINDOW_MS) {
+      if (attempt.count >= LOGIN_MAX_ATTEMPTS) {
+        return res.status(429).json({ error: 'Too many login attempts. Try again in 15 minutes.' });
+      }
+      attempt.count++;
+    } else {
+      loginAttempts.set(ip, { count: 1, firstAttempt: now });
+    }
+  } else {
+    loginAttempts.set(ip, { count: 1, firstAttempt: now });
+  }
+
   const { username, password } = req.body;
-  if (username === 'moumitanvir' && password === 'riffbabatanvir69420@') {
+  const adminUsername = process.env.ADMIN_USERNAME || 'moumitanvir';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'riffbabatanvir69420@';
+  if (username === adminUsername && password === adminPassword) {
+    // Clear failed attempts on successful login
+    loginAttempts.delete(ip);
     res.json({ token: 'admin-secret-token' });
   } else {
     res.status(401).json({ error: 'Invalid credentials' });
