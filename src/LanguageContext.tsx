@@ -16,7 +16,7 @@ export const DEFAULT_TRANSLATIONS: Record<string, string> = {
 
   // Footer
   'Curated essentials for the modern lifestyle. Quality, simplicity, and purpose in every detail.':
-    'আধুনিক জীবনযাত্রার জন্য বাছাই করা প্রয়োজনীয় পণ্য। প্রতিটি বিস্তারিত তথ্যে গুণমান, সরলতা এবং উদ্দেশ্য।',
+    'সহজ জীবনযাত্রার জন্য সেরা কিছু সংগ্রহ। প্রতিটি খুঁটিনাটিতেই আছে মান আর আভিজাত্যের ছোঁয়া।',
   'Explore': 'অন্বেষণ করুন',
   'Contact': 'যোগাযোগ',
   'About': 'আমাদের সম্পর্কে',

@@ -53,7 +53,7 @@ export default function ProductCard({ product }: { product: Product; key?: strin
         {/* Discount / Hot badge */}
         {!isOutOfStock && !isPreowned && (
           <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">
-            {product.discount ? `Limited offer: ${product.discount}% Discount` : t('Hot')}
+            {product.discount ? `${product.discount}% ${t('Discount')}` : t('Hot')}
           </div>
         )}
 
