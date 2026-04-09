@@ -369,7 +369,21 @@ app.get('/api/settings/payment', async (req, res) => {
 app.post('/api/settings/payment', async (req, res) => {
   if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
   const { cardEnabled, bkashEnabled, nagadEnabled, cryptoEnabled, bankEnabled, bkashNumber, nagadNumber, bkashQr, binancePayQr, binancePayId, codEnabled, codDisabledForPreorder, cryptoAddresses } = req.body;
-  const update = { cardEnabled, bkashEnabled, nagadEnabled, cryptoEnabled, bankEnabled, bkashNumber, nagadNumber, bkashQr, binancePayQr, binancePayId, codEnabled, codDisabledForPreorder, cryptoAddresses };
+  const update = {
+    cardEnabled: cardEnabled === true,
+    bkashEnabled: bkashEnabled === true,
+    nagadEnabled: nagadEnabled === true,
+    cryptoEnabled: cryptoEnabled === true,
+    bankEnabled: bankEnabled === true,
+    codEnabled: codEnabled === true,
+    codDisabledForPreorder: codDisabledForPreorder === true,
+    bkashNumber: bkashNumber || '',
+    nagadNumber: nagadNumber || '',
+    bkashQr: bkashQr || '',
+    binancePayQr: binancePayQr || '',
+    binancePayId: binancePayId || '',
+    cryptoAddresses: Array.isArray(cryptoAddresses) ? cryptoAddresses : [],
+  };
   await db.collection('settings').updateOne(
     { key: 'paymentSettings' },
     { $set: { key: 'paymentSettings', ...update } },

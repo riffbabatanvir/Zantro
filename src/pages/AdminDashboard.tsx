@@ -25,19 +25,8 @@ export default function AdminDashboard() {
   const [flashSaleEnabled, setFlashSaleEnabled] = useState(true);
 
   // Payment settings state
-  const [paymentSettings, setPaymentSettings] = useState<any>({
-    cardEnabled: true,
-    bkashEnabled: true, bkashNumber: '', nagadEnabled: true, nagadNumber: '', bkashQr: '',
-    cryptoEnabled: true, binancePayQr: '', binancePayId: '',
-    bankEnabled: true,
-    codEnabled: true, codDisabledForPreorder: true,
-    cryptoAddresses: [
-      { name: 'BTC (Bitcoin)', address: '' },
-      { name: 'ETH (Ethereum)', address: '' },
-      { name: 'USDT (TRC20)', address: '' },
-      { name: 'SOL (Solana)', address: '' },
-    ]
-  });
+  const [paymentSettings, setPaymentSettings] = useState<any>(null);
+  const [paymentSettingsLoaded, setPaymentSettingsLoaded] = useState(false);
   const [isSavingPayment, setIsSavingPayment] = useState(false);
 
   // Language / translation management
@@ -49,8 +38,8 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetch('/api/settings/payment')
       .then(r => r.json())
-      .then(data => { if (data && !data.error) setPaymentSettings((prev: any) => ({ ...prev, ...data })); })
-      .catch(() => {});
+      .then(data => { if (data && !data.error) { setPaymentSettings(data); setPaymentSettingsLoaded(true); } })
+      .catch(() => { setPaymentSettingsLoaded(true); });
   }, []);
 
   const handleSavePaymentSettings = async () => {
@@ -2358,7 +2347,7 @@ export default function AdminDashboard() {
 
                 {/* Save Button */}
                 <div className="flex justify-end pt-2">
-                  <button onClick={handleSavePaymentSettings} disabled={isSavingPayment}
+                  <button onClick={handleSavePaymentSettings} disabled={isSavingPayment || !paymentSettingsLoaded}
                     className="px-8 py-3 bg-orange-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center gap-2">
                     {isSavingPayment ? 'Saving...' : 'Save Payment Settings'}
                   </button>
