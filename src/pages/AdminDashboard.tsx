@@ -27,8 +27,9 @@ export default function AdminDashboard() {
   // Payment settings state
   const [paymentSettings, setPaymentSettings] = useState<any>({
     cardEnabled: true,
-    bkashNumber: '', nagadNumber: '', bkashQr: '',
-    binancePayQr: '', binancePayId: '',
+    bkashEnabled: true, bkashNumber: '', nagadEnabled: true, nagadNumber: '', bkashQr: '',
+    cryptoEnabled: true, binancePayQr: '', binancePayId: '',
+    bankEnabled: true,
     codEnabled: true, codDisabledForPreorder: true,
     cryptoAddresses: [
       { name: 'BTC (Bitcoin)', address: '' },
@@ -2243,7 +2244,13 @@ export default function AdminDashboard() {
 
                 {/* bKash Settings */}
                 <div className="border border-black/5 dark:border-white/5 rounded-xl p-5 space-y-4">
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">bKash</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">bKash</h3>
+                    <button onClick={() => setPaymentSettings((p: any) => ({ ...p, bkashEnabled: !p.bkashEnabled }))}
+                      className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-colors ${paymentSettings.bkashEnabled ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-200 dark:bg-neutral-800 text-black/40 dark:text-white/40 hover:bg-gray-300'}`}>
+                      {paymentSettings.bkashEnabled ? '✓ Enabled' : 'Disabled'}
+                    </button>
+                  </div>
                   <div>
                     <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">bKash Number</label>
                     <input type="text" value={paymentSettings.bkashNumber}
@@ -2267,7 +2274,13 @@ export default function AdminDashboard() {
 
                 {/* Nagad Settings */}
                 <div className="border border-black/5 dark:border-white/5 rounded-xl p-5 space-y-4">
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">Nagad</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">Nagad</h3>
+                    <button onClick={() => setPaymentSettings((p: any) => ({ ...p, nagadEnabled: !p.nagadEnabled }))}
+                      className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-colors ${paymentSettings.nagadEnabled ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-200 dark:bg-neutral-800 text-black/40 dark:text-white/40 hover:bg-gray-300'}`}>
+                      {paymentSettings.nagadEnabled ? '✓ Enabled' : 'Disabled'}
+                    </button>
+                  </div>
                   <div>
                     <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">Nagad Number</label>
                     <input type="text" value={paymentSettings.nagadNumber}
@@ -2279,7 +2292,13 @@ export default function AdminDashboard() {
 
                 {/* Crypto Settings */}
                 <div className="border border-black/5 dark:border-white/5 rounded-xl p-5 space-y-4">
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">Crypto Addresses</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">Crypto</h3>
+                    <button onClick={() => setPaymentSettings((p: any) => ({ ...p, cryptoEnabled: !p.cryptoEnabled }))}
+                      className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-colors ${paymentSettings.cryptoEnabled ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-200 dark:bg-neutral-800 text-black/40 dark:text-white/40 hover:bg-gray-300'}`}>
+                      {paymentSettings.cryptoEnabled ? '✓ Enabled' : 'Disabled'}
+                    </button>
+                  </div>
 
                   {/* Binance Pay */}
                   <div className="border border-yellow-400/30 bg-yellow-50/40 dark:bg-yellow-900/10 rounded-xl p-4 space-y-3">
@@ -2323,6 +2342,18 @@ export default function AdminDashboard() {
                         className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-orange-500 outline-none transition-colors text-sm font-mono bg-transparent" />
                     </div>
                   ))}
+                </div>
+
+                {/* Bank Transfer Settings */}
+                <div className="border border-black/5 dark:border-white/5 rounded-xl p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-black/60 dark:text-white/60">Bank Transfer</h3>
+                    <button onClick={() => setPaymentSettings((p: any) => ({ ...p, bankEnabled: !p.bankEnabled }))}
+                      className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-colors ${paymentSettings.bankEnabled ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-200 dark:bg-neutral-800 text-black/40 dark:text-white/40 hover:bg-gray-300'}`}>
+                      {paymentSettings.bankEnabled ? '✓ Enabled' : 'Disabled'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-black/40 dark:text-white/40">When enabled, customers can choose to pay via bank transfer. Your team will contact them with details after order is placed.</p>
                 </div>
 
                 {/* Save Button */}

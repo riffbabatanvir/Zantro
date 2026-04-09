@@ -96,6 +96,10 @@ export default function Checkout() {
   const codDisabledForPreorder = paymentSettings?.codDisabledForPreorder !== false;
 
   const cardEnabled = paymentSettings?.cardEnabled !== false;
+  const bkashEnabled = paymentSettings?.bkashEnabled !== false;
+  const nagadEnabled = paymentSettings?.nagadEnabled !== false;
+  const cryptoEnabled = paymentSettings?.cryptoEnabled !== false;
+  const bankEnabled = paymentSettings?.bankEnabled !== false;
   const binancePayQr = paymentSettings?.binancePayQr || '';
   const binancePayId = paymentSettings?.binancePayId || 'riffbaba';
   const cryptoAddresses = paymentSettings?.cryptoAddresses || [
@@ -252,11 +256,11 @@ export default function Checkout() {
                 <div className="grid grid-cols-2 gap-4">
                   {[
                     ...(cardEnabled ? [{ id: 'card', name: t('Card'), icon: CreditCard }] : []),
-                    { id: 'bkash', name: t('bKash'), icon: Smartphone },
-                    { id: 'nagad', name: t('Nagad'), icon: Smartphone },
-                    { id: 'crypto', name: t('Crypto'), icon: Bitcoin },
+                    ...(bkashEnabled ? [{ id: 'bkash', name: t('bKash'), icon: Smartphone }] : []),
+                    ...(nagadEnabled ? [{ id: 'nagad', name: t('Nagad'), icon: Smartphone }] : []),
+                    ...(cryptoEnabled ? [{ id: 'crypto', name: t('Crypto'), icon: Bitcoin }] : []),
                     ...(!codEnabled || (isPreorderCart && codDisabledForPreorder) ? [] : [{ id: 'cod', name: t('COD'), icon: Banknote }]),
-                    { id: 'bank', name: t('Bank'), icon: Landmark }
+                    ...(bankEnabled ? [{ id: 'bank', name: t('Bank'), icon: Landmark }] : [])
                   ].map((method) => {
                     const Icon = method.icon;
                     const isSelected = paymentMethod === method.id;
