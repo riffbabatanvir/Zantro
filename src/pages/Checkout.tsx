@@ -11,7 +11,8 @@ type PaymentMethod = 'card' | 'bkash' | 'nagad' | 'crypto' | 'cod' | 'bank';
 
 export default function Checkout() {
   const { cart, totalPrice, clearCart, updateQuantity, removeFromCart } = useCart();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const tracking = language === 'bn' ? 'tracking-normal' : 'tracking-widest';
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -216,22 +217,22 @@ export default function Checkout() {
             <form onSubmit={handleSubmit} className="space-y-12">
               {/* Shipping Section */}
               <section>
-                <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-6">01. {t('Shipping Information')}</h2>
+                <h2 className={`text-[11px] font-medium uppercase ${tracking} text-black dark:text-white mb-6`}>01. {t('Shipping Information')}</h2>
                 <div className="grid grid-cols-2 gap-6">
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">{ t('Full Name')}</label>
+                    <label className={`block text-[10px] uppercase ${tracking} text-black/40 dark:text-white/40 mb-2`}>{t('Full Name')}</label>
                     <input required type="text" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm" />
                   </div>
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">{ t('Email')}</label>
+                    <label className={`block text-[10px] uppercase ${tracking} text-black/40 dark:text-white/40 mb-2`}>{t('Email')}</label>
                     <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm" />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">{ t('Address')}</label>
+                    <label className={`block text-[10px] uppercase ${tracking} text-black/40 dark:text-white/40 mb-2`}>{t('Address')}</label>
                     <input required type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm" />
                   </div>
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">City / Region</label>
+                    <label className={`block text-[10px] uppercase ${tracking} text-black/40 dark:text-white/40 mb-2`}>{t("City / Region")}</label>
                     <select required value={region} onChange={(e) => setRegion(e.target.value)}
                       className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm bg-transparent cursor-pointer">
                       <option value="patuakhali" className="bg-white dark:bg-neutral-900 text-black dark:text-white">Inside Patuakhali (Free)</option>
@@ -239,7 +240,7 @@ export default function Checkout() {
                     </select>
                   </div>
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2">{ t('Phone')}</label>
+                    <label className={`block text-[10px] uppercase ${tracking} text-black/40 dark:text-white/40 mb-2`}>{t('Phone')}</label>
                     <input required type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm" />
                   </div>
                 </div>
@@ -247,15 +248,15 @@ export default function Checkout() {
 
               {/* Payment Section */}
               <section>
-                <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-6">02. {t('Payment Method')}</h2>
+                <h2 className={`text-[11px] font-medium uppercase ${tracking} text-black dark:text-white mb-6`}>02. {t('Payment Method')}</h2>
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    ...(cardEnabled ? [{ id: 'card', name: 'Card', icon: CreditCard }] : []),
-                    { id: 'bkash', name: 'bKash', icon: Smartphone },
-                    { id: 'nagad', name: 'Nagad', icon: Smartphone },
-                    { id: 'crypto', name: 'Crypto', icon: Bitcoin },
-                    ...(!codEnabled || (isPreorderCart && codDisabledForPreorder) ? [] : [{ id: 'cod', name: 'COD', icon: Banknote }]),
-                    { id: 'bank', name: 'Bank', icon: Landmark }
+                    ...(cardEnabled ? [{ id: 'card', name: t('Card'), icon: CreditCard }] : []),
+                    { id: 'bkash', name: t('bKash'), icon: Smartphone },
+                    { id: 'nagad', name: t('Nagad'), icon: Smartphone },
+                    { id: 'crypto', name: t('Crypto'), icon: Bitcoin },
+                    ...(!codEnabled || (isPreorderCart && codDisabledForPreorder) ? [] : [{ id: 'cod', name: t('COD'), icon: Banknote }]),
+                    { id: 'bank', name: t('Bank'), icon: Landmark }
                   ].map((method) => {
                     const Icon = method.icon;
                     const isSelected = paymentMethod === method.id;
@@ -263,7 +264,7 @@ export default function Checkout() {
                       <button key={method.id} type="button" onClick={() => setPaymentMethod(method.id as PaymentMethod)}
                         className={`flex flex-col items-center justify-center gap-2 border py-4 rounded-xl transition-colors ${isSelected ? 'border-orange-500 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20' : 'border-black/10 dark:border-white/10 text-black/60 dark:text-white/60 hover:border-black dark:hover:border-white'}`}>
                         <Icon size={20} />
-                        <span className="text-[11px] uppercase tracking-widest">{method.name}</span>
+                        <span className={`text-[11px] uppercase ${tracking}`}>{method.name}</span>
                       </button>
                     );
                   })}
@@ -273,12 +274,12 @@ export default function Checkout() {
                   <AnimatePresence mode="wait">
                     {paymentMethod === 'card' && (
                       <motion.div key="card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
-                        <input required type="text" placeholder="Card Number" value={formData.cardNumber} onChange={e => setFormData({...formData, cardNumber: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm bg-transparent" />
+                        <input required type="text" placeholder={t("Card Number")} value={formData.cardNumber} onChange={e => setFormData({...formData, cardNumber: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm bg-transparent" />
                         <div className="grid grid-cols-2 gap-6">
                           <input required type="text" placeholder="MM/YY" value={formData.cardExpiry} onChange={e => setFormData({...formData, cardExpiry: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm bg-transparent" />
                           <input required type="text" placeholder="CVC" value={formData.cardCvc} onChange={e => setFormData({...formData, cardCvc: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm bg-transparent" />
                         </div>
-                        <input required type="text" placeholder="Name on Card" value={formData.cardName} onChange={e => setFormData({...formData, cardName: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm bg-transparent" />
+                        <input required type="text" placeholder={t("Name on Card")} value={formData.cardName} onChange={e => setFormData({...formData, cardName: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm bg-transparent" />
                       </motion.div>
                     )}
 
@@ -290,7 +291,7 @@ export default function Checkout() {
                             <div className="w-48 h-48 bg-white p-2 rounded-lg shadow-sm mb-4">
                               <img src={bkashQr} alt="bKash QR" className="w-full h-full object-contain" />
                             </div>
-                            <p className="text-[11px] uppercase tracking-widest text-black/60 dark:text-white/60 text-center mb-3">Scan with bKash App to pay</p>
+                            <p className="text-[11px] uppercase tracking-widest text-black/60 dark:text-white/60 text-center mb-3">{t("Scan with bKash App to pay")}</p>
                             <div className="flex items-center gap-3 bg-white dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2">
                               <span className="text-sm font-bold text-black dark:text-white">{bkashNumber}</span>
                               <button type="button" onClick={() => copyToClipboard(bkashNumber)}
@@ -301,7 +302,7 @@ export default function Checkout() {
                           </>
                         ) : (
                           <>
-                            <p className="text-sm text-black/60 dark:text-white/60 text-center mb-3">Send money to</p>
+                            <p className="text-sm text-black/60 dark:text-white/60 text-center mb-3">{t("Send money to")}</p>
                             <div className="flex items-center gap-3 bg-white dark:bg-neutral-800 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2">
                               <span className="text-sm font-bold text-black dark:text-white">{nagadNumber}</span>
                               <button type="button" onClick={() => copyToClipboard(nagadNumber)}
@@ -309,7 +310,7 @@ export default function Checkout() {
                                 <Copy size={12} /> Copy
                               </button>
                             </div>
-                            <p className="text-[11px] uppercase tracking-widest text-black/60 dark:text-white/60 text-center mt-3">via Nagad App</p>
+                            <p className="text-[11px] uppercase tracking-widest text-black/60 dark:text-white/60 text-center mt-3">{t("via Nagad App")}</p>
                           </>
                         )}
                         <p className="text-xs font-medium mt-4 text-black dark:text-white">Amount: ৳{finalTotal.toFixed(2)}</p>
@@ -331,7 +332,7 @@ export default function Checkout() {
                           </div>
                         ))}
                         <p className="text-[10px] text-center text-black/40 dark:text-white/40 uppercase tracking-widest mt-4">
-                          Send exactly ৳{finalTotal.toFixed(2)} equivalent
+                          {t('Send exactly')} ৳{finalTotal.toFixed(2)} {t('equivalent')}
                         </p>
 
                         {/* Binance Pay */}
@@ -341,7 +342,7 @@ export default function Checkout() {
                               <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center shrink-0">
                                 <span className="text-[8px] font-black text-black">B</span>
                               </div>
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white">Binance Pay</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white">{t("Binance Pay")}</p>
                             </div>
                             {binancePayQr && (
                               <div className="flex justify-center mb-3">
@@ -352,7 +353,7 @@ export default function Checkout() {
                             )}
                             <div className="flex items-center justify-between p-3 border border-yellow-400/30 bg-yellow-50/50 dark:bg-yellow-900/10 rounded-lg">
                               <div>
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white">Pay ID</p>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white">{t("Pay ID")}</p>
                                 <p className="text-xs text-black/60 dark:text-white/60 font-mono mt-0.5">{binancePayId}</p>
                               </div>
                               <button type="button" onClick={() => copyToClipboard(binancePayId)}
@@ -369,7 +370,7 @@ export default function Checkout() {
                       <motion.div key="cod" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
                         className="flex flex-col items-center justify-center p-8 border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-neutral-900 rounded-xl">
                         <Banknote size={48} className="text-black/20 dark:text-white/20 mb-4" />
-                        <p className="text-[11px] uppercase tracking-widest text-black/60 dark:text-white/60 text-center">Pay with cash upon delivery</p>
+                        <p className="text-[11px] uppercase tracking-widest text-black/60 dark:text-white/60 text-center">{t("Pay with cash upon delivery")}</p>
                         <p className="text-xs font-medium mt-2 text-black dark:text-white">Amount: ৳{finalTotal.toFixed(2)}</p>
                       </motion.div>
                     )}
@@ -379,7 +380,7 @@ export default function Checkout() {
                         className="p-6 border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-neutral-900 rounded-xl space-y-4">
                         <div className="flex items-center gap-3 mb-2">
                           <Building2 size={20} className="text-black/40 dark:text-white/40" />
-                          <p className="text-xs font-bold uppercase tracking-widest text-black dark:text-white">Select Your Bank</p>
+                          <p className="text-xs font-bold uppercase tracking-widest text-black dark:text-white">{t("Select Your Bank")}</p>
                         </div>
                         {[
                           { id: 'pubali', name: 'Pubali Bank', sub: 'Pubali Bank Limited' },
@@ -400,14 +401,14 @@ export default function Checkout() {
                         {selectedBank && (
                           <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
                             className="mt-2 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 rounded-xl">
-                            <p className="text-xs font-bold uppercase tracking-widest text-blue-700 dark:text-blue-400 mb-1">Next Steps</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-blue-700 dark:text-blue-400 mb-1">{t("Next Steps")}</p>
                             <p className="text-xs text-blue-700/80 dark:text-blue-300/80 leading-relaxed">
-                              Once your order is placed, our team will reach out to you via SMS or email with the complete bank transfer details. Please ensure your payment is completed within 24 hours to confirm your order.
+                              {t('Once your order is placed, our team will reach out via SMS or email with bank transfer details. Please complete payment within 24 hours.')}
                             </p>
                           </motion.div>
                         )}
                         {!selectedBank && (
-                          <p className="text-[10px] text-center text-black/30 dark:text-white/30 uppercase tracking-widest pt-1">Please select a bank to proceed</p>
+                          <p className="text-[10px] text-center text-black/30 dark:text-white/30 uppercase tracking-widest pt-1">{t('Please select a bank to proceed')}</p>
                         )}
                       </motion.div>
                     )}
@@ -487,7 +488,7 @@ export default function Checkout() {
         {/* Right Pane: Summary */}
         <div className="lg:w-[450px] bg-gray-50 dark:bg-neutral-900 px-6 lg:px-12 py-8 lg:py-12 border-b lg:border-b-0 lg:border-l border-black/5 dark:border-white/5">
           <div className="sticky top-24">
-            <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-black dark:text-white mb-6">{ t('Order Summary')}</h2>
+            <h2 className={`text-[11px] font-medium uppercase ${tracking} text-black dark:text-white mb-6`}>{t('Order Summary')}</h2>
 
             <div className="space-y-3 mb-2 max-h-[400px] overflow-y-auto pr-4">
               {cart.map((item) => (
@@ -497,7 +498,7 @@ export default function Checkout() {
                   </div>
                   <div className="flex-1 flex flex-col justify-between">
                     <div className="flex justify-between items-start">
-                      <h3 className="text-[10px] font-medium uppercase tracking-widest text-black dark:text-white mb-1 pr-4">{item.name}</h3>
+                      <h3 className={`text-[10px] font-medium ${tracking} text-black dark:text-white mb-1 pr-4`}>{item.name}</h3>
                       <button type="button" onClick={() => removeFromCart(item.id)} className="text-black/30 dark:text-white/30 hover:text-red-500 transition-colors">
                         <Trash2 size={14} />
                       </button>

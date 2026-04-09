@@ -103,7 +103,6 @@ export const DEFAULT_TRANSLATIONS: Record<string, string> = {
   'Address': 'ঠিকানা',
   'City': 'শহর',
   'Apply Coupon': 'কুপন প্রয়োগ করুন',
-  'Coupon Code': 'কুপন কোড',
   'Apply': 'প্রয়োগ করুন',
   'Order Summary': 'অর্ডার সারসংক্ষেপ',
   'Delivery Fee': 'ডেলিভারি চার্জ',
@@ -160,6 +159,31 @@ export const DEFAULT_TRANSLATIONS: Record<string, string> = {
   'Up to 69% Off': 'সর্বোচ্চ ৬৯% ছাড়',
   'Innovation Week': 'উদ্ভাবন সপ্তাহ',
 
+
+
+  // Checkout - payment methods
+  'Card': 'কার্ড',
+  'bKash': 'বিকাশ',
+  'Nagad': 'নগদ',
+  'Crypto': 'ক্রিপ্টো',
+  'COD': 'ক্যাশ অন ডেলিভারি',
+  'Bank': 'ব্যাংক',
+  'Card Number': 'কার্ড নম্বর',
+  'Name on Card': 'কার্ডে নাম',
+  'City / Region': 'শহর / অঞ্চল',
+  'Coupon Code': 'কুপন কোড',
+  'Scan with bKash App to pay': 'বিকাশ অ্যাপ দিয়ে স্ক্যান করুন',
+  'Send money to': 'টাকা পাঠান',
+  'via Nagad App': 'নগদ অ্যাপের মাধ্যমে',
+  'Pay with cash upon delivery': 'ডেলিভারির সময় নগদ পরিশোধ করুন',
+  'Select Your Bank': 'আপনার ব্যাংক বেছে নিন',
+  'Next Steps': 'পরবর্তী পদক্ষেপ',
+  'Once your order is placed, our team will reach out via SMS or email with bank transfer details. Please complete payment within 24 hours.': 'অর্ডার দেওয়ার পর আমাদের টিম এসএমএস বা ইমেইলে ব্যাংক ট্রান্সফারের বিস্তারিত জানাবে। ২৪ ঘণ্টার মধ্যে পেমেন্ট সম্পন্ন করুন।',
+  'Please select a bank to proceed': 'এগিয়ে যেতে একটি ব্যাংক বেছে নিন',
+  'Binance Pay': 'বাইন্যান্স পে',
+  'Pay ID': 'পে আইডি',
+  'Send exactly': 'ঠিক এই পরিমাণ পাঠান',
+  'equivalent': 'সমপরিমাণ',
 
   // ProductCard misc
   'In Cart': 'কার্টে আছে',
