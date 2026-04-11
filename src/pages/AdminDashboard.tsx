@@ -240,6 +240,7 @@ export default function AdminDashboard() {
   const [mediaItems, setMediaItems] = useState<{url: string, type: string, name: string, uploadedAt: string}[]>([]);
   const [mediaUploading, setMediaUploading] = useState(false);
   const [mediaCopied, setMediaCopied] = useState<string | null>(null);
+  const [hoveredMediaIdx, setHoveredMediaIdx] = useState<number | null>(null);
   const mediaInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -387,6 +388,7 @@ export default function AdminDashboard() {
   const [editImageFiles, setEditImageFiles] = useState<File[]>([]);
   const [editVideoFile, setEditVideoFile] = useState<File | null>(null);
   const [isUploadingEdit, setIsUploadingEdit] = useState(false);
+  const [hoveredEditImgIdx, setHoveredEditImgIdx] = useState<number | null>(null);
   const editImageInputRef = useRef<HTMLInputElement>(null);
   const editVideoInputRef = useRef<HTMLInputElement>(null);
 
@@ -1716,8 +1718,10 @@ export default function AdminDashboard() {
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
                   {mediaItems.map((item, idx) => (
-                    <div key={idx} style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.07)', background: 'var(--color-background-secondary, #f9f9f9)', aspectRatio: '1' }}
-                      className="group dark:border-white/5">
+                    <div key={idx}
+                      style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.07)', background: '#f9f9f9', aspectRatio: '1' }}
+                      onMouseEnter={() => setHoveredMediaIdx(idx)}
+                      onMouseLeave={() => setHoveredMediaIdx(null)}>
 
                       {/* Preview */}
                       {item.type === 'video' ? (
@@ -1732,18 +1736,17 @@ export default function AdminDashboard() {
                       </div>
 
                       {/* Hover overlay */}
-                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: 0, transition: 'opacity 0.2s' }}
-                        className="group-hover:opacity-100">
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', opacity: hoveredMediaIdx === idx ? 1 : 0, transition: 'opacity 0.2s', pointerEvents: hoveredMediaIdx === idx ? 'auto' : 'none' }}>
 
                         {/* Copy button */}
                         <button onClick={() => copyToClipboard(item.url)}
-                          style={{ background: mediaCopied === item.url ? '#22c55e' : 'white', color: mediaCopied === item.url ? 'white' : '#111', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', transition: 'background 0.2s' }}>
+                          style={{ background: mediaCopied === item.url ? '#22c55e' : 'white', color: mediaCopied === item.url ? 'white' : '#111', border: 'none', borderRadius: '8px', padding: '7px 16px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', transition: 'background 0.2s', whiteSpace: 'nowrap' }}>
                           {mediaCopied === item.url ? '✓ Copied!' : '📋 Copy Link'}
                         </button>
 
                         {/* Delete button */}
                         <button onClick={() => handleMediaDelete(item.url)}
-                          style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', padding: '5px 12px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                          style={{ background: 'rgba(220,38,38,0.85)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '6px 16px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}>
                           🗑 Delete
                         </button>
                       </div>
@@ -2265,6 +2268,19 @@ export default function AdminDashboard() {
                   </div>
                   <input ref={preownedImageInputRef} type="file" accept="image/*" multiple className="hidden"
                     onChange={(e) => setPreownedImageFiles(Array.from(e.target.files || []))} />
+                  {preownedImageFiles.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
+                      {preownedImageFiles.map((file, i) => (
+                        <div key={i} style={{ position: 'relative', width: '72px', height: '72px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0 }}>
+                          <img src={URL.createObjectURL(file)} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <button type="button" onClick={() => setPreownedImageFiles(prev => prev.filter((_, j) => j !== i))}
+                            style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(0,0,0,0.7)', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Description */}
@@ -2953,9 +2969,11 @@ export default function AdminDashboard() {
                             </p>
                             <div className="flex flex-wrap gap-2">
                               {editProductData.images.map((url: string, idx: number) => (
-                                <div key={idx} className="relative group w-16 h-16 rounded-lg overflow-hidden border-2 border-black/10 dark:border-white/10"
-                                  style={{ borderColor: editProductData.image === url ? '#f97316' : undefined }}>
-                                  <img src={url} alt={`img-${idx}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                <div key={idx}
+                                  style={{ position: 'relative', width: '64px', height: '64px', borderRadius: '8px', overflow: 'hidden', border: `2px solid ${editProductData.image === url ? '#f97316' : 'rgba(0,0,0,0.1)'}`, flexShrink: 0 }}
+                                  onMouseEnter={() => setHoveredEditImgIdx(idx)}
+                                  onMouseLeave={() => setHoveredEditImgIdx(null)}>
+                                  <img src={url} alt={`img-${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -2963,13 +2981,13 @@ export default function AdminDashboard() {
                                       const newPrimary = editProductData.image === url ? (updatedImages[0] || '') : editProductData.image;
                                       setEditProductData({ ...editProductData, images: updatedImages, image: newPrimary });
                                     }}
-                                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
+                                    style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', opacity: hoveredEditImgIdx === idx ? 1 : 0, transition: 'opacity 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', border: 'none', cursor: 'pointer' }}
                                     title="Delete this image"
                                   >
                                     <Trash2 size={14} />
                                   </button>
                                   {editProductData.image === url && (
-                                    <span className="absolute bottom-0 left-0 right-0 bg-orange-500 text-white text-[7px] text-center font-bold uppercase py-0.5">Main</span>
+                                    <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: '#f97316', color: 'white', fontSize: '7px', textAlign: 'center', fontWeight: 700, textTransform: 'uppercase', padding: '1px 0' }}>Main</span>
                                   )}
                                 </div>
                               ))}
@@ -2991,7 +3009,20 @@ export default function AdminDashboard() {
                             className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:border-orange-500 outline-none file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100"
                           />
                           {editImageFiles.length > 0 && (
-                            <p className="text-[10px] text-orange-500 font-medium">{editImageFiles.length} new image(s) will be uploaded on Save</p>
+                            <div>
+                              <p className="text-[10px] text-orange-500 font-medium mb-2">{editImageFiles.length} new image(s) will be uploaded on Save</p>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {editImageFiles.map((file, i) => (
+                                  <div key={i} style={{ position: 'relative', width: '64px', height: '64px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0 }}>
+                                    <img src={URL.createObjectURL(file)} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <button type="button" onClick={() => setEditImageFiles(prev => prev.filter((_, j) => j !== i))}
+                                      style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(0,0,0,0.7)', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
+                                      ✕
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           )}
                         </div>
 
@@ -3132,7 +3163,22 @@ export default function AdminDashboard() {
                     <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40"><Upload size={14} /> Upload Images</label>
                     <input type="file" multiple accept="image/*" ref={imageInputRef} onChange={(e) => { if (e.target.files) setImageFiles(Array.from(e.target.files)); }}
                       className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 outline-none transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100" />
-                    {imageFiles.length > 0 && <p className="text-[10px] text-black/60 dark:text-white/60">{imageFiles.length} image(s) selected</p>}
+                    {imageFiles.length > 0 && (
+                      <div>
+                        <p className="text-[10px] text-black/60 dark:text-white/60 mb-2">{imageFiles.length} image(s) selected</p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                          {imageFiles.map((file, i) => (
+                            <div key={i} style={{ position: 'relative', width: '72px', height: '72px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0 }}>
+                              <img src={URL.createObjectURL(file)} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <button type="button" onClick={() => setImageFiles(prev => prev.filter((_, j) => j !== i))}
+                                style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(0,0,0,0.7)', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40"><Video size={14} /> Upload Video</label>
