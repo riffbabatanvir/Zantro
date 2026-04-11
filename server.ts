@@ -859,15 +859,6 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
 
-    // www → non-www redirect (must be before everything else)
-    app.use((req: any, res: any, next: any) => {
-      const host = req.headers.host || '';
-      if (host.startsWith('www.')) {
-        return res.redirect(301, `https://zantrobd.com${req.url}`);
-      }
-      next();
-    });
-
     // Product pages MUST be before express.static — otherwise static catches the request first
     app.get('/product/:id', async (req, res) => {
       try {
