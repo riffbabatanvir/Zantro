@@ -859,6 +859,16 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
 
+    // www → non-www redirect using x-forwarded-host (Render passes this header)
+    app.use((req: any, res: any, next: any) => {
+      const host = (req.headers['x-forwarded-host'] || req.headers.host || '') as string;
+      if (host.startsWith('www.')) {
+        const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
+        return res.redirect(301, `${proto}://zantrobd.com${req.url}`);
+      }
+      next();
+    });
+
     // Product pages MUST be before express.static — otherwise static catches the request first
     app.get('/product/:id', async (req, res) => {
       try {
