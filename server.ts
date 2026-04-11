@@ -623,6 +623,36 @@ app.post('/api/hero-slides', async (req, res) => {
 });
 
 
+
+// ─── Media Library ────────────────────────────────────────────────────────────
+app.get('/api/media', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const doc = await db.collection('settings').findOne({ key: 'mediaLibrary' });
+  res.json(doc ? doc.items : []);
+});
+
+app.post('/api/media', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const { url, type, name } = req.body;
+  const item = { url, type, name, uploadedAt: new Date().toISOString() };
+  await db.collection('settings').updateOne(
+    { key: 'mediaLibrary' },
+    { $push: { items: item } as any },
+    { upsert: true }
+  );
+  res.json(item);
+});
+
+app.delete('/api/media', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const { url } = req.body;
+  await db.collection('settings').updateOne(
+    { key: 'mediaLibrary' },
+    { $pull: { items: { url } } as any }
+  );
+  res.json({ ok: true });
+});
+
 // ─── Recommended Products Settings ───────────────────────────────────────────
 app.get('/api/settings/recommended', async (req, res) => {
   const doc = await db.collection('settings').findOne({ key: 'recommendedProducts' });

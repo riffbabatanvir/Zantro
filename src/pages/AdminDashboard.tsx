@@ -17,7 +17,7 @@ export default function AdminDashboard() {
   const [visitors, setVisitors] = useState<any[]>([]);
   const [blockedIPs, setBlockedIPs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons' | 'hero' | 'announcement' | 'preorders' | 'preowned' | 'payment' | 'translations' | 'recommended'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons' | 'hero' | 'announcement' | 'preorders' | 'preowned' | 'payment' | 'translations' | 'recommended' | 'media'>('orders');
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
 
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
@@ -235,6 +235,56 @@ export default function AdminDashboard() {
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
   const [recommendedIds, setRecommendedIds] = useState<string[]>([]);
   const [recommendedSaved, setRecommendedSaved] = useState(false);
+
+  // Media library
+  const [mediaItems, setMediaItems] = useState<{url: string, type: string, name: string, uploadedAt: string}[]>([]);
+  const [mediaUploading, setMediaUploading] = useState(false);
+  const [mediaCopied, setMediaCopied] = useState<string | null>(null);
+  const mediaInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    fetch('/api/media', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setMediaItems(data.reverse()); })
+      .catch(() => {});
+  }, []);
+
+  const handleMediaUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setMediaUploading(true);
+    const token = localStorage.getItem('adminToken');
+    const formData = new FormData();
+    Array.from(files).forEach(f => formData.append('files', f));
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData });
+      const data = await res.json();
+      if (data.urls) {
+        for (let i = 0; i < data.urls.length; i++) {
+          const url = data.urls[i];
+          const file = files[i];
+          const isVideo = file.type.startsWith('video/');
+          const item = { url, type: isVideo ? 'video' : 'image', name: file.name };
+          await fetch('/api/media', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(item) });
+          setMediaItems(prev => [{ ...item, uploadedAt: new Date().toISOString() }, ...prev]);
+        }
+      }
+    } catch {}
+    setMediaUploading(false);
+    if (mediaInputRef.current) mediaInputRef.current.value = '';
+  };
+
+  const handleMediaDelete = async (url: string) => {
+    const token = localStorage.getItem('adminToken');
+    await fetch('/api/media', { method: 'DELETE', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ url }) });
+    setMediaItems(prev => prev.filter(i => i.url !== url));
+  };
+
+  const copyToClipboard = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setMediaCopied(url);
+    setTimeout(() => setMediaCopied(null), 2000);
+  };
 
   useEffect(() => {
     fetch('/api/settings/recommended')
@@ -925,12 +975,12 @@ export default function AdminDashboard() {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-lg flex-wrap gap-1">
-              {(['orders', 'messages', 'products', 'preowned', 'preorders', 'categories', 'coupons', 'hero', 'recommended', 'announcement', 'visitors', 'payment', 'translations'] as const).map(tab => (
+              {(['orders', 'messages', 'products', 'preowned', 'preorders', 'categories', 'coupons', 'hero', 'recommended', 'media', 'announcement', 'visitors', 'payment', 'translations'] as const).map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
                   className={`px-4 py-2 rounded-md text-[11px] font-medium uppercase tracking-widest transition-all ${
                     activeTab === tab ? 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white'
                   }`}>
-                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab === 'coupons' ? 'Coupons' : tab === 'hero' ? 'Hero Slides' : tab === 'announcement' ? 'Banner' : tab === 'preorders' ? '🕐 Pre-Orders' : tab === 'preowned' ? '♻️ Pre-Owned' : tab === 'payment' ? '💳 Payment' : tab === 'translations' ? '🇧🇩 Translations' : tab === 'recommended' ? '⭐ Recommended' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab === 'coupons' ? 'Coupons' : tab === 'hero' ? 'Hero Slides' : tab === 'announcement' ? 'Banner' : tab === 'preorders' ? '🕐 Pre-Orders' : tab === 'preowned' ? '♻️ Pre-Owned' : tab === 'payment' ? '💳 Payment' : tab === 'translations' ? '🇧🇩 Translations' : tab === 'recommended' ? '⭐ Recommended' : tab === 'media' ? '🖼️ Media' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </button>
               ))}
             </div>
@@ -1616,6 +1666,94 @@ export default function AdminDashboard() {
               {products.filter(p => !p.isPreowned && p.category !== 'Pre-Owned').length === 0 && (
                 <p className="text-center text-black/30 dark:text-white/30 text-sm py-8">No products yet. Add products first.</p>
               )}
+            </motion.div>
+          </div>
+
+        ) : activeTab === 'media' ? (
+          <div className="max-w-5xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+
+              {/* Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-black/5 dark:border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center text-lg">🖼️</div>
+                  <div>
+                    <h2 className="text-lg font-medium text-black dark:text-white">Media Library</h2>
+                    <p className="text-xs text-black/40 dark:text-white/40 mt-0.5">Upload images & videos — click any item to copy its link</p>
+                  </div>
+                </div>
+                <span className="text-xs text-black/30 dark:text-white/30">{mediaItems.length} file{mediaItems.length !== 1 ? 's' : ''}</span>
+              </div>
+
+              {/* Upload zone */}
+              <div
+                onClick={() => mediaInputRef.current?.click()}
+                onDragOver={e => e.preventDefault()}
+                onDrop={e => { e.preventDefault(); handleMediaUpload(e.dataTransfer.files); }}
+                style={{ border: '2px dashed', borderColor: 'rgba(0,0,0,0.1)', borderRadius: '16px', padding: '40px 24px', textAlign: 'center', cursor: 'pointer', transition: 'border-color 0.2s' }}
+                className="hover:border-orange-400 dark:border-white/10 dark:hover:border-orange-500"
+              >
+                <input ref={mediaInputRef} type="file" multiple accept="image/*,video/*" style={{ display: 'none' }}
+                  onChange={e => handleMediaUpload(e.target.files)} />
+                {mediaUploading ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div style={{ width: '32px', height: '32px', border: '3px solid #f97316', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                    <p className="text-sm text-black/40 dark:text-white/40">Uploading to Cloudinary...</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <div style={{ fontSize: '32px' }}>☁️</div>
+                    <p className="text-sm font-bold text-black dark:text-white">Drop files here or click to upload</p>
+                    <p className="text-xs text-black/30 dark:text-white/30">Images & videos · Multiple files supported</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Media grid */}
+              {mediaItems.length === 0 ? (
+                <p className="text-center text-black/30 dark:text-white/30 text-sm py-8">No media yet. Upload your first file above.</p>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
+                  {mediaItems.map((item, idx) => (
+                    <div key={idx} style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.07)', background: 'var(--color-background-secondary, #f9f9f9)', aspectRatio: '1' }}
+                      className="group dark:border-white/5">
+
+                      {/* Preview */}
+                      {item.type === 'video' ? (
+                        <video src={item.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
+                      ) : (
+                        <img src={item.url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                      )}
+
+                      {/* Type badge */}
+                      <div style={{ position: 'absolute', top: '6px', left: '6px', background: 'rgba(0,0,0,0.6)', color: 'white', fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {item.type}
+                      </div>
+
+                      {/* Hover overlay */}
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: 0, transition: 'opacity 0.2s' }}
+                        className="group-hover:opacity-100">
+
+                        {/* Copy button */}
+                        <button onClick={() => copyToClipboard(item.url)}
+                          style={{ background: mediaCopied === item.url ? '#22c55e' : 'white', color: mediaCopied === item.url ? 'white' : '#111', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', transition: 'background 0.2s' }}>
+                          {mediaCopied === item.url ? '✓ Copied!' : '📋 Copy Link'}
+                        </button>
+
+                        {/* Delete button */}
+                        <button onClick={() => handleMediaDelete(item.url)}
+                          style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', padding: '5px 12px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                          🗑 Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Spin animation */}
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </motion.div>
           </div>
 
