@@ -331,7 +331,8 @@ async function sendOrderConfirmationEmail(order: any, orderId: string) {
   }
 }
 
-
+// Orders
+app.post('/api/orders', async (req, res) => {
   const ip = getIP(req);
 
   // Rate limit: max 10 orders per IP per hour
