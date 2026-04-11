@@ -143,9 +143,16 @@ export default function ProductDetail() {
     const addImage = (url: string) => {
       if (url && !seen.has(url)) { seen.add(url); media.push({ type: 'image', url }); }
     };
+    const addVideo = (url: string) => {
+      if (url && !seen.has(url)) { seen.add(url); media.push({ type: 'video', url }); }
+    };
     if (product.images && product.images.length > 0) product.images.forEach(addImage);
     addImage(product.image);
-    if (product.video) media.push({ type: 'video', url: product.video });
+    if ((product as any).videos && (product as any).videos.length > 0) {
+      (product as any).videos.forEach(addVideo);
+    } else if (product.video) {
+      addVideo(product.video);
+    }
     return media;
   }, [product]);
 
@@ -602,7 +609,7 @@ export default function ProductDetail() {
 
         {/* Rich Product Description Section */}
         {product.description && (
-          <section className="px-4 md:px-0 mb-16 border-t border-gray-100 dark:border-neutral-800 pt-12">
+          <section className="px-4 md:px-0 mb-16">
             <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight mb-6 uppercase text-[13px] tracking-widest">Product Description</h2>
             <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 md:p-8 border border-gray-100 dark:border-neutral-800">
               <RichDescription text={product.description} />

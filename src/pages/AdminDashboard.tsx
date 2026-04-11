@@ -95,7 +95,7 @@ export default function AdminDashboard() {
     { minQty: '1', maxQty: '1', label: '1 piece', price: '' },
   ]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -386,7 +386,7 @@ export default function AdminDashboard() {
 
   // Edit mode upload state
   const [editImageFiles, setEditImageFiles] = useState<File[]>([]);
-  const [editVideoFile, setEditVideoFile] = useState<File | null>(null);
+  const [editVideoFiles, setEditVideoFiles] = useState<File[]>([]);
   const [isUploadingEdit, setIsUploadingEdit] = useState(false);
   const [hoveredEditImgIdx, setHoveredEditImgIdx] = useState<number | null>(null);
   const editImageInputRef = useRef<HTMLInputElement>(null);
@@ -660,7 +660,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem('adminToken');
       let uploadedImages: string[] = [];
-      let uploadedVideo: string | undefined = undefined;
+      let uploadedVideos: string[] = [];
 
       if (imageFiles.length > 0) {
         const formData = new FormData();
@@ -669,11 +669,11 @@ export default function AdminDashboard() {
         if (res.ok) { const data = await res.json(); uploadedImages = data.urls; }
       }
 
-      if (videoFile) {
+       if (videoFiles.length > 0) {
         const formData = new FormData();
-        formData.append('files', videoFile);
+        videoFiles.forEach(file => formData.append('files', file));
         const res = await fetch('/api/upload', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData });
-        if (res.ok) { const data = await res.json(); uploadedVideo = data.urls[0]; }
+        if (res.ok) { const data = await res.json(); uploadedVideos = data.urls; }
       }
 
       const primaryImage = newProduct.image || uploadedImages[0] || 'https://via.placeholder.com/400';
@@ -686,7 +686,8 @@ export default function AdminDashboard() {
         category: newProduct.category,
         image: primaryImage,
         images: uploadedImages.length > 0 ? uploadedImages : undefined,
-        video: uploadedVideo,
+        videos: uploadedVideos.length > 0 ? uploadedVideos : undefined,
+        video: uploadedVideos[0],
         rating: newProduct.rating ? Number(newProduct.rating) : 5,
         soldCount: newProduct.soldCount ? Number(newProduct.soldCount) : 0,
         reviewCount: newProduct.reviewCount ? Number(newProduct.reviewCount) : 0,
@@ -713,7 +714,7 @@ export default function AdminDashboard() {
       toast.success('Product added successfully!');
       setNewProduct({ name: '', price: '', discount: '', description: '', category: categoryList[0]?.name || CATEGORIES[0]?.name || 'Fashion', image: '', rating: '', soldCount: '', reviewCount: '', stock: '', sizes: '', colors: '', isPreorder: false, isPreowned: false, yearsUsed: '', percentNew: '' });
       setNewProductPriceTiers([{ minQty: '1', maxQty: '1', label: '1 piece', price: '' }]);
-      setImageFiles([]); setVideoFile(null);
+      setImageFiles([]); setVideoFiles([]);
       if (imageInputRef.current) imageInputRef.current.value = '';
       if (videoInputRef.current) videoInputRef.current.value = '';
     } catch { toast.error('Failed to add product'); }
@@ -766,7 +767,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem('adminToken');
       let newImageUrls: string[] = [];
-      let newVideoUrl: string | undefined = undefined;
+      let newVideoUrls: string[] = [];
 
       // Upload new images if any selected
       if (editImageFiles.length > 0) {
@@ -778,11 +779,11 @@ export default function AdminDashboard() {
       }
 
       // Upload new video if selected
-      if (editVideoFile) {
+       if (editVideoFiles.length > 0) {
         const formData = new FormData();
-        formData.append('files', editVideoFile);
+        editVideoFiles.forEach(file => formData.append('files', file));
         const res = await fetch('/api/upload', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData });
-        if (res.ok) { const data = await res.json(); newVideoUrl = data.urls[0]; }
+        if (res.ok) { const data = await res.json(); newVideoUrls = data.urls; }
         else { toast.error('Video upload failed'); setIsUploadingEdit(false); return; }
       }
 
@@ -798,7 +799,8 @@ export default function AdminDashboard() {
         category: editProductData.category,
         image: primaryImage,
         images: mergedImages,
-        video: newVideoUrl !== undefined ? newVideoUrl : editProductData.video,
+        videos: newVideoUrls.length > 0 ? [...(editProductData.videos || []), ...newVideoUrls] : editProductData.videos,
+        video: newVideoUrls.length > 0 ? (newVideoUrls[0] || editProductData.video) : editProductData.video,
         rating: editProductData.rating ? Number(editProductData.rating) : undefined,
         soldCount: editProductData.soldCount ? Number(editProductData.soldCount) : undefined,
         reviewCount: editProductData.reviewCount ? Number(editProductData.reviewCount) : undefined,
@@ -825,7 +827,7 @@ export default function AdminDashboard() {
       toast.success('Product updated successfully!');
       setEditingProduct(null);
       setEditImageFiles([]);
-      setEditVideoFile(null);
+      setEditVideoFiles([]);
       if (editImageInputRef.current) editImageInputRef.current.value = '';
       if (editVideoInputRef.current) editVideoInputRef.current.value = '';
     } catch { toast.error('Failed to update product'); }
@@ -3029,31 +3031,57 @@ export default function AdminDashboard() {
                         {/* Video manager */}
                         <div className="md:col-span-2 space-y-1">
                           <p className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 flex items-center gap-1">
-                            <Video size={11} /> {editProductData.video ? 'Replace Video' : 'Add Video'}
+                            <Video size={11} /> Videos
                           </p>
-                          {editProductData.video && !editVideoFile && (
-                            <div className="flex items-center gap-3 p-2 bg-white dark:bg-neutral-900 rounded-lg border border-black/10 dark:border-white/10">
-                              <video src={editProductData.video} className="w-16 h-12 object-cover rounded" muted />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-[10px] text-black/60 dark:text-white/60 truncate">Current video</p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => setEditProductData({ ...editProductData, video: undefined })}
-                                className="p-1.5 text-red-400 hover:text-red-600 transition-colors rounded"
-                                title="Remove video"
-                              >
-                                <Trash2 size={13} />
-                              </button>
+                          {/* Existing videos */}
+                          {editProductData.videos && editProductData.videos.length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                              {editProductData.videos.map((url: string, idx: number) => (
+                                <div key={idx} style={{ position: 'relative', width: '80px', height: '60px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)', background: '#111', flexShrink: 0 }}>
+                                  <video src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
+                                  <span style={{ position: 'absolute', bottom: '2px', left: '2px', fontSize: '8px', color: 'white', background: 'rgba(0,0,0,0.6)', borderRadius: '3px', padding: '1px 4px' }}>Video {idx + 1}</span>
+                                  <button type="button"
+                                    onClick={() => {
+                                      const updated = editProductData.videos.filter((_: string, i: number) => i !== idx);
+                                      setEditProductData({ ...editProductData, videos: updated, video: updated[0] || undefined });
+                                    }}
+                                    style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(200,0,0,0.8)', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    ✕
+                                  </button>
+                                </div>
+                              ))}
                             </div>
                           )}
+                          {/* Also handle legacy single video field */}
+                          {editProductData.video && !editProductData.videos?.includes(editProductData.video) && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: 'white', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', marginBottom: '8px' }}>
+                              <video src={editProductData.video} style={{ width: '64px', height: '48px', objectFit: 'cover', borderRadius: '4px' }} muted />
+                              <p className="text-[10px] text-black/60 flex-1">Current video</p>
+                              <button type="button" onClick={() => setEditProductData({ ...editProductData, video: undefined })}
+                                className="p-1.5 text-red-400 hover:text-red-600 transition-colors rounded"><Trash2 size={13} /></button>
+                            </div>
+                          )}
+                          {/* Upload new videos */}
                           <input
-                            type="file" accept="video/*" ref={editVideoInputRef}
-                            onChange={(e) => { if (e.target.files && e.target.files[0]) setEditVideoFile(e.target.files[0]); }}
+                            type="file" accept="video/*" multiple ref={editVideoInputRef}
+                            onChange={(e) => { if (e.target.files) setEditVideoFiles(Array.from(e.target.files)); }}
                             className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:border-orange-500 outline-none file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100"
                           />
-                          {editVideoFile && (
-                            <p className="text-[10px] text-orange-500 font-medium">{editVideoFile.name} — will be uploaded on Save</p>
+                          {editVideoFiles.length > 0 && (
+                            <div>
+                              <p className="text-[10px] text-orange-500 font-medium mb-2">{editVideoFiles.length} video(s) will be added on Save</p>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {editVideoFiles.map((file, i) => (
+                                  <div key={i} style={{ position: 'relative', width: '80px', height: '60px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(249,115,22,0.4)', background: '#111', flexShrink: 0 }}>
+                                    <video src={URL.createObjectURL(file)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
+                                    <button type="button" onClick={() => setEditVideoFiles(prev => prev.filter((_, j) => j !== i))}
+                                      style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(0,0,0,0.7)', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                      ✕
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -3080,7 +3108,7 @@ export default function AdminDashboard() {
                             className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-medium hover:bg-orange-700 transition-colors disabled:opacity-50">
                             <Save size={14} /> {isUploadingEdit ? 'Saving...' : 'Save'}
                           </button>
-                          <button onClick={() => { setEditingProduct(null); setEditImageFiles([]); setEditVideoFile(null); if (editImageInputRef.current) editImageInputRef.current.value = ''; if (editVideoInputRef.current) editVideoInputRef.current.value = ''; }}
+                          <button onClick={() => { setEditingProduct(null); setEditImageFiles([]); setEditVideoFiles([]); if (editImageInputRef.current) editImageInputRef.current.value = ''; if (editVideoInputRef.current) editVideoInputRef.current.value = ''; }}
                             className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-neutral-800 text-black dark:text-white rounded-lg text-xs font-medium hover:bg-gray-300 dark:hover:bg-neutral-700 transition-colors">
                             <XCircle size={14} /> Cancel
                           </button>
@@ -3092,7 +3120,7 @@ export default function AdminDashboard() {
                             title="Toggle Flash Sale">
                             <Zap size={10} /> Flash
                           </button>
-                          <button onClick={() => { setEditingProduct(product.id); setEditProductData({ name: product.name, price: product.price, discount: product.discount || '', description: product.description, category: product.category, image: product.image, images: (product as any).images || [], video: (product as any).video || undefined, rating: product.rating || '', soldCount: (product as any).soldCount || '', reviewCount: (product as any).reviewCount || '', stock: (product as any).stock ?? '', sizes: ((product as any).variants?.find((v: any) => v.type === 'size')?.options || []).join(', '), colors: ((product as any).variants?.find((v: any) => v.type === 'color')?.options || []).join(', '), isPreorder: (product as any).isPreorder || false, preorderPriceTiers: (product as any).preorderPriceTiers || [] }); setEditImageFiles([]); setEditVideoFile(null); if (editImageInputRef.current) editImageInputRef.current.value = ''; if (editVideoInputRef.current) editVideoInputRef.current.value = ''; }}
+                          <button onClick={() => { setEditingProduct(product.id); setEditProductData({ name: product.name, price: product.price, discount: product.discount || '', description: product.description, category: product.category, image: product.image, images: (product as any).images || [], video: (product as any).video || undefined, rating: product.rating || '', soldCount: (product as any).soldCount || '', reviewCount: (product as any).reviewCount || '', stock: (product as any).stock ?? '', sizes: ((product as any).variants?.find((v: any) => v.type === 'size')?.options || []).join(', '), colors: ((product as any).variants?.find((v: any) => v.type === 'color')?.options || []).join(', '), isPreorder: (product as any).isPreorder || false, preorderPriceTiers: (product as any).preorderPriceTiers || [] }); setEditImageFiles([]); setEditVideoFiles([]); if (editImageInputRef.current) editImageInputRef.current.value = ''; if (editVideoInputRef.current) editVideoInputRef.current.value = ''; }}
                             className="p-2 text-black/40 dark:text-white/40 hover:text-orange-600 dark:hover:text-orange-400 transition-colors rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20" title="Edit Product">
                             <Edit2 size={16} />
                           </button>
@@ -3181,10 +3209,26 @@ export default function AdminDashboard() {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40"><Video size={14} /> Upload Video</label>
-                    <input type="file" accept="video/*" ref={videoInputRef} onChange={(e) => { if (e.target.files && e.target.files.length > 0) setVideoFile(e.target.files[0]); }}
+                    <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40"><Video size={14} /> Upload Videos</label>
+                    <input type="file" accept="video/*" multiple ref={videoInputRef} onChange={(e) => { if (e.target.files) setVideoFiles(Array.from(e.target.files)); }}
                       className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 outline-none transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100" />
-                    {videoFile && <p className="text-[10px] text-black/60 dark:text-white/60">{videoFile.name}</p>}
+                    {videoFiles.length > 0 && (
+                      <div>
+                        <p className="text-[10px] text-black/60 dark:text-white/60 mb-2">{videoFiles.length} video(s) selected</p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                          {videoFiles.map((file, i) => (
+                            <div key={i} style={{ position: 'relative', width: '80px', height: '60px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)', background: '#111', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <video src={URL.createObjectURL(file)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
+                              <button type="button" onClick={() => setVideoFiles(prev => prev.filter((_, j) => j !== i))}
+                                style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(0,0,0,0.7)', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
+                                ✕
+                              </button>
+                              <span style={{ position: 'absolute', bottom: '2px', left: '2px', right: '2px', fontSize: '8px', color: 'white', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', background: 'rgba(0,0,0,0.5)', borderRadius: '3px', padding: '1px 2px' }}>{file.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

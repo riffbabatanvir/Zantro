@@ -28,6 +28,7 @@ export interface Product {
   image: string;
   images?: string[];
   video?: string;
+  videos?: string[];
   rating: number;
   soldCount?: number;
   reviewCount?: number;
