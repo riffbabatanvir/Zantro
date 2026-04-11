@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useLanguage } from '../LanguageContext';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
@@ -19,26 +19,6 @@ export default function Shop() {
 
   const categoryScrollRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
-  const [showCategoryHint, setShowCategoryHint] = useState(true);
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const check = () => setIsDark(document.documentElement.classList.contains('dark'));
-    check();
-    const observer = new MutationObserver(check);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const el = categoryScrollRef.current;
-    if (!el) return;
-    const handleScroll = () => {
-      setShowCategoryHint(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
-    };
-    el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => el.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // Price range state
   const [minInput, setMinInput] = useState('');
@@ -129,45 +109,12 @@ export default function Shop() {
 
           {/* ── Sidebar ── */}
           <aside className="w-full md:w-64 bg-white dark:bg-neutral-950 border-b md:border-r border-gray-100 dark:border-neutral-800 shrink-0">
-            <div className="sticky top-16 md:top-32 p-4 md:p-6">
-              <h3 className="hidden md:block text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Categories</h3>
-
-              {/* Mobile: horizontal scroll flat list */}
-              <div className="md:hidden" style={{ position: 'relative' }}>
-              <div ref={categoryScrollRef} className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide snap-x">
-                <button
-                  ref={el => { if (el) buttonRefs.current.set('All', el); }}
-                  onClick={() => setCategory('All')}
-                  className={cn('snap-start shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap',
-                    categoryFilter === 'All' ? 'bg-orange-600 text-white shadow-lg shadow-orange-200' : 'bg-orange-100/50 text-orange-700 dark:text-orange-300 hover:bg-orange-100')}
-                >{ t('All')}</button>
-                {categories.map(cat => (
-                  <button key={cat.id}
-                    ref={el => { if (el) buttonRefs.current.set(cat.name, el); }}
-                    onClick={() => setCategory(cat.name)}
-                    className={cn('snap-start shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap',
-                      categoryFilter === cat.name ? 'bg-orange-600 text-white shadow-lg shadow-orange-200' : 'bg-orange-100/50 text-orange-700 dark:text-orange-300 hover:bg-orange-100')}
-                  >{cat.name}</button>
-                ))}
-              </div>
-              {/* Fade edge */}
-              <div style={{
-                position: 'absolute', top: 0, right: 0, bottom: '0.75rem', width: '56px',
-                background: `linear-gradient(to right, transparent, ${isDark ? 'rgb(10,10,10)' : 'white'})`,
-                pointerEvents: 'none',
-                opacity: showCategoryHint ? 1 : 0,
-                transition: 'opacity 0.3s',
-              }} />
-              </div>
-              {/* Swipe hint */}
-              {showCategoryHint && (
-                <p style={{ marginTop: '4px', fontSize: '10px', color: '#9ca3af', textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '2px' }} className="md:hidden">
-                  {t('swipe for more')}<span style={{ color: '#f97316', fontSize: '13px', lineHeight: 1 }}>›</span>
-                </p>
-              )}
+            {/* Desktop: sticky full-height scrollable sidebar */}
+            <div className="hidden md:block sticky top-16 md:top-32 overflow-y-auto p-4 md:p-6" style={{ maxHeight: 'calc(100vh - 8rem)' }}>
+              <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Categories</h3>
 
               {/* Desktop: flat dynamic list from DB */}
-              <div className="hidden md:flex flex-col gap-1">
+              <div className="flex flex-col gap-1">
                 <button
                   onClick={() => setCategory('All')}
                   className={cn('px-4 py-2.5 rounded-xl text-sm font-bold transition-all text-left',
@@ -183,7 +130,7 @@ export default function Shop() {
               </div>
 
               {/* Price Range — desktop only */}
-              <div className="mt-8 hidden md:block">
+              <div className="mt-8">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">{ t('Price Range') } (৳)</h3>
                   {priceFilterActive && (
@@ -219,6 +166,26 @@ export default function Shop() {
                     Apply
                   </button>
                 </div>
+              </div>
+            </div>
+
+            {/* Mobile: horizontal scroll flat list (no swipe hint) */}
+            <div className="md:hidden p-4">
+              <div ref={categoryScrollRef} className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide snap-x" style={{ position: 'relative' }}>
+                <button
+                  ref={el => { if (el) buttonRefs.current.set('All', el); }}
+                  onClick={() => setCategory('All')}
+                  className={cn('snap-start shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap',
+                    categoryFilter === 'All' ? 'bg-orange-600 text-white shadow-lg shadow-orange-200' : 'bg-orange-100/50 text-orange-700 dark:text-orange-300 hover:bg-orange-100')}
+                >{ t('All')}</button>
+                {categories.map(cat => (
+                  <button key={cat.id}
+                    ref={el => { if (el) buttonRefs.current.set(cat.name, el); }}
+                    onClick={() => setCategory(cat.name)}
+                    className={cn('snap-start shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap',
+                      categoryFilter === cat.name ? 'bg-orange-600 text-white shadow-lg shadow-orange-200' : 'bg-orange-100/50 text-orange-700 dark:text-orange-300 hover:bg-orange-100')}
+                  >{cat.name}</button>
+                ))}
               </div>
             </div>
           </aside>
