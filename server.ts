@@ -197,8 +197,141 @@ app.delete('/api/products/:id/reviews/:reviewId', async (req, res) => {
   }
 });
 
-// Orders
-app.post('/api/orders', async (req, res) => {
+// ─── Resend Email ─────────────────────────────────────────────────────────────
+async function sendOrderConfirmationEmail(order: any, orderId: string) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey || !order.customerInfo?.email) return; // skip if no key or no email
+
+  const shortId = orderId.slice(-6).toUpperCase();
+  const items = order.items || [];
+  const isPreorder = order.isPreorderOrder || false;
+
+  const itemRows = items.map((item: any) => `
+    <tr>
+      <td style="padding:12px 0;border-bottom:1px solid #f3f4f6;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          ${item.image ? `<img src="${item.image}" alt="${item.name}" width="48" height="48" style="border-radius:8px;object-fit:cover;"/>` : ''}
+          <div>
+            <p style="margin:0;font-size:14px;font-weight:600;color:#111;">${item.name}</p>
+            ${item.selectedSize ? `<p style="margin:2px 0 0;font-size:12px;color:#6b7280;">Size: ${item.selectedSize}</p>` : ''}
+            ${item.selectedColor ? `<p style="margin:2px 0 0;font-size:12px;color:#6b7280;">Color: ${item.selectedColor}</p>` : ''}
+            <p style="margin:2px 0 0;font-size:12px;color:#6b7280;">Qty: ${item.quantity}</p>
+          </div>
+        </div>
+      </td>
+      <td style="padding:12px 0;border-bottom:1px solid #f3f4f6;text-align:right;font-size:14px;font-weight:700;color:#ea580c;">
+        ৳${(item.price * item.quantity).toLocaleString()}
+      </td>
+    </tr>
+  `).join('');
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
+<body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+
+    <!-- Header -->
+    <div style="background:#ea580c;padding:32px 40px;text-align:center;">
+      <h1 style="margin:0;color:#fff;font-size:28px;font-weight:800;letter-spacing:-0.5px;">ZANTRO</h1>
+      <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:13px;text-transform:uppercase;letter-spacing:2px;">
+        ${isPreorder ? 'Pre-Order Confirmed' : 'Order Confirmed'}
+      </p>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:40px;">
+      <p style="margin:0 0 8px;font-size:16px;color:#111;">Hi <strong>${order.customerInfo.fullName}</strong>,</p>
+      <p style="margin:0 0 32px;font-size:14px;color:#6b7280;line-height:1.6;">
+        ${isPreorder
+          ? 'Your pre-order has been received! We\'ll contact you once it\'s ready.'
+          : 'Thank you for your order! We\'re preparing it and will deliver it soon.'}
+      </p>
+
+      <!-- Order ID -->
+      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:20px;margin-bottom:32px;text-align:center;">
+        <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#9ca3af;">Your Order ID</p>
+        <p style="margin:0;font-size:28px;font-weight:900;color:#ea580c;font-family:monospace;letter-spacing:2px;">#${shortId}</p>
+        <p style="margin:8px 0 0;font-size:11px;color:#9ca3af;">Save this to track your order</p>
+      </div>
+
+      <!-- Items -->
+      <h3 style="margin:0 0 16px;font-size:12px;text-transform:uppercase;letter-spacing:2px;color:#9ca3af;">Order Summary</h3>
+      <table style="width:100%;border-collapse:collapse;">
+        ${itemRows}
+      </table>
+
+      <!-- Totals -->
+      <div style="margin-top:24px;padding-top:16px;">
+        ${order.shippingCost > 0 ? `
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:13px;color:#6b7280;">Shipping</span>
+          <span style="font-size:13px;color:#111;">৳${order.shippingCost}</span>
+        </div>` : ''}
+        ${order.couponDiscount > 0 ? `
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:13px;color:#6b7280;">Coupon Discount</span>
+          <span style="font-size:13px;color:#16a34a;">-৳${order.couponDiscount}</span>
+        </div>` : ''}
+        ${isPreorder && order.preorderRemainingAmount > 0 ? `
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:13px;color:#6b7280;">Remaining (on delivery)</span>
+          <span style="font-size:13px;color:#111;">৳${order.preorderRemainingAmount}</span>
+        </div>` : ''}
+        <div style="display:flex;justify-content:space-between;padding-top:12px;border-top:2px solid #f3f4f6;margin-top:8px;">
+          <span style="font-size:15px;font-weight:700;color:#111;">${isPreorder && order.preorderRemainingAmount > 0 ? 'Advance Paid' : 'Total'}</span>
+          <span style="font-size:15px;font-weight:900;color:#ea580c;">৳${order.finalTotal?.toLocaleString()}</span>
+        </div>
+      </div>
+
+      <!-- Delivery Info -->
+      <div style="margin-top:32px;background:#f9fafb;border-radius:12px;padding:20px;">
+        <h3 style="margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:2px;color:#9ca3af;">Delivery Info</h3>
+        <p style="margin:0 0 4px;font-size:14px;color:#111;font-weight:600;">${order.customerInfo.fullName}</p>
+        <p style="margin:0 0 4px;font-size:13px;color:#6b7280;">${order.customerInfo.address}</p>
+        <p style="margin:0;font-size:13px;color:#6b7280;">${order.customerInfo.phone}</p>
+      </div>
+
+      <!-- Track Order -->
+      <div style="margin-top:32px;text-align:center;">
+        <a href="https://zantrobd.com/order-tracking" style="display:inline-block;background:#ea580c;color:#fff;text-decoration:none;padding:14px 32px;border-radius:12px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;">
+          Track Your Order
+        </a>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:24px 40px;background:#f9fafb;text-align:center;border-top:1px solid #f3f4f6;">
+      <p style="margin:0 0 4px;font-size:12px;color:#9ca3af;">Questions? Contact us at</p>
+      <a href="mailto:store@zantrobd.com" style="font-size:12px;color:#ea580c;text-decoration:none;">store@zantrobd.com</a>
+      <p style="margin:12px 0 0;font-size:11px;color:#d1d5db;">© ${new Date().getFullYear()} Zantro. Bangladesh.</p>
+    </div>
+
+  </div>
+</body>
+</html>`;
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'Zantro <orders@zantrobd.com>',
+        to: order.customerInfo.email,
+        subject: `Order Confirmed #${shortId} — Zantro`,
+        html,
+      }),
+    });
+  } catch (err) {
+    console.error('Failed to send order confirmation email:', err);
+  }
+}
+
+
   const ip = getIP(req);
 
   // Rate limit: max 10 orders per IP per hour
@@ -240,7 +373,12 @@ app.post('/api/orders', async (req, res) => {
 
   const order = { ...req.body, customerIp: ip, createdAt: new Date().toISOString(), status: 'pending' };
   const result = await db.collection('orders').insertOne(order);
-  res.status(201).json({ ...order, id: result.insertedId.toString() });
+  const orderId = result.insertedId.toString();
+
+  // Send confirmation email (non-blocking — don't await so it doesn't delay the response)
+  sendOrderConfirmationEmail(order, orderId).catch(() => {});
+
+  res.status(201).json({ ...order, id: orderId });
 });
 
 app.get('/api/orders', async (req, res) => {
