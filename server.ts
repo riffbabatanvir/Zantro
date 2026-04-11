@@ -936,9 +936,33 @@ async function startServer() {
               },
         };
 
+        const productImage = (p.images && p.images.length > 0 ? p.images[0] : p.image) || '';
+        const productDesc = (p.description || '').replace(/[<>"]/g, ' ').slice(0, 155);
+        const productUrl = `https://zantrobd.com/product/${p.id}`;
+        const productTitle = `${p.name} — Zantro`;
+
+        const ogTags = `
+    <meta property="og:type" content="product" />
+    <meta property="og:title" content="${productTitle}" />
+    <meta property="og:description" content="${productDesc}" />
+    <meta property="og:image" content="${productImage}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content="${productUrl}" />
+    <meta property="og:site_name" content="Zantro" />
+    <meta property="product:price:amount" content="${p.price}" />
+    <meta property="product:price:currency" content="BDT" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${productTitle}" />
+    <meta name="twitter:description" content="${productDesc}" />
+    <meta name="twitter:image" content="${productImage}" />
+    <title>${productTitle}</title>
+    <meta name="description" content="${productDesc}" />
+    <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`
+
         const injected = html.replace(
           '</head>',
-          `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>\n</head>`
+          `${ogTags}\n</head>`
         );
         res.send(injected);
       } catch {
