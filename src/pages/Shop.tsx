@@ -18,6 +18,7 @@ export default function Shop() {
   const searchQuery = searchParams.get('q') || '';
 
   const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const [showCategoryHint, setShowCategoryHint] = useState(true);
   const [isDark, setIsDark] = useState(false);
 
@@ -99,8 +100,18 @@ export default function Shop() {
   };
 
 
-  const setCategory = (name: string) =>
+  const setCategory = (name: string) => {
     setSearchParams(name === 'All' ? {} : { category: name });
+    const btn = buttonRefs.current.get(name);
+    if (btn && categoryScrollRef.current) {
+      const container = categoryScrollRef.current;
+      const btnLeft = btn.offsetLeft;
+      const btnWidth = btn.offsetWidth;
+      const containerWidth = container.clientWidth;
+      const targetScroll = btnLeft - containerWidth / 2 + btnWidth / 2;
+      container.scrollTo({ left: Math.max(0, targetScroll), behavior: 'smooth' });
+    }
+  };
 
   const priceFilterActive = appliedMin !== null || appliedMax !== null;
 
@@ -125,12 +136,14 @@ export default function Shop() {
               <div className="md:hidden" style={{ position: 'relative' }}>
               <div ref={categoryScrollRef} className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide snap-x">
                 <button
+                  ref={el => { if (el) buttonRefs.current.set('All', el); }}
                   onClick={() => setCategory('All')}
                   className={cn('snap-start shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap',
                     categoryFilter === 'All' ? 'bg-orange-600 text-white shadow-lg shadow-orange-200' : 'bg-orange-100/50 text-orange-700 dark:text-orange-300 hover:bg-orange-100')}
                 >{ t('All')}</button>
                 {categories.map(cat => (
                   <button key={cat.id}
+                    ref={el => { if (el) buttonRefs.current.set(cat.name, el); }}
                     onClick={() => setCategory(cat.name)}
                     className={cn('snap-start shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap',
                       categoryFilter === cat.name ? 'bg-orange-600 text-white shadow-lg shadow-orange-200' : 'bg-orange-100/50 text-orange-700 dark:text-orange-300 hover:bg-orange-100')}
