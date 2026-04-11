@@ -36,7 +36,7 @@ export default function Checkout() {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
-  const shippingCost = (region === 'outside' && paymentMethod !== 'cod') ? 120 : 0;
+  const shippingCost = region === 'outside' ? 120 : 0;
   const couponDiscount = appliedCoupon ? Math.round(totalPrice * appliedCoupon.discount / 100) : 0;
   const baseTotal = totalPrice + shippingCost - couponDiscount;
   const finalTotal = isPreorderCart && preorderPayOption === '50'
@@ -253,7 +253,7 @@ export default function Checkout() {
                     <select required value={region} onChange={(e) => setRegion(e.target.value)}
                       className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm bg-transparent cursor-pointer">
                       <option value="patuakhali" className="bg-white dark:bg-neutral-900 text-black dark:text-white">Inside Patuakhali (Free)</option>
-                      <option value="outside" className="bg-white dark:bg-neutral-900 text-black dark:text-white">Outside Patuakhali (৳120)</option>
+                      <option value="outside" className="bg-white dark:bg-neutral-900 text-black dark:text-white">Outside Patuakhali (+৳120)</option>
                     </select>
                   </div>
                   <div className="col-span-2 sm:col-span-1">

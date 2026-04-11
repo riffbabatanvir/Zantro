@@ -245,9 +245,33 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-neutral-900">
-        <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">Product not found.</p>
-      </div>
+      <>
+        <Helmet>
+          <title>Product Not Found — Zantro</title>
+          <meta name="robots" content="noindex" />
+        </Helmet>
+        <div className="min-h-screen bg-white dark:bg-neutral-950 flex flex-col items-center justify-center px-6 text-center">
+          <p className="text-[11px] font-medium uppercase tracking-[0.4em] text-black/30 dark:text-white/30 mb-4">404</p>
+          <h1 className="text-3xl font-light tracking-tight text-black dark:text-white mb-3">Product Not Found</h1>
+          <p className="text-sm text-black/40 dark:text-white/40 mb-10 max-w-xs">
+            This product may have been removed or the link is incorrect.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <Link
+              to="/shop"
+              className="px-6 py-3 bg-orange-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-orange-700 transition-colors"
+            >
+              Browse All Products
+            </Link>
+            <Link
+              to="/"
+              className="text-[11px] font-medium uppercase tracking-[0.2em] text-black dark:text-white border-b border-black dark:border-white pb-1 hover:text-black/60 dark:hover:text-white/60 transition-all"
+            >
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </>
     );
   }
 
