@@ -596,15 +596,7 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            {/* Features */}
-            <div className="grid grid-cols-1 gap-4 pt-8 border-t border-gray-100 dark:border-neutral-800">
-              <div className="flex flex-col items-center text-center gap-2">
-                <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
-                  <Truck size={20} />
-                </div>
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Free Shipping<br/>(In Patuakhali)</span>
-              </div>
-            </div>
+
           </div>
         </div>
 
