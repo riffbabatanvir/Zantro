@@ -858,9 +858,17 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
 
-    // Product pages: inject JSON-LD into HTML before sending so Google sees it
+    // www → non-www redirect (must be before everything else)
+    app.use((req: any, res: any, next: any) => {
+      const host = req.headers.host || '';
+      if (host.startsWith('www.')) {
+        return res.redirect(301, `https://zantrobd.com${req.url}`);
+      }
+      next();
+    });
+
+    // Product pages MUST be before express.static — otherwise static catches the request first
     app.get('/product/:id', async (req, res) => {
       try {
         const { id } = req.params;
@@ -979,6 +987,10 @@ async function startServer() {
       }
     });
 
+    // Static assets (JS, CSS, images) — after product route so /product/:id fires first
+    app.use(express.static(distPath));
+
+    // All other routes → SPA index.html
     app.get('*', (req, res) => { res.sendFile(path.join(distPath, 'index.html')); });
   }
   app.listen(PORT, '0.0.0.0', () => { console.log(`Server running on http://localhost:${PORT}`); });
