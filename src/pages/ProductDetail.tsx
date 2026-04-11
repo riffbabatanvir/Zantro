@@ -41,8 +41,12 @@ function RichDescription({ text }: { text: string }) {
   lines.forEach((line, i) => {
     const trimmed = line.trim();
 
-    // Image: ![](url) or ![alt](url)
-    const imgMatch = trimmed.match(/^!\[.*?\]\((.+?)\)$/);
+    // Image: ![](url) or ![alt](url) or ![] url (with space) or bare https:// image url
+    const imgMatch =
+      trimmed.match(/^!\[.*?\]\((.+?)\)$/) ||          // ![](url)
+      trimmed.match(/^!\[.*?\]\s+(.+)$/) ||             // ![] url (space instead of parens)
+      trimmed.match(/^!\[\](.+)$/) ||                    // ![](no-space variant)
+      (trimmed.match(/^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i) ? [null, trimmed] : null); // bare url
     if (imgMatch) {
       flushBullets(`b-${i}`);
       elements.push(
