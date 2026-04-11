@@ -1,5 +1,5 @@
 import { useLanguage } from '../LanguageContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -43,6 +43,26 @@ export default function Hero() {
   const prev = () => setCurrent(p => (p - 1 + slides.length) % slides.length);
   const next = () => setCurrent(p => (p + 1) % slides.length);
 
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    // Only trigger if horizontal swipe is dominant and long enough
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      dx < 0 ? next() : prev();
+    }
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
   const slide = slides[current] || DEFAULT_SLIDES[0];
   const imgOpacity = slide.imageOpacity ?? 0.3;
   const hideText = slide.hideText === true || slide.hideText === 'true';
@@ -59,8 +79,10 @@ export default function Hero() {
   const bgGradient = gradientMap[slide.color] || gradientMap['from-orange-500 to-red-600'];
 
   return (
-    <div style={{ position: 'relative', width: '100%', overflow: 'hidden', background: '#e5e7eb' }}
-      className="h-[40vh] md:h-[60vh]">
+    <div style={{ position: 'relative', width: '100%', overflow: 'hidden', background: '#e5e7eb', touchAction: 'pan-y' }}
+      className="h-[40vh] md:h-[60vh]"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}>
 
       <AnimatePresence mode="wait">
         <motion.div key={current} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
