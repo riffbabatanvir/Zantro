@@ -85,7 +85,18 @@ export default function Checkout() {
   useEffect(() => {
     fetch('/api/settings/payment')
       .then(r => r.json())
-      .then(data => setPaymentSettings(data))
+      .then(data => {
+        setPaymentSettings(data);
+        // Auto-select first enabled payment method
+        const enabled: PaymentMethod[] = [];
+        if (data?.cardEnabled !== false) enabled.push('card');
+        if (data?.bkashEnabled !== false) enabled.push('bkash');
+        if (data?.nagadEnabled !== false) enabled.push('nagad');
+        if (data?.cryptoEnabled !== false) enabled.push('crypto');
+        if (data?.codEnabled !== false) enabled.push('cod');
+        if (data?.bankEnabled !== false) enabled.push('bank');
+        if (enabled.length > 0) setPaymentMethod(enabled[0]);
+      })
       .catch(() => setPaymentSettings({}));
   }, []);
 
@@ -482,6 +493,15 @@ export default function Checkout() {
                   </div>
                 )}
               </section>
+
+              <div className="flex items-center justify-between px-5 py-4 bg-black/5 dark:bg-white/5 rounded-xl border border-black/10 dark:border-white/10">
+                <span className="text-[11px] font-medium uppercase tracking-widest text-black/60 dark:text-white/60">
+                  {isPreorderCart && preorderPayOption === '50' ? t('Pay Now') : t('Total Amount')}
+                </span>
+                <span className="text-xl font-black text-orange-600 dark:text-orange-400">
+                  ৳{finalTotal.toFixed(2)}
+                </span>
+              </div>
 
               <button disabled={isProcessing}
                 className="w-full bg-orange-600 text-white py-5 text-[11px] font-medium uppercase tracking-[0.3em] hover:bg-orange-700 transition-all disabled:opacity-50 shadow-lg shadow-orange-100 dark:shadow-none">
