@@ -391,6 +391,7 @@ export default function AdminDashboard() {
   const [hoveredEditImgIdx, setHoveredEditImgIdx] = useState<number | null>(null);
   const editImageInputRef = useRef<HTMLInputElement>(null);
   const editVideoInputRef = useRef<HTMLInputElement>(null);
+  const editDescRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -2814,6 +2815,23 @@ export default function AdminDashboard() {
                   )}
                 </div>
 
+                {/* Collapse / Expand all */}
+                <div className="flex gap-2 justify-end">
+                  <button type="button" onClick={() => {
+                    const allCats = [...categoryList.map(c => c.name), 'Other'];
+                    const allCollapsed = allCats.reduce((acc: Record<string, boolean>, cat) => { acc[cat] = true; return acc; }, {});
+                    setCollapsedCategories(allCollapsed);
+                  }} className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-gray-100 dark:bg-neutral-800 text-black/50 dark:text-white/50 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-lg transition-colors flex items-center gap-1">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 15l7-7 7 7"/></svg>
+                    Collapse All
+                  </button>
+                  <button type="button" onClick={() => setCollapsedCategories({})}
+                    className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 rounded-lg transition-colors flex items-center gap-1">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+                    Expand All
+                  </button>
+                </div>
+
                 {/* Grouped by category */}
                 {(() => {
                   const filtered = products.filter((p: any) =>
@@ -2881,9 +2899,47 @@ export default function AdminDashboard() {
                             className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none" placeholder="Review Count" />
                         </div>
                         <div className="md:col-span-2 space-y-1">
-                          <textarea value={editProductData.description} onChange={(e) => { setEditProductData({...editProductData, description: e.target.value}); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                          <textarea ref={editDescRef} value={editProductData.description} onChange={(e) => { setEditProductData({...editProductData, description: e.target.value}); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
                             className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none" placeholder="Description" rows={6} style={{ resize: 'vertical', minHeight: '120px' }} />
-                          <p className="text-[10px] text-black/30 dark:text-white/30">Formatting: <code>**bold**</code> · <code>*italic*</code> · <code>- item</code> for bullet · <code>[text](url)</code> for link · <code>## Heading</code></p>
+                          {/* Clickable format buttons */}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+                            {[
+                              { label: '## Heading', insert: '## ' },
+                              { label: '### Sub', insert: '### ' },
+                              { label: '- Bullet', insert: '- ' },
+                              { label: '1. Number', insert: '1. ' },
+                              { label: '**bold**', insert: '**bold**' },
+                              { label: '*italic*', insert: '*italic*' },
+                              { label: '~~strike~~', insert: '~~strikethrough~~' },
+                              { label: '`code`', insert: '`code`' },
+                              { label: '[link](url)', insert: '[link text](https://)' },
+                              { label: '![](url)', insert: '![alt](https://)' },
+                              { label: '> quote', insert: '> ' },
+                              { label: '---', insert: '---' },
+                            ].map(({ label, insert }) => (
+                              <button key={label} type="button"
+                                onClick={() => {
+                                  const ta = editDescRef.current;
+                                  if (!ta) return;
+                                  const start = ta.selectionStart ?? 0;
+                                  const end = ta.selectionEnd ?? 0;
+                                  const before = editProductData.description.slice(0, start);
+                                  const after = editProductData.description.slice(end);
+                                  const newVal = before + insert + after;
+                                  setEditProductData({ ...editProductData, description: newVal });
+                                  setTimeout(() => {
+                                    ta.focus();
+                                    ta.selectionStart = ta.selectionEnd = start + insert.length;
+                                    ta.style.height = 'auto';
+                                    ta.style.height = ta.scrollHeight + 'px';
+                                  }, 0);
+                                }}
+                                style={{ padding: '2px 8px', fontSize: '10px', fontFamily: 'monospace', background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '5px', cursor: 'pointer', color: 'inherit', whiteSpace: 'nowrap' }}>
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-[10px] text-black/30 dark:text-white/30 mt-1">Click a button to insert at cursor position</p>
                         </div>
                         {/* Stock & Variants */}
                         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3">

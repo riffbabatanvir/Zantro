@@ -22,15 +22,36 @@ function RichDescription({ text }: { text: string }) {
   const lines = text.split('\n');
   const elements: React.ReactNode[] = [];
   let bulletBuffer: string[] = [];
+  let numberedBuffer: string[] = [];
+
+  const parseInline = (str: string, key: string): React.ReactNode => {
+    const parts: React.ReactNode[] = [];
+    let idx = 0;
+    const pattern = /(\*\*(.+?)\*\*|\*(.+?)\*|~~(.+?)~~|`(.+?)`|\[(.+?)\]\((.+?)\))/g;
+    let match;
+    let lastIndex = 0;
+    pattern.lastIndex = 0;
+    while ((match = pattern.exec(str)) !== null) {
+      if (match.index > lastIndex) parts.push(<span key={idx++}>{str.slice(lastIndex, match.index)}</span>);
+      if (match[2] !== undefined) parts.push(<strong key={idx++} style={{ fontWeight: 700 }}>{match[2]}</strong>);
+      else if (match[3] !== undefined) parts.push(<em key={idx++}>{match[3]}</em>);
+      else if (match[4] !== undefined) parts.push(<span key={idx++} style={{ textDecoration: 'line-through', opacity: 0.6 }}>{match[4]}</span>);
+      else if (match[5] !== undefined) parts.push(<code key={idx++} style={{ background: 'rgba(0,0,0,0.07)', borderRadius: '4px', padding: '1px 5px', fontFamily: 'monospace', fontSize: '0.9em' }}>{match[5]}</code>);
+      else if (match[6] !== undefined) parts.push(<a key={idx++} href={match[7]} target="_blank" rel="noopener noreferrer" style={{ color: '#f97316', textDecoration: 'underline' }}>{match[6]}</a>);
+      lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < str.length) parts.push(<span key={idx++}>{str.slice(lastIndex)}</span>);
+    return parts.length === 1 ? parts[0] : <>{parts}</>;
+  };
 
   const flushBullets = (key: string) => {
     if (bulletBuffer.length === 0) return;
     elements.push(
       <ul key={key} style={{ listStyle: 'none', padding: 0, margin: '12px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {bulletBuffer.map((b, i) => (
-          <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '14px', color: 'inherit', lineHeight: 1.6 }}>
+          <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '14px', lineHeight: 1.6 }}>
             <span style={{ color: '#f97316', fontWeight: 900, fontSize: '16px', lineHeight: 1.4, flexShrink: 0 }}>•</span>
-            <span>{b}</span>
+            <span>{parseInline(b, `b${i}`)}</span>
           </li>
         ))}
       </ul>
@@ -38,61 +59,84 @@ function RichDescription({ text }: { text: string }) {
     bulletBuffer = [];
   };
 
+  const flushNumbered = (key: string) => {
+    if (numberedBuffer.length === 0) return;
+    elements.push(
+      <ol key={key} style={{ padding: '0 0 0 20px', margin: '12px 0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {numberedBuffer.map((b, i) => (
+          <li key={i} style={{ fontSize: '14px', lineHeight: 1.6 }}>{parseInline(b, `n${i}`)}</li>
+        ))}
+      </ol>
+    );
+    numberedBuffer = [];
+  };
+
   lines.forEach((line, i) => {
     const trimmed = line.trim();
 
-    // Image: ![](url) or ![alt](url) or ![] url (with space) or bare https:// image url
+    if (trimmed === '---' || trimmed === '***' || trimmed === '___') {
+      flushBullets(`b-${i}`); flushNumbered(`n-${i}`);
+      elements.push(<hr key={i} style={{ border: 'none', borderTop: '1px solid rgba(0,0,0,0.1)', margin: '16px 0' }} />);
+      return;
+    }
+
     const imgMatch =
-      trimmed.match(/^!\[.*?\]\((.+?)\)$/) ||          // ![](url)
-      trimmed.match(/^!\[.*?\]\s+(.+)$/) ||             // ![] url (space instead of parens)
-      trimmed.match(/^!\[\](.+)$/) ||                    // ![](no-space variant)
-      (trimmed.match(/^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i) ? [null, trimmed] : null); // bare url
+      trimmed.match(/^!\[.*?\]\((.+?)\)$/) ||
+      trimmed.match(/^!\[.*?\]\s+(.+)$/) ||
+      trimmed.match(/^!\[\](.+)$/) ||
+      (trimmed.match(/^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i) ? [null, trimmed] : null);
     if (imgMatch) {
-      flushBullets(`b-${i}`);
-      elements.push(
-        <img key={i} src={imgMatch[1]} alt="Product detail"
-          style={{ width: '100%', borderRadius: '12px', margin: '16px 0', display: 'block', objectFit: 'cover' }}
-          referrerPolicy="no-referrer"
-        />
-      );
+      flushBullets(`b-${i}`); flushNumbered(`n-${i}`);
+      elements.push(<img key={i} src={imgMatch[1]} alt="Product detail" style={{ width: '100%', borderRadius: '12px', margin: '16px 0', display: 'block', objectFit: 'cover' }} referrerPolicy="no-referrer" />);
       return;
     }
 
-    // Sub-heading: ## text
     if (trimmed.startsWith('## ')) {
-      flushBullets(`b-${i}`);
-      elements.push(
-        <p key={i} style={{ fontWeight: 700, fontSize: '15px', marginTop: '20px', marginBottom: '6px' }}
-          className="text-gray-900 dark:text-white">
-          {trimmed.slice(3)}
-        </p>
-      );
+      flushBullets(`b-${i}`); flushNumbered(`n-${i}`);
+      elements.push(<p key={i} style={{ fontWeight: 700, fontSize: '15px', marginTop: '20px', marginBottom: '6px' }} className="text-gray-900 dark:text-white">{parseInline(trimmed.slice(3), `h2-${i}`)}</p>);
       return;
     }
 
-    // Bullet: - text or • text
-    if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+    if (trimmed.startsWith('### ')) {
+      flushBullets(`b-${i}`); flushNumbered(`n-${i}`);
+      elements.push(<p key={i} style={{ fontWeight: 600, fontSize: '13px', marginTop: '14px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.6 }} className="text-gray-900 dark:text-white">{parseInline(trimmed.slice(4), `h3-${i}`)}</p>);
+      return;
+    }
+
+    if (trimmed.startsWith('> ')) {
+      flushBullets(`b-${i}`); flushNumbered(`n-${i}`);
+      elements.push(<blockquote key={i} style={{ borderLeft: '3px solid #f97316', paddingLeft: '12px', margin: '10px 0', opacity: 0.7, fontStyle: 'italic', fontSize: '14px', lineHeight: 1.6 }}>{parseInline(trimmed.slice(2), `bq-${i}`)}</blockquote>);
+      return;
+    }
+
+    if (trimmed.startsWith('- ') || trimmed.startsWith('\u2022 ')) {
+      flushNumbered(`n-${i}`);
       bulletBuffer.push(trimmed.slice(2));
       return;
     }
 
-    // Blank line: flush bullets, skip
-    if (trimmed === '') {
+    const numMatch = trimmed.match(/^\d+\.\s+(.+)$/);
+    if (numMatch) {
       flushBullets(`b-${i}`);
+      numberedBuffer.push(numMatch[1]);
       return;
     }
 
-    // Normal paragraph
-    flushBullets(`b-${i}`);
+    if (trimmed === '') {
+      flushBullets(`b-${i}`); flushNumbered(`n-${i}`);
+      return;
+    }
+
+    flushBullets(`b-${i}`); flushNumbered(`n-${i}`);
     elements.push(
-      <p key={i} style={{ fontSize: '14px', lineHeight: 1.7, margin: '8px 0' }}
-        className="text-gray-600 dark:text-gray-400">
-        {trimmed}
+      <p key={i} style={{ fontSize: '14px', lineHeight: 1.7, margin: '8px 0' }} className="text-gray-600 dark:text-gray-400">
+        {parseInline(trimmed, `p-${i}`)}
       </p>
     );
   });
 
   flushBullets('b-end');
+  flushNumbered('n-end');
   return <div>{elements}</div>;
 }
 
