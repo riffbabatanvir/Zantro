@@ -2288,9 +2288,10 @@ export default function AdminDashboard() {
                 {/* Description */}
                 <div className="space-y-2">
                   <label className="block text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40"><FileText size={12} className="inline mr-1" />Description</label>
-                  <textarea required rows={4} value={newPreowned.description} onChange={(e) => setNewPreowned({...newPreowned, description: e.target.value})}
+                  <textarea required rows={6} value={newPreowned.description} onChange={(e) => { setNewPreowned({...newPreowned, description: e.target.value}); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
                     placeholder="Describe the item's condition, what's included, any scratches or wear, etc."
-                    className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors resize-none" />
+                    className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none transition-colors" style={{ resize: 'vertical', minHeight: '120px' }} />
+                  <p className="text-[10px] text-black/30 dark:text-white/30">Formatting: <code>**bold**</code> · <code>*italic*</code> · <code>- item</code> for bullet · <code>[text](url)</code> for link · <code>## Heading</code></p>
                 </div>
 
                 <div className="pt-4 border-t border-black/5 dark:border-white/5">
@@ -2879,8 +2880,11 @@ export default function AdminDashboard() {
                           <input type="number" min="0" value={editProductData.reviewCount || ''} onChange={(e) => setEditProductData({...editProductData, reviewCount: e.target.value})}
                             className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none" placeholder="Review Count" />
                         </div>
-                        <textarea value={editProductData.description} onChange={(e) => setEditProductData({...editProductData, description: e.target.value})}
-                          className="w-full md:col-span-2 bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none resize-none" placeholder="Description" rows={2} />
+                        <div className="md:col-span-2 space-y-1">
+                          <textarea value={editProductData.description} onChange={(e) => { setEditProductData({...editProductData, description: e.target.value}); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                            className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none" placeholder="Description" rows={6} style={{ resize: 'vertical', minHeight: '120px' }} />
+                          <p className="text-[10px] text-black/30 dark:text-white/30">Formatting: <code>**bold**</code> · <code>*italic*</code> · <code>- item</code> for bullet · <code>[text](url)</code> for link · <code>## Heading</code></p>
+                        </div>
                         {/* Stock & Variants */}
                         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3">
                           <div className="space-y-1">
@@ -3120,7 +3124,7 @@ export default function AdminDashboard() {
                             title="Toggle Flash Sale">
                             <Zap size={10} /> Flash
                           </button>
-                          <button onClick={() => { setEditingProduct(product.id); setEditProductData({ name: product.name, price: product.price, discount: product.discount || '', description: product.description, category: product.category, image: product.image, images: (product as any).images || [], video: (product as any).video || undefined, rating: product.rating || '', soldCount: (product as any).soldCount || '', reviewCount: (product as any).reviewCount || '', stock: (product as any).stock ?? '', sizes: ((product as any).variants?.find((v: any) => v.type === 'size')?.options || []).join(', '), colors: ((product as any).variants?.find((v: any) => v.type === 'color')?.options || []).join(', '), isPreorder: (product as any).isPreorder || false, preorderPriceTiers: (product as any).preorderPriceTiers || [] }); setEditImageFiles([]); setEditVideoFiles([]); if (editImageInputRef.current) editImageInputRef.current.value = ''; if (editVideoInputRef.current) editVideoInputRef.current.value = ''; }}
+                          <button onClick={() => { setEditingProduct(product.id); setEditProductData({ name: product.name, price: product.price, discount: product.discount || '', description: product.description, category: product.category, image: product.image, images: (product as any).images || [], video: (product as any).video || undefined, videos: (product as any).videos || [], rating: product.rating || '', soldCount: (product as any).soldCount || '', reviewCount: (product as any).reviewCount || '', stock: (product as any).stock ?? '', sizes: ((product as any).variants?.find((v: any) => v.type === 'size')?.options || []).join(', '), colors: ((product as any).variants?.find((v: any) => v.type === 'color')?.options || []).join(', '), isPreorder: (product as any).isPreorder || false, preorderPriceTiers: (product as any).preorderPriceTiers || [] }); setEditImageFiles([]); setEditVideoFiles([]); if (editImageInputRef.current) editImageInputRef.current.value = ''; if (editVideoInputRef.current) editVideoInputRef.current.value = ''; }}
                             className="p-2 text-black/40 dark:text-white/40 hover:text-orange-600 dark:hover:text-orange-400 transition-colors rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20" title="Edit Product">
                             <Edit2 size={16} />
                           </button>
@@ -3331,8 +3335,9 @@ export default function AdminDashboard() {
 
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40"><FileText size={14} /> Description</label>
-                  <textarea required rows={4} value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} placeholder="Describe the product features, materials, etc."
-                    className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors resize-none" />
+                  <textarea required rows={6} value={newProduct.description} onChange={(e) => { setNewProduct({...newProduct, description: e.target.value}); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} placeholder="Describe the product features, materials, etc."
+                    className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors" style={{ resize: 'vertical', minHeight: '120px' }} />
+                  <p className="text-[10px] text-black/30 dark:text-white/30">Formatting: <code>**bold**</code> · <code>*italic*</code> · <code>- item</code> for bullet · <code>[text](url)</code> for link · <code>## Heading</code></p>
                 </div>
 
                 <div className="pt-4 border-t border-black/5 dark:border-white/5">
