@@ -2614,7 +2614,7 @@ export default function AdminDashboard() {
                         </div>
                         <div className="md:col-span-2 space-y-1">
                           <textarea value={editProductData.description} onChange={(e) => setEditProductData({...editProductData, description: e.target.value})}
-                            className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none resize-none font-mono" placeholder="Description" rows={8} />
+                            className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none font-mono" placeholder="Description" rows={8} style={{ resize: 'vertical', minHeight: '180px' }} />
                           <p className="text-[10px] text-black/30 dark:text-white/30 leading-relaxed">
                     Use <strong>- item</strong> for bullet points &nbsp;|&nbsp; <strong>## Heading</strong> for sub-headings &nbsp;|&nbsp; <strong>![](image-url)</strong> to embed a photo
                   </p>
@@ -2998,7 +2998,7 @@ export default function AdminDashboard() {
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40"><FileText size={14} /> Description</label>
                   <textarea required rows={8} value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} placeholder={"Describe the product...\n\n## Key Features\n- Feature one\n- Feature two\n\n## Specifications\n- Material: Cotton\n- Size: S, M, L\n\n![](https://image-url-here.jpg)"}
-                    className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors resize-none font-mono" />
+                    className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors font-mono" style={{ resize: 'vertical', minHeight: '180px' }} />
                   <p className="text-[10px] text-black/30 dark:text-white/30 leading-relaxed">
                     Use <strong>- item</strong> for bullet points &nbsp;|&nbsp; <strong>## Heading</strong> for sub-headings &nbsp;|&nbsp; <strong>![](image-url)</strong> to embed a photo
                   </p>

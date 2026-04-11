@@ -465,10 +465,6 @@ export default function ProductDetail() {
                 </div>
               )}
 
-              <p className="text-sm md:text-lg text-gray-500 leading-relaxed font-medium line-clamp-3">
-                {product.description.split('\n')[0]}
-              </p>
-
               {/* Share + Wishlist */}
               <div className="flex gap-2 mt-4">
                 <button
