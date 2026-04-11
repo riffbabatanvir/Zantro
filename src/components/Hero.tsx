@@ -48,16 +48,18 @@ export default function Hero() {
       <AnimatePresence mode="wait">
         <motion.div key={current} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.5 }} className="absolute inset-0">
-          <div className={`w-full h-full bg-gradient-to-r ${slides[current]?.color || DEFAULT_SLIDES[0].color} flex items-center relative`}>
-            <div className="absolute inset-0" style={{ opacity: slides[current]?.imageOpacity ?? 0.3 }}>
+          <div className={`w-full h-full bg-gradient-to-r ${slides[current]?.color || DEFAULT_SLIDES[0].color} flex items-center`}
+            style={{ position: 'relative' }}>
+            {/* Image layer */}
+            <div style={{ position: 'absolute', inset: 0, opacity: slides[current]?.imageOpacity ?? 0.3, zIndex: 0 }}>
               <img src={slides[current]?.image} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             </div>
-            {/* Dark overlay so text stays readable at any image opacity */}
+            {/* Dark overlay for text readability */}
             {!slides[current]?.hideText && (
-              <div className="absolute inset-0 bg-black/40" />
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1 }} />
             )}
             {!slides[current]?.hideText && (
-              <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full z-10">
+              <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full" style={{ position: 'relative', zIndex: 2 }}>
                 <div className="max-w-xl text-white">
                   <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                     className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-bold tracking-widest uppercase mb-4">
