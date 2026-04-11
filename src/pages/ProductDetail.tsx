@@ -10,6 +10,88 @@ import { toast } from 'sonner';
 import { useWishlist } from '../WishlistContext';
 import { Helmet } from 'react-helmet-async';
 
+
+// Renders description text that supports:
+//   - Lines starting with "- " or "• " → bullet points
+//   - Lines matching ![](url) → inline image
+//   - Lines starting with "## " → sub-heading
+//   - Blank lines → paragraph break
+//   - Everything else → paragraph text
+function RichDescription({ text }: { text: string }) {
+  if (!text) return null;
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  let bulletBuffer: string[] = [];
+
+  const flushBullets = (key: string) => {
+    if (bulletBuffer.length === 0) return;
+    elements.push(
+      <ul key={key} style={{ listStyle: 'none', padding: 0, margin: '12px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {bulletBuffer.map((b, i) => (
+          <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '14px', color: 'inherit', lineHeight: 1.6 }}>
+            <span style={{ color: '#f97316', fontWeight: 900, fontSize: '16px', lineHeight: 1.4, flexShrink: 0 }}>•</span>
+            <span>{b}</span>
+          </li>
+        ))}
+      </ul>
+    );
+    bulletBuffer = [];
+  };
+
+  lines.forEach((line, i) => {
+    const trimmed = line.trim();
+
+    // Image: ![](url) or ![alt](url)
+    const imgMatch = trimmed.match(/^!\[.*?\]\((.+?)\)$/);
+    if (imgMatch) {
+      flushBullets(`b-${i}`);
+      elements.push(
+        <img key={i} src={imgMatch[1]} alt="Product detail"
+          style={{ width: '100%', borderRadius: '12px', margin: '16px 0', display: 'block', objectFit: 'cover' }}
+          referrerPolicy="no-referrer"
+        />
+      );
+      return;
+    }
+
+    // Sub-heading: ## text
+    if (trimmed.startsWith('## ')) {
+      flushBullets(`b-${i}`);
+      elements.push(
+        <p key={i} style={{ fontWeight: 700, fontSize: '15px', marginTop: '20px', marginBottom: '6px' }}
+          className="text-gray-900 dark:text-white">
+          {trimmed.slice(3)}
+        </p>
+      );
+      return;
+    }
+
+    // Bullet: - text or • text
+    if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+      bulletBuffer.push(trimmed.slice(2));
+      return;
+    }
+
+    // Blank line: flush bullets, skip
+    if (trimmed === '') {
+      flushBullets(`b-${i}`);
+      return;
+    }
+
+    // Normal paragraph
+    flushBullets(`b-${i}`);
+    elements.push(
+      <p key={i} style={{ fontSize: '14px', lineHeight: 1.7, margin: '8px 0' }}
+        className="text-gray-600 dark:text-gray-400">
+        {trimmed}
+      </p>
+    );
+  });
+
+  flushBullets('b-end');
+  return <div>{elements}</div>;
+}
+
 export default function ProductDetail() {
   const { id } = useParams();
   const { products, isLoading } = useProducts();
@@ -383,8 +465,8 @@ export default function ProductDetail() {
                 </div>
               )}
 
-              <p className="text-sm md:text-lg text-gray-500 leading-relaxed font-medium">
-                {product.description}
+              <p className="text-sm md:text-lg text-gray-500 leading-relaxed font-medium line-clamp-3">
+                {product.description.split('\n')[0]}
               </p>
 
               {/* Share + Wishlist */}
@@ -525,6 +607,16 @@ export default function ProductDetail() {
             </div>
           </div>
         </div>
+
+        {/* Rich Product Description Section */}
+        {product.description && (
+          <section className="px-4 md:px-0 mb-16 border-t border-gray-100 dark:border-neutral-800 pt-12">
+            <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight mb-6 uppercase text-[13px] tracking-widest">Product Description</h2>
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 md:p-8 border border-gray-100 dark:border-neutral-800">
+              <RichDescription text={product.description} />
+            </div>
+          </section>
+        )}
 
         {/* Customer Reviews Section */}
         <section className="px-4 md:px-0 mb-16 md:mb-32 border-t border-gray-100 dark:border-neutral-800 pt-16">
