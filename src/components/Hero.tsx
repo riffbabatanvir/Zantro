@@ -43,66 +43,89 @@ export default function Hero() {
   const prev = () => setCurrent(p => (p - 1 + slides.length) % slides.length);
   const next = () => setCurrent(p => (p + 1) % slides.length);
 
+  const slide = slides[current] || DEFAULT_SLIDES[0];
+  const imgOpacity = slide.imageOpacity ?? 0.3;
+  const hideText = slide.hideText === true || slide.hideText === 'true';
+
+  // Resolve gradient to actual CSS colors for inline style
+  const gradientMap: Record<string, string> = {
+    'from-orange-500 to-red-600':   'linear-gradient(to right, #f97316, #dc2626)',
+    'from-blue-500 to-indigo-600':  'linear-gradient(to right, #3b82f6, #4f46e5)',
+    'from-purple-500 to-pink-600':  'linear-gradient(to right, #a855f7, #db2777)',
+    'from-green-500 to-teal-600':   'linear-gradient(to right, #22c55e, #0d9488)',
+    'from-rose-500 to-orange-500':  'linear-gradient(to right, #f43f5e, #f97316)',
+    'from-indigo-500 to-purple-600':'linear-gradient(to right, #6366f1, #9333ea)',
+  };
+  const bgGradient = gradientMap[slide.color] || gradientMap['from-orange-500 to-red-600'];
+
   return (
-    <div className="relative h-[40vh] md:h-[60vh] w-full overflow-hidden bg-gray-100">
+    <div style={{ position: 'relative', width: '100%', overflow: 'hidden', background: '#e5e7eb' }}
+      className="h-[40vh] md:h-[60vh]">
+
       <AnimatePresence mode="wait">
         <motion.div key={current} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.5 }} className="absolute inset-0">
-          <div className={`w-full h-full bg-gradient-to-r ${slides[current]?.color || DEFAULT_SLIDES[0].color} flex items-center`}
-            style={{ position: 'relative' }}>
-            {/* Image layer */}
-            <div style={{ position: 'absolute', inset: 0, opacity: slides[current]?.imageOpacity ?? 0.3, zIndex: 0 }}>
-              <img src={slides[current]?.image} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-            </div>
-            {/* Dark overlay for text readability */}
-            {!slides[current]?.hideText && (
-              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1 }} />
-            )}
-            {!slides[current]?.hideText && (
-              <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full" style={{ position: 'relative', zIndex: 2 }}>
-                <div className="max-w-xl text-white">
+          exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.5 }}
+          style={{ position: 'absolute', inset: 0 }}>
+
+          {/* Layer 0 — gradient background */}
+          <div style={{ position: 'absolute', inset: 0, background: bgGradient, zIndex: 0 }} />
+
+          {/* Layer 1 — product image at chosen opacity */}
+          <div style={{ position: 'absolute', inset: 0, zIndex: 1, opacity: imgOpacity }}>
+            <img src={slide.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} referrerPolicy="no-referrer" />
+          </div>
+
+          {/* Layer 2 — dark scrim so text is always readable (only when text is shown) */}
+          {!hideText && (
+            <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'rgba(0,0,0,0.45)' }} />
+          )}
+
+          {/* Layer 3 — text content, always on top */}
+          {!hideText && (
+            <div style={{ position: 'absolute', inset: 0, zIndex: 3, display: 'flex', alignItems: 'center' }}>
+              <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '0 1.5rem', width: '100%' }}>
+                <div style={{ maxWidth: '36rem', color: 'white' }}>
                   <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                    className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-bold tracking-widest uppercase mb-4">
-                    {t(slides[current]?.subtitle || '')}
+                    style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(255,255,255,0.2)', borderRadius: '999px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '16px' }}>
+                    {t(slide.subtitle || '')}
                   </motion.span>
                   <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-                    className="text-4xl md:text-7xl font-black leading-tight mb-4 tracking-tighter">
-                    {t(slides[current]?.title || '')}
+                    style={{ fontSize: 'clamp(2rem, 6vw, 4.5rem)', fontWeight: 900, lineHeight: 1.1, marginBottom: '16px', letterSpacing: '-0.03em' }}>
+                    {t(slide.title || '')}
                   </motion.h1>
                   <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                    className="text-sm md:text-lg text-white/90 mb-8 font-medium">
-                    {slides[current]?.description}
+                    style={{ fontSize: '14px', color: 'rgba(255,255,255,0.9)', marginBottom: '32px', fontWeight: 500, lineHeight: 1.6 }}>
+                    {slide.description}
                   </motion.p>
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                    <Link to={slides[current]?.productId ? `/product/${slides[current].productId}` : '/shop'}
-                      className="inline-flex items-center gap-2 bg-white text-orange-600 px-8 py-3 rounded-full text-sm font-black hover:bg-orange-50 transition-all shadow-lg shadow-black/10">
+                    <Link to={slide.productId ? `/product/${slide.productId}` : '/shop'}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', color: '#ea580c', padding: '12px 32px', borderRadius: '999px', fontSize: '14px', fontWeight: 900, textDecoration: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}>
                       {t('Shop Now')} <ArrowRight size={16} />
                     </Link>
                   </motion.div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </motion.div>
       </AnimatePresence>
 
-      {/* Prev/Next arrows */}
+      {/* Prev/Next arrows — always on top */}
       {slides.length > 1 && (
         <>
-          <button onClick={prev} className="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors">
+          <button onClick={prev} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', zIndex: 10, width: '32px', height: '32px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}>
             <ChevronLeft size={18} />
           </button>
-          <button onClick={next} className="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors">
+          <button onClick={next} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', zIndex: 10, width: '32px', height: '32px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}>
             <ChevronRight size={18} />
           </button>
         </>
       )}
 
-      {/* Indicators */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex space-x-2">
+      {/* Indicators — always on top */}
+      <div style={{ position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', gap: '8px' }}>
         {slides.map((_, i) => (
-          <button key={i} onClick={() => setCurrent(i)}
-            className={`h-1.5 rounded-full transition-all ${current === i ? 'w-8 bg-white' : 'w-2 bg-white/40'}`} />
+          <button key={i} onClick={() => setCurrent(i)} style={{ height: '6px', borderRadius: '999px', border: 'none', cursor: 'pointer', background: 'white', opacity: current === i ? 1 : 0.4, width: current === i ? '32px' : '8px', transition: 'all 0.3s' }} />
         ))}
       </div>
     </div>
