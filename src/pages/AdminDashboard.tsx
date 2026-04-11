@@ -1491,6 +1491,15 @@ export default function AdminDashboard() {
                         <input value={slide.description} onChange={e => updateHeroSlide(slide.id, 'description', e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-orange-500 outline-none" /></div>
                       <div className="md:col-span-2"><label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-1 block">Background Image URL</label>
                         <input value={slide.image} onChange={e => updateHeroSlide(slide.id, 'image', e.target.value)} placeholder="https://..." className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-orange-500 outline-none" /></div>
+                      <div className="md:col-span-2"><label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-1 block">Link "Shop Now" to Product <span className="normal-case text-black/20 dark:text-white/20">(optional — leave blank to go to /shop)</span></label>
+                        <select value={slide.productId || ''} onChange={e => updateHeroSlide(slide.id, 'productId', e.target.value)}
+                          className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-orange-500 outline-none">
+                          <option value="">— No specific product (goes to Shop page) —</option>
+                          {products.map((p: any) => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                        </select>
+                      </div>
                       <div className="md:col-span-2"><label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-1 block">Gradient Color</label>
                         <div className="flex flex-wrap gap-2">
                           {GRADIENT_OPTIONS.map(g => (
@@ -2612,13 +2621,8 @@ export default function AdminDashboard() {
                           <input type="number" min="0" value={editProductData.reviewCount || ''} onChange={(e) => setEditProductData({...editProductData, reviewCount: e.target.value})}
                             className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none" placeholder="Review Count" />
                         </div>
-                        <div className="md:col-span-2 space-y-1">
-                          <textarea value={editProductData.description} onChange={(e) => setEditProductData({...editProductData, description: e.target.value})}
-                            className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none font-mono" placeholder="Description" rows={8} style={{ resize: 'vertical', minHeight: '180px' }} />
-                          <p className="text-[10px] text-black/30 dark:text-white/30 leading-relaxed">
-                    Bullet: <strong>- item</strong> &nbsp;|&nbsp; Heading: <strong>## Title</strong> &nbsp;|&nbsp; Image: <strong>![](https://image-url.jpg)</strong> — must have parentheses around URL
-                  </p>
-                        </div>
+                        <textarea value={editProductData.description} onChange={(e) => setEditProductData({...editProductData, description: e.target.value})}
+                          className="w-full md:col-span-2 bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:border-orange-500 outline-none resize-none" placeholder="Description" rows={2} />
                         {/* Stock & Variants */}
                         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3">
                           <div className="space-y-1">
@@ -2997,11 +3001,8 @@ export default function AdminDashboard() {
 
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40"><FileText size={14} /> Description</label>
-                  <textarea required rows={8} value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} placeholder={"Describe the product...\n\n## Key Features\n- Feature one\n- Feature two\n\n## Specifications\n- Material: Cotton\n- Size: S, M, L\n\n![](https://image-url-here.jpg)"}
-                    className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors font-mono" style={{ resize: 'vertical', minHeight: '180px' }} />
-                  <p className="text-[10px] text-black/30 dark:text-white/30 leading-relaxed">
-                    Bullet: <strong>- item</strong> &nbsp;|&nbsp; Heading: <strong>## Title</strong> &nbsp;|&nbsp; Image: <strong>![](https://image-url.jpg)</strong> — must have parentheses around URL
-                  </p>
+                  <textarea required rows={4} value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} placeholder="Describe the product features, materials, etc."
+                    className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors resize-none" />
                 </div>
 
                 <div className="pt-4 border-t border-black/5 dark:border-white/5">

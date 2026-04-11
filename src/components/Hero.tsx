@@ -67,7 +67,7 @@ export default function Hero() {
                   {slides[current]?.description}
                 </motion.p>
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                  <Link to="/shop"
+                  <Link to={slides[current]?.productId ? `/product/${slides[current].productId}` : '/shop'}
                     className="inline-flex items-center gap-2 bg-white text-orange-600 px-8 py-3 rounded-full text-sm font-black hover:bg-orange-50 transition-all shadow-lg shadow-black/10">
                     {t('Shop Now')} <ArrowRight size={16} />
                   </Link>
