@@ -937,15 +937,28 @@ async function startServer() {
         };
 
         const productImage = (p.images && p.images.length > 0 ? p.images[0] : p.image) || '';
-        const productDesc = (p.description || '').replace(/[<>"]/g, ' ').slice(0, 155);
+        const productDesc = (p.description || '').replace(/[<>"&]/g, ' ').slice(0, 155);
         const productUrl = `https://zantrobd.com/product/${p.id}`;
         const productTitle = `${p.name} — Zantro`;
 
-        const ogTags = `
+        // Remove all existing og:*, twitter:*, <title>, and <meta name="description"> tags
+        // so the product-specific ones we inject are the ONLY ones platforms see
+        let injected = html
+          .replace(/<meta\s+property="og:[^"]*"[^>]*\/?>/gi, '')
+          .replace(/<meta\s+property="twitter:[^"]*"[^>]*\/?>/gi, '')
+          .replace(/<meta\s+name="twitter:[^"]*"[^>]*\/?>/gi, '')
+          .replace(/<meta\s+property="product:[^"]*"[^>]*\/?>/gi, '')
+          .replace(/<meta\s+name="description"[^>]*\/?>/gi, '')
+          .replace(/<title>[^<]*<\/title>/gi, '');
+
+        // Inject product OG tags right after <head>
+        const ogTags = `<title>${productTitle}</title>
+    <meta name="description" content="${productDesc}" />
     <meta property="og:type" content="product" />
     <meta property="og:title" content="${productTitle}" />
     <meta property="og:description" content="${productDesc}" />
     <meta property="og:image" content="${productImage}" />
+    <meta property="og:image:secure_url" content="${productImage}" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:url" content="${productUrl}" />
@@ -956,14 +969,9 @@ async function startServer() {
     <meta name="twitter:title" content="${productTitle}" />
     <meta name="twitter:description" content="${productDesc}" />
     <meta name="twitter:image" content="${productImage}" />
-    <title>${productTitle}</title>
-    <meta name="description" content="${productDesc}" />
-    <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`
+    <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
 
-        const injected = html.replace(
-          '</head>',
-          `${ogTags}\n</head>`
-        );
+        injected = injected.replace('<head>', `<head>\n    ${ogTags}`);
         res.send(injected);
       } catch {
         const html = await fs.promises.readFile(path.join(distPath, 'index.html'), 'utf-8');
