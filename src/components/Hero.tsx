@@ -52,6 +52,10 @@ export default function Hero() {
             <div className="absolute inset-0" style={{ opacity: slides[current]?.imageOpacity ?? 0.3 }}>
               <img src={slides[current]?.image} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             </div>
+            {/* Dark overlay so text stays readable at any image opacity */}
+            {!slides[current]?.hideText && (
+              <div className="absolute inset-0 bg-black/40" />
+            )}
             {!slides[current]?.hideText && (
               <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full z-10">
                 <div className="max-w-xl text-white">
