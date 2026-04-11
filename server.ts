@@ -622,6 +622,24 @@ app.post('/api/hero-slides', async (req, res) => {
   res.json({ slides });
 });
 
+
+// ─── Recommended Products Settings ───────────────────────────────────────────
+app.get('/api/settings/recommended', async (req, res) => {
+  const doc = await db.collection('settings').findOne({ key: 'recommendedProducts' });
+  res.json(doc ? doc.productIds : []);
+});
+
+app.post('/api/settings/recommended', async (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const { productIds } = req.body;
+  await db.collection('settings').updateOne(
+    { key: 'recommendedProducts' },
+    { $set: { key: 'recommendedProducts', productIds } },
+    { upsert: true }
+  );
+  res.json({ productIds });
+});
+
 // ─── Order Tracking (public — by ID) ─────────────────────────────────────────
 app.get('/api/orders/track/:id', async (req, res) => {
   const id: string = (req.params.id || '').trim();

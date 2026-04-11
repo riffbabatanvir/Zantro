@@ -12,7 +12,18 @@ import { useLanguage } from '../LanguageContext';
 export default function Home() {
   const { t } = useLanguage();
   const { products } = useProducts();
-  const featuredProducts = products.filter(p => !p.isPreowned && p.category !== 'Pre-Owned').slice(0, 8);
+  const [recommendedIds, setRecommendedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch('/api/settings/recommended')
+      .then(r => r.json())
+      .then(ids => { if (Array.isArray(ids) && ids.length > 0) setRecommendedIds(ids); })
+      .catch(() => {});
+  }, []);
+
+  const featuredProducts = recommendedIds.length > 0
+    ? recommendedIds.map(id => products.find(p => p.id === id)).filter(Boolean) as typeof products
+    : products.filter(p => !p.isPreowned && p.category !== 'Pre-Owned').slice(0, 8);
   const flashSaleProducts = products.filter(p => p.isFlashSale);
 const [flashSaleEnabled, setFlashSaleEnabled] = useState(true);
 

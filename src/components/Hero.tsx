@@ -49,31 +49,33 @@ export default function Hero() {
         <motion.div key={current} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.5 }} className="absolute inset-0">
           <div className={`w-full h-full bg-gradient-to-r ${slides[current]?.color || DEFAULT_SLIDES[0].color} flex items-center relative`}>
-            <div className="absolute inset-0 opacity-30">
+            <div className="absolute inset-0" style={{ opacity: slides[current]?.imageOpacity ?? 0.3 }}>
               <img src={slides[current]?.image} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             </div>
-            <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full z-10">
-              <div className="max-w-xl text-white">
-                <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                  className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-bold tracking-widest uppercase mb-4">
-                  {t(slides[current]?.subtitle || '')}
-                </motion.span>
-                <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-                  className="text-4xl md:text-7xl font-black leading-tight mb-4 tracking-tighter">
-                  {t(slides[current]?.title || '')}
-                </motion.h1>
-                <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                  className="text-sm md:text-lg text-white/90 mb-8 font-medium">
-                  {slides[current]?.description}
-                </motion.p>
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                  <Link to={slides[current]?.productId ? `/product/${slides[current].productId}` : '/shop'}
-                    className="inline-flex items-center gap-2 bg-white text-orange-600 px-8 py-3 rounded-full text-sm font-black hover:bg-orange-50 transition-all shadow-lg shadow-black/10">
-                    {t('Shop Now')} <ArrowRight size={16} />
-                  </Link>
-                </motion.div>
+            {!slides[current]?.hideText && (
+              <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full z-10">
+                <div className="max-w-xl text-white">
+                  <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-bold tracking-widest uppercase mb-4">
+                    {t(slides[current]?.subtitle || '')}
+                  </motion.span>
+                  <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+                    className="text-4xl md:text-7xl font-black leading-tight mb-4 tracking-tighter">
+                    {t(slides[current]?.title || '')}
+                  </motion.h1>
+                  <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+                    className="text-sm md:text-lg text-white/90 mb-8 font-medium">
+                    {slides[current]?.description}
+                  </motion.p>
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                    <Link to={slides[current]?.productId ? `/product/${slides[current].productId}` : '/shop'}
+                      className="inline-flex items-center gap-2 bg-white text-orange-600 px-8 py-3 rounded-full text-sm font-black hover:bg-orange-50 transition-all shadow-lg shadow-black/10">
+                      {t('Shop Now')} <ArrowRight size={16} />
+                    </Link>
+                  </motion.div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </motion.div>
       </AnimatePresence>

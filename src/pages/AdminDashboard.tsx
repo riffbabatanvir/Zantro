@@ -17,7 +17,7 @@ export default function AdminDashboard() {
   const [visitors, setVisitors] = useState<any[]>([]);
   const [blockedIPs, setBlockedIPs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons' | 'hero' | 'announcement' | 'preorders' | 'preowned' | 'payment' | 'translations'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'messages' | 'products' | 'visitors' | 'categories' | 'coupons' | 'hero' | 'announcement' | 'preorders' | 'preowned' | 'payment' | 'translations' | 'recommended'>('orders');
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
 
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
@@ -233,6 +233,33 @@ export default function AdminDashboard() {
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
   // Hero Slides
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
+  const [recommendedIds, setRecommendedIds] = useState<string[]>([]);
+  const [recommendedSaved, setRecommendedSaved] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/settings/recommended')
+      .then(r => r.json())
+      .then(ids => { if (Array.isArray(ids)) setRecommendedIds(ids); })
+      .catch(() => {});
+  }, []);
+
+  const toggleRecommended = (id: string) => {
+    setRecommendedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+    setRecommendedSaved(false);
+  };
+
+  const saveRecommended = async () => {
+    const token = localStorage.getItem('adminToken');
+    await fetch('/api/settings/recommended', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ productIds: recommendedIds }),
+    });
+    setRecommendedSaved(true);
+    setTimeout(() => setRecommendedSaved(false), 2500);
+  };
   const [isSavingHero, setIsSavingHero] = useState(false);
 
   useEffect(() => {
@@ -898,12 +925,12 @@ export default function AdminDashboard() {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-lg flex-wrap gap-1">
-              {(['orders', 'messages', 'products', 'preowned', 'preorders', 'categories', 'coupons', 'hero', 'announcement', 'visitors', 'payment', 'translations'] as const).map(tab => (
+              {(['orders', 'messages', 'products', 'preowned', 'preorders', 'categories', 'coupons', 'hero', 'recommended', 'announcement', 'visitors', 'payment', 'translations'] as const).map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
                   className={`px-4 py-2 rounded-md text-[11px] font-medium uppercase tracking-widest transition-all ${
                     activeTab === tab ? 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-sm' : 'text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white'
                   }`}>
-                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab === 'coupons' ? 'Coupons' : tab === 'hero' ? 'Hero Slides' : tab === 'announcement' ? 'Banner' : tab === 'preorders' ? '🕐 Pre-Orders' : tab === 'preowned' ? '♻️ Pre-Owned' : tab === 'payment' ? '💳 Payment' : tab === 'translations' ? '🇧🇩 Translations' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'visitors' ? `Visitors ${onlineVisitors > 0 ? `(${onlineVisitors} 🟢)` : ''}` : tab === 'categories' ? 'Categories' : tab === 'coupons' ? 'Coupons' : tab === 'hero' ? 'Hero Slides' : tab === 'announcement' ? 'Banner' : tab === 'preorders' ? '🕐 Pre-Orders' : tab === 'preowned' ? '♻️ Pre-Owned' : tab === 'payment' ? '💳 Payment' : tab === 'translations' ? '🇧🇩 Translations' : tab === 'recommended' ? '⭐ Recommended' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </button>
               ))}
             </div>
@@ -1510,10 +1537,85 @@ export default function AdminDashboard() {
                           ))}
                         </div>
                       </div>
+                      <div className="md:col-span-2">
+                        <label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-2 block">
+                          Image Opacity — <span className="font-black text-black/60 dark:text-white/60">{Math.round((slide.imageOpacity ?? 0.3) * 100)}%</span>
+                          <span className="normal-case text-black/20 dark:text-white/20 ml-2">(0% = invisible, 100% = full image, no gradient overlay)</span>
+                        </label>
+                        <input type="range" min="0" max="100" step="5"
+                          value={Math.round((slide.imageOpacity ?? 0.3) * 100)}
+                          onChange={e => updateHeroSlide(slide.id, 'imageOpacity', String(Number(e.target.value) / 100))}
+                          className="w-full accent-orange-500" />
+                      </div>
+                      <div className="md:col-span-2 flex items-center gap-3">
+                        <button type="button"
+                          onClick={() => updateHeroSlide(slide.id, 'hideText', String(!(slide.hideText === true || slide.hideText === 'true')))}
+                          className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${(slide.hideText === true || slide.hideText === 'true') ? 'bg-orange-500' : 'bg-black/20 dark:bg-white/20'}`}>
+                          <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${(slide.hideText === true || slide.hideText === 'true') ? 'translate-x-5' : ''}`} />
+                        </button>
+                        <label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">
+                          Hide Title, Subtitle & Shop Now button <span className="normal-case text-black/20 dark:text-white/20">(image-only banner)</span>
+                        </label>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
+            </motion.div>
+          </div>
+
+        ) : activeTab === 'recommended' ? (
+          <div className="max-w-4xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-black/5 dark:border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center text-lg">⭐</div>
+                  <div>
+                    <h2 className="text-lg font-medium text-black dark:text-white">Recommended For You</h2>
+                    <p className="text-xs text-black/40 dark:text-white/40 mt-0.5">Choose which products appear in the homepage recommended section. Selected: {recommendedIds.length}</p>
+                  </div>
+                </div>
+                <button onClick={saveRecommended}
+                  className={`px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${recommendedSaved ? 'bg-green-500 text-white' : 'bg-orange-600 text-white hover:bg-orange-700'}`}>
+                  {recommendedSaved ? '✓ Saved' : 'Save'}
+                </button>
+              </div>
+              {recommendedIds.length > 0 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-black/40 dark:text-white/40">{recommendedIds.length} product{recommendedIds.length !== 1 ? 's' : ''} selected — drag to reorder coming soon</span>
+                  <button onClick={() => { setRecommendedIds([]); setRecommendedSaved(false); }} className="text-red-400 hover:text-red-600 transition-colors font-bold">Clear all</button>
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {products.filter(p => !p.isPreowned && p.category !== 'Pre-Owned').map((product: any) => {
+                  const selected = recommendedIds.includes(product.id);
+                  const position = recommendedIds.indexOf(product.id);
+                  return (
+                    <button key={product.id} type="button" onClick={() => toggleRecommended(product.id)}
+                      className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${selected ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20' : 'border-black/5 dark:border-white/5 hover:border-orange-300 dark:hover:border-orange-700'}`}>
+                      <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-neutral-800 shrink-0">
+                        <img src={product.image} alt={product.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        {selected && (
+                          <div className="absolute inset-0 bg-orange-500/80 flex items-center justify-center">
+                            <span className="text-white text-xs font-black">#{position + 1}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-black dark:text-white truncate">{product.name}</p>
+                        <p className="text-[10px] text-black/40 dark:text-white/40">{product.category} · ৳{product.price}</p>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${selected ? 'border-orange-500 bg-orange-500' : 'border-black/20 dark:border-white/20'}`}>
+                        {selected && <span className="text-white text-[10px] font-black">✓</span>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              {products.filter(p => !p.isPreowned && p.category !== 'Pre-Owned').length === 0 && (
+                <p className="text-center text-black/30 dark:text-white/30 text-sm py-8">No products yet. Add products first.</p>
+              )}
             </motion.div>
           </div>
 
