@@ -21,14 +21,19 @@ export const GRADIENT_OPTIONS = [
 
 export default function Hero() {
   const { t } = useLanguage();
-  const [slides, setSlides] = useState(DEFAULT_SLIDES);
+  const [slides, setSlides] = useState<typeof DEFAULT_SLIDES>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
     fetch('/api/hero-slides')
       .then(r => r.json())
-      .then(data => { if (Array.isArray(data) && data.length > 0) setSlides(data); })
-      .catch(() => {});
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) setSlides(data);
+        else setSlides(DEFAULT_SLIDES);
+      })
+      .catch(() => { setSlides(DEFAULT_SLIDES); })
+      .finally(() => setIsLoading(false));
   }, []);
 
   useEffect(() => {
@@ -77,6 +82,12 @@ export default function Hero() {
     'from-indigo-500 to-purple-600':'linear-gradient(to right, #6366f1, #9333ea)',
   };
   const bgGradient = gradientMap[slide.color] || gradientMap['from-orange-500 to-red-600'];
+
+  if (isLoading) {
+    return (
+      <div className="h-[40vh] md:h-[60vh] w-full bg-gray-200 dark:bg-neutral-800 animate-pulse" />
+    );
+  }
 
   return (
     <div style={{ position: 'relative', width: '100%', overflow: 'hidden', background: '#e5e7eb', touchAction: 'pan-y' }}
