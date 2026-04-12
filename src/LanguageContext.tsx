@@ -114,6 +114,7 @@ export const DEFAULT_TRANSLATIONS: Record<string, string> = {
   'Size': 'সাইজ',
   'Color': 'রঙ',
   'Share': 'শেয়ার করুন',
+  'WhatsApp Order': 'হোয়াটসঅ্যাপে অর্ডার করুন',
   'Add to Wishlist': 'উইশলিস্টে যোগ করুন',
   'Related Products': 'সম্পর্কিত পণ্য',
   'Customer Reviews': 'গ্রাহক রিভিউ',
