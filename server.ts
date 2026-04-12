@@ -510,6 +510,30 @@ app.post('/api/orders/:id/cancel-request', async (req, res) => {
       { _id: new ObjectId(id) },
       { $set: { cancelRequest: { reason, requestedAt: new Date().toISOString() } } }
     );
+
+    // Alert admin
+    const apiKey = process.env.RESEND_API_KEY;
+    const shortId = id.slice(-6).toUpperCase();
+    if (apiKey) {
+      fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: 'Zantro Orders <orders@zantrobd.com>',
+          to: process.env.ADMIN_EMAIL || 'store@zantrobd.com',
+          subject: `⚠ Cancel Request — Order #${shortId}`,
+          html: `<div style="font-family:sans-serif;padding:32px;max-width:480px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #e5e7eb;">
+            <h2 style="color:#dc2626;margin:0 0 16px;">⚠ Cancellation Request</h2>
+            <p style="margin:0 0 8px;font-size:14px;"><strong>Order:</strong> #${shortId}</p>
+            <p style="margin:0 0 8px;font-size:14px;"><strong>Customer:</strong> ${order.customerInfo?.fullName}</p>
+            <p style="margin:0 0 8px;font-size:14px;"><strong>Phone:</strong> ${order.customerInfo?.phone}</p>
+            <p style="margin:0 0 8px;font-size:14px;"><strong>Reason:</strong> ${reason}</p>
+            <p style="margin:16px 0 0;font-size:12px;color:#6b7280;">Go to your admin dashboard to review and take action.</p>
+          </div>`,
+        }),
+      }).catch(() => {});
+    }
+
     res.json({ success: true });
   } catch {
     res.status(500).json({ error: 'Failed to submit cancellation request' });

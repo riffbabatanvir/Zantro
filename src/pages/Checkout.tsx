@@ -258,7 +258,23 @@ export default function Checkout() {
                   </div>
                   <div className="col-span-2 sm:col-span-1">
                     <label className={`block text-[10px] uppercase ${tracking} text-black/40 dark:text-white/40 mb-2`}>{t('Phone')}</label>
-                    <input required type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm" />
+                    <input
+                      required
+                      type="tel"
+                      value={formData.phone}
+                      onChange={e => {
+                        const val = e.target.value.replace(/[^\d+]/g, '');
+                        setFormData({...formData, phone: val});
+                      }}
+                      pattern="^(?:\+?88)?01[3-9]\d{8}$"
+                      title="Enter a valid Bangladeshi phone number (e.g. 01XXXXXXXXX)"
+                      placeholder="01XXXXXXXXX"
+                      maxLength={14}
+                      className="w-full border-b border-black/10 dark:border-white/10 py-2 focus:border-black dark:border-white outline-none transition-colors text-sm"
+                    />
+                    {formData.phone && !/^(?:\+?88)?01[3-9]\d{8}$/.test(formData.phone) && (
+                      <p className="text-[10px] text-red-500 mt-1">Enter a valid BD number (e.g. 01XXXXXXXXX)</p>
+                    )}
                   </div>
                 </div>
               </section>
