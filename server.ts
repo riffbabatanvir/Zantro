@@ -331,6 +331,91 @@ async function sendOrderConfirmationEmail(order: any, orderId: string) {
   }
 }
 
+// ─── Admin New Order Alert ────────────────────────────────────────────────────
+async function sendAdminNewOrderAlert(order: any, orderId: string) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return;
+  const shortId = orderId.slice(-6).toUpperCase();
+  const items = order.items || [];
+  const itemList = items.map((i: any) => `${i.name} x${i.quantity} — ৳${i.price * i.quantity}`).join('<br/>');
+  const html = `
+<!DOCTYPE html><html><body style="font-family:sans-serif;background:#f9fafb;padding:32px;">
+  <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:12px;padding:32px;border:1px solid #e5e7eb;">
+    <h2 style="margin:0 0 4px;color:#ea580c;">🛍 New Order #${shortId}</h2>
+    <p style="margin:0 0 24px;color:#6b7280;font-size:13px;">${new Date().toLocaleString()}</p>
+    <p style="margin:0 0 8px;font-size:14px;"><strong>Customer:</strong> ${order.customerInfo?.fullName}</p>
+    <p style="margin:0 0 8px;font-size:14px;"><strong>Phone:</strong> ${order.customerInfo?.phone}</p>
+    <p style="margin:0 0 8px;font-size:14px;"><strong>Address:</strong> ${order.customerInfo?.address}</p>
+    <p style="margin:0 0 8px;font-size:14px;"><strong>Payment:</strong> ${order.paymentMethod}</p>
+    <hr style="margin:16px 0;border:none;border-top:1px solid #f3f4f6;"/>
+    <p style="margin:0 0 8px;font-size:13px;color:#6b7280;">${itemList}</p>
+    <hr style="margin:16px 0;border:none;border-top:1px solid #f3f4f6;"/>
+    <p style="margin:0;font-size:16px;font-weight:900;color:#ea580c;">Total: ৳${order.finalTotal?.toLocaleString()}</p>
+  </div>
+</body></html>`;
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'Zantro Orders <orders@zantrobd.com>',
+        to: process.env.ADMIN_EMAIL || 'store@zantrobd.com',
+        subject: `New Order #${shortId} — ৳${order.finalTotal?.toLocaleString()}`,
+        html,
+      }),
+    });
+  } catch (err) { console.error('Failed to send admin order alert:', err); }
+}
+
+// ─── Customer Status Email (cancelled / delivered) ────────────────────────────
+async function sendStatusEmail(order: any, orderId: string, status: 'cancelled' | 'delivered') {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey || !order.customerInfo?.email) return;
+  const shortId = orderId.slice(-6).toUpperCase();
+  const isCancelled = status === 'cancelled';
+  const subject = isCancelled
+    ? `Your Order #${shortId} Has Been Cancelled — Zantro`
+    : `Your Order #${shortId} Has Been Delivered — Zantro`;
+  const headerColor = isCancelled ? '#dc2626' : '#16a34a';
+  const headerText = isCancelled ? 'Order Cancelled' : 'Order Delivered!';
+  const bodyText = isCancelled
+    ? 'Unfortunately your order has been cancelled. If you paid, a refund will be processed shortly. Contact us at store@zantrobd.com for any questions.'
+    : 'Great news! Your order has been delivered. We hope you love your purchase! If you have any issues, please contact us at store@zantrobd.com.';
+  const html = `
+<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+    <div style="background:${headerColor};padding:32px 40px;text-align:center;">
+      <h1 style="margin:0;color:#fff;font-size:28px;font-weight:800;">ZANTRO</h1>
+      <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:13px;text-transform:uppercase;letter-spacing:2px;">${headerText}</p>
+    </div>
+    <div style="padding:40px;">
+      <p style="margin:0 0 8px;font-size:16px;color:#111;">Hi <strong>${order.customerInfo.fullName}</strong>,</p>
+      <p style="margin:0 0 32px;font-size:14px;color:#6b7280;line-height:1.6;">${bodyText}</p>
+      <div style="background:#f9fafb;border-radius:12px;padding:20px;text-align:center;">
+        <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#9ca3af;">Order ID</p>
+        <p style="margin:0;font-size:28px;font-weight:900;color:${headerColor};font-family:monospace;letter-spacing:2px;">#${shortId}</p>
+      </div>
+    </div>
+    <div style="padding:24px 40px;background:#f9fafb;text-align:center;border-top:1px solid #f3f4f6;">
+      <a href="mailto:store@zantrobd.com" style="font-size:12px;color:#ea580c;text-decoration:none;">store@zantrobd.com</a>
+      <p style="margin:12px 0 0;font-size:11px;color:#d1d5db;">© ${new Date().getFullYear()} Zantro. Bangladesh.</p>
+    </div>
+  </div>
+</body></html>`;
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'Zantro <orders@zantrobd.com>',
+        to: order.customerInfo.email,
+        subject,
+        html,
+      }),
+    });
+  } catch (err) { console.error(`Failed to send ${status} email:`, err); }
+}
+
 // Orders
 app.post('/api/orders', async (req, res) => {
   const ip = getIP(req);
@@ -376,8 +461,9 @@ app.post('/api/orders', async (req, res) => {
   const result = await db.collection('orders').insertOne(order);
   const orderId = result.insertedId.toString();
 
-  // Send confirmation email (non-blocking — don't await so it doesn't delay the response)
+  // Send confirmation email to customer + alert to admin (non-blocking)
   sendOrderConfirmationEmail(order, orderId).catch(() => {});
+  sendAdminNewOrderAlert(order, orderId).catch(() => {});
 
   res.status(201).json({ ...order, id: orderId });
 });
@@ -391,7 +477,7 @@ app.get('/api/orders', async (req, res) => {
 app.patch('/api/orders/:id/status', async (req, res) => {
   if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
   const { id } = req.params;
-  const { status, remark, fullPaid, refunded } = req.body;
+  const { status, remark, fullPaid, refunded, sendEmail } = req.body;
   try {
     const update: any = {};
     if (status !== undefined) update.status = status;
@@ -400,6 +486,12 @@ app.patch('/api/orders/:id/status', async (req, res) => {
     if (refunded !== undefined) update.refunded = refunded;
     await db.collection('orders').updateOne({ _id: new ObjectId(id) }, { $set: update });
     const updated = await db.collection('orders').findOne({ _id: new ObjectId(id) });
+
+    // Optionally send customer email for cancelled/delivered
+    if (sendEmail && (status === 'cancelled' || status === 'delivered') && updated) {
+      sendStatusEmail(updated, id, status).catch(() => {});
+    }
+
     res.json({ ...updated, id: updated._id.toString() });
   } catch {
     res.status(404).json({ error: 'Order not found' });

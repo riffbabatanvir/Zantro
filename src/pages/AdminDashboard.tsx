@@ -472,15 +472,15 @@ export default function AdminDashboard() {
     } catch { toast.error('An error occurred'); }
   };
 
-  const handleCancelOrder = async (orderId: string) => {
+  const handleCancelOrder = async (orderId: string, sendEmail: boolean = false) => {
     try {
       const token = localStorage.getItem('adminToken');
       const res = await fetch(`/api/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ status: 'cancelled' })
+        body: JSON.stringify({ status: 'cancelled', sendEmail })
       });
-      if (res.ok) { setOrders(orders.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o)); toast.success('Order cancelled successfully'); }
+      if (res.ok) { setOrders(orders.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o)); toast.success('Order cancelled' + (sendEmail ? ' & customer notified' : '')); }
       else toast.error('Failed to cancel order');
     } catch { toast.error('An error occurred'); }
   };
@@ -518,15 +518,15 @@ export default function AdminDashboard() {
     finally { setSavingRemark(null); }
   };
 
-  const handleUpdateStatus = async (orderId: string, status: string) => {
+  const handleUpdateStatus = async (orderId: string, status: string, sendEmail: boolean = false) => {
     try {
       const token = localStorage.getItem('adminToken');
       const res = await fetch(`/api/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status, sendEmail })
       });
-      if (res.ok) { setOrders(orders.map(o => o.id === orderId ? { ...o, status } : o)); toast.success(`Order marked as ${status}`); }
+      if (res.ok) { setOrders(orders.map(o => o.id === orderId ? { ...o, status } : o)); toast.success(`Order marked as ${status}` + (sendEmail ? ' & customer notified' : '')); }
       else toast.error('Failed to update order status');
     } catch { toast.error('An error occurred'); }
   };
@@ -1240,16 +1240,30 @@ export default function AdminDashboard() {
                                 </button>
                               )}
                               {order.status === 'shipped' && (
-                                <button onClick={() => handleUpdateStatus(order.id, 'delivered')}
-                                  className="w-full flex items-center justify-center gap-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 py-2.5 rounded-lg text-[11px] font-medium uppercase tracking-widest hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
-                                  <CheckCircle size={14} /> Mark as Delivered
-                                </button>
+                                <div className="flex gap-2">
+                                  <button onClick={() => handleUpdateStatus(order.id, 'delivered', false)}
+                                    className="flex-1 flex items-center justify-center gap-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 py-2.5 rounded-lg text-[11px] font-medium uppercase tracking-widest hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
+                                    <CheckCircle size={14} /> Delivered
+                                  </button>
+                                  <button onClick={() => handleUpdateStatus(order.id, 'delivered', true)}
+                                    title="Mark delivered & email customer"
+                                    className="flex items-center justify-center gap-1 bg-green-600 text-white px-3 py-2.5 rounded-lg text-[11px] font-medium uppercase tracking-widest hover:bg-green-700 transition-colors">
+                                    <CheckCircle size={14} /> + ✉
+                                  </button>
+                                </div>
                               )}
                               {(order.status !== 'delivered' && order.status !== 'cancelled') && (
-                                <button onClick={() => handleCancelOrder(order.id)}
-                                  className="w-full flex items-center justify-center gap-2 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 py-2.5 rounded-lg text-[11px] font-medium uppercase tracking-widest hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors">
-                                  <XCircle size={14} /> Cancel Order
-                                </button>
+                                <div className="flex gap-2">
+                                  <button onClick={() => handleCancelOrder(order.id, false)}
+                                    className="flex-1 flex items-center justify-center gap-2 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 py-2.5 rounded-lg text-[11px] font-medium uppercase tracking-widest hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors">
+                                    <XCircle size={14} /> Cancel
+                                  </button>
+                                  <button onClick={() => handleCancelOrder(order.id, true)}
+                                    title="Cancel & email customer"
+                                    className="flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2.5 rounded-lg text-[11px] font-medium uppercase tracking-widest hover:bg-red-700 transition-colors">
+                                    <XCircle size={14} /> + ✉
+                                  </button>
+                                </div>
                               )}
                               {order.status === 'cancelled' && (
                                 <button onClick={() => handleToggleRefund(order.id, !!order.refunded)}
