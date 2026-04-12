@@ -5,7 +5,7 @@ import { useLanguage } from '../LanguageContext';
 import { useRef, useState, useEffect } from 'react';
 
 export default function CategorySection() {
-  const { images, categories } = useCategoryImages();
+  const { images, categories, isLoading } = useCategoryImages();
   const { t } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showHint, setShowHint] = useState(true);
@@ -53,7 +53,14 @@ export default function CategorySection() {
             ref={scrollRef}
             className="flex md:grid md:grid-cols-5 lg:grid-cols-9 gap-4 md:gap-6 overflow-x-auto pb-4 md:pb-0 scrollbar-hide snap-x"
           >
-            {categories.map((category, index) => {
+            {isLoading
+              ? Array.from({ length: 9 }).map((_, i) => (
+                  <div key={i} className="snap-start shrink-0 flex flex-col items-center gap-3 w-20 md:w-auto animate-pulse">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gray-200 dark:bg-neutral-800" />
+                    <div className="h-2.5 bg-gray-200 dark:bg-neutral-800 rounded w-14" />
+                  </div>
+                ))
+              : categories.map((category, index) => {
               const imgSrc = images[category.id] || category.image;
               return (
                 <motion.div
