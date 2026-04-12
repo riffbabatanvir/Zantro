@@ -165,21 +165,6 @@ export default function ProductDetail() {
   const { toggle: toggleWishlist, isWishlisted } = useWishlist();
   const wishlisted = product ? isWishlisted(product.id) : false;
 
-  // Keyboard navigation for zoom modal
-  useEffect(() => {
-    if (!zoomedImage) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setZoomedImage(null); return; }
-      const imgs = (allMedia || []).filter((m: any) => m.type === 'image');
-      if (imgs.length <= 1) return;
-      const idx = imgs.findIndex((m: any) => m.url === zoomedImage);
-      if (e.key === 'ArrowLeft') setZoomedImage(imgs[(idx - 1 + imgs.length) % imgs.length].url);
-      if (e.key === 'ArrowRight') setZoomedImage(imgs[(idx + 1) % imgs.length].url);
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [zoomedImage, allMedia]);
-
   // Recently viewed - save to localStorage
   useEffect(() => {
     if (product) {
@@ -214,6 +199,21 @@ export default function ProductDetail() {
     }
     return media;
   }, [product]);
+
+  // Keyboard navigation for zoom modal — must be after allMedia
+  useEffect(() => {
+    if (!zoomedImage) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setZoomedImage(null); return; }
+      const imgs = allMedia.filter((m) => m.type === 'image');
+      if (imgs.length <= 1) return;
+      const idx = imgs.findIndex((m) => m.url === zoomedImage);
+      if (e.key === 'ArrowLeft') setZoomedImage(imgs[(idx - 1 + imgs.length) % imgs.length].url);
+      if (e.key === 'ArrowRight') setZoomedImage(imgs[(idx + 1) % imgs.length].url);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [zoomedImage, allMedia]);
 
   const sizeVariant = (product as any)?.variants?.find((v: any) => v.type === 'size');
   const colorVariant = (product as any)?.variants?.find((v: any) => v.type === 'color');
