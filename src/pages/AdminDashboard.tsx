@@ -335,27 +335,64 @@ export default function AdminDashboard() {
   const [announcement, setAnnouncement] = useState({ text: '', enabled: false, bgColor: '#ea580c' });
   const [isSavingAnnouncement, setIsSavingAnnouncement] = useState(false);
 
-  // FAQ
+  // FAQ — mirrors DEFAULT_FAQS in FAQ.tsx (these are the hardcoded fallbacks shown on the site)
   const DEFAULT_FAQ_SECTIONS = [
-    { category: 'Shipping', items: [{ q: 'Do you offer free shipping?', a: 'Yes! We offer free shipping for all orders within Patuakhali.' }] },
+    {
+      category: 'Shipping',
+      items: [
+        { q: 'Do you offer free shipping?', a: 'Yes! We offer free shipping for all orders within Patuakhali. For orders outside Patuakhali, a delivery charge applies depending on your location.' },
+        { q: 'How long does delivery take?', a: 'Within Patuakhali: 1-2 business days. Outside Patuakhali: 3-5 business days depending on your location.' },
+        { q: 'Do you deliver all over Bangladesh?', a: 'Yes, we deliver all over Bangladesh through our courier partners.' },
+      ],
+    },
+    {
+      category: 'Payment',
+      items: [
+        { q: 'What payment methods do you accept?', a: 'We accept bKash, Nagad, Credit/Debit cards, Cryptocurrency, and Cash on Delivery (COD).' },
+        { q: 'Is online payment safe?', a: 'Yes, all online payments are processed securely. We do not store any card information.' },
+        { q: 'Can I pay with Cash on Delivery?', a: 'Yes! Cash on Delivery is available for all orders across Bangladesh.' },
+      ],
+    },
+    {
+      category: 'Orders & Returns',
+      items: [
+        { q: 'How do I track my order?', a: 'After placing your order, you will receive an order ID. You can contact us via WhatsApp or the Contact page with your order ID to get a status update.' },
+        { q: 'Can I cancel my order?', a: 'You can cancel your order within 24 hours of placing it by contacting us. After that, the order may already be dispatched.' },
+        { q: 'What is your return policy?', a: 'We accept returns within 7 days of delivery if the product is damaged or defective. Please contact us with photos of the issue.' },
+        { q: 'What if I receive a wrong or damaged product?', a: 'Please contact us immediately via WhatsApp or the Contact page with your order ID and photos. We will arrange a replacement or refund.' },
+      ],
+    },
+    {
+      category: 'Products',
+      items: [
+        { q: 'Are all products genuine?', a: 'Yes, all products sold on Zantro are 100% genuine and sourced from verified suppliers.' },
+        { q: 'How do I choose the right size?', a: 'Each product page shows available sizes. When in doubt, check the product description or contact us for guidance.' },
+        { q: 'Can I leave a product review?', a: 'Yes! You can leave a review on any product page by scrolling down to the Customer Reviews section.' },
+      ],
+    },
   ];
   const [faqSections, setFaqSections] = useState<{ category: string; items: { q: string; a: string }[] }[]>(DEFAULT_FAQ_SECTIONS);
   const [isSavingFaq, setIsSavingFaq] = useState(false);
 
-  // About
-  const [aboutContent, setAboutContent] = useState({
-    tagline: '',
-    storyTitle: '',
-    storyP1: '',
-    storyP2: '',
-    values: [{ title: '', desc: '' }, { title: '', desc: '' }, { title: '', desc: '' }],
-    ctaTitle: '',
-  });
+  // About — mirrors DEFAULT_ABOUT in About.tsx (these are the hardcoded fallbacks shown on the site)
+  const DEFAULT_ABOUT_CONTENT = {
+    tagline: 'Curated essentials for the modern lifestyle. We bring you quality products with simplicity and purpose in every detail.',
+    storyTitle: 'Built for everyday people.',
+    storyP1: 'Zantro was founded with a simple mission — to make high-quality products accessible to everyone. We carefully source and curate every item in our store to ensure it meets our standards of quality, design, and value.',
+    storyP2: 'From fashion to electronics, home essentials to accessories — every product we carry is chosen with care and purpose.',
+    values: [
+      { title: 'Quality', desc: 'Every product is carefully selected to meet our high standards. We never compromise on quality.' },
+      { title: 'Simplicity', desc: 'We believe great design is simple. Our products are clean, minimal, and built to last.' },
+      { title: 'Purpose', desc: 'We only stock products that serve a real purpose. Nothing unnecessary, everything intentional.' },
+    ],
+    ctaTitle: 'Ready to explore?',
+  };
+  const [aboutContent, setAboutContent] = useState(DEFAULT_ABOUT_CONTENT);
   const [isSavingAbout, setIsSavingAbout] = useState(false);
 
   useEffect(() => {
     fetch('/api/announcement').then(r => r.json()).then(data => setAnnouncement({ text: data.text || '', enabled: !!data.enabled, bgColor: data.bgColor || '#ea580c' })).catch(() => {});
-    fetch('/api/faq').then(r => r.json()).then(data => { if (Array.isArray(data)) setFaqSections(data); }).catch(() => {});
+    fetch('/api/faq').then(r => r.json()).then(data => { if (Array.isArray(data) && data.length > 0) setFaqSections(data); }).catch(() => {});
     fetch('/api/about').then(r => r.json()).then(data => { if (data && typeof data === 'object') setAboutContent(prev => ({ ...prev, ...data })); }).catch(() => {});
   }, []);
 
