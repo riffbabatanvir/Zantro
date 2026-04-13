@@ -2802,6 +2802,126 @@ export default function AdminDashboard() {
               </div>
             </motion.div>
           </div>
+        ) : activeTab === 'faq' ? (
+          <div className="max-w-3xl mx-auto space-y-6">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 md:p-8 shadow-sm">
+              <div className="flex items-center gap-3 pb-4 mb-6 border-b border-black/5 dark:border-white/5">
+                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 text-orange-600 rounded-full flex items-center justify-center text-lg">❓</div>
+                <div>
+                  <h2 className="text-lg font-medium text-black dark:text-white">FAQ Editor</h2>
+                  <p className="text-xs text-black/40 dark:text-white/40 mt-0.5">Edit the FAQ sections and questions shown on your FAQ page</p>
+                </div>
+              </div>
+              <div className="space-y-6">
+                {faqSections.map((section, sIdx) => (
+                  <div key={sIdx} className="border border-black/5 dark:border-white/5 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <input value={section.category}
+                        onChange={e => { const u = [...faqSections]; u[sIdx] = { ...u[sIdx], category: e.target.value }; setFaqSections(u); }}
+                        placeholder="Category name (e.g. Shipping)"
+                        className="flex-1 bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm font-bold focus:border-orange-500 outline-none" />
+                      <button onClick={() => setFaqSections(faqSections.filter((_, i) => i !== sIdx))}
+                        className="text-red-400 hover:text-red-600 text-xs font-bold px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
+                    </div>
+                    {section.items.map((item, iIdx) => (
+                      <div key={iIdx} className="ml-4 space-y-2 border-l-2 border-orange-100 dark:border-orange-900/30 pl-4">
+                        <input value={item.q}
+                          onChange={e => { const u = [...faqSections]; u[sIdx].items[iIdx] = { ...item, q: e.target.value }; setFaqSections(u); }}
+                          placeholder="Question"
+                          className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm font-bold focus:border-orange-500 outline-none" />
+                        <div className="flex gap-2">
+                          <textarea value={item.a} rows={2}
+                            onChange={e => { const u = [...faqSections]; u[sIdx].items[iIdx] = { ...item, a: e.target.value }; setFaqSections(u); }}
+                            placeholder="Answer"
+                            className="flex-1 bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-orange-500 outline-none resize-none" />
+                          <button onClick={() => { const u = [...faqSections]; u[sIdx].items = u[sIdx].items.filter((_, i) => i !== iIdx); setFaqSections(u); }}
+                            className="text-red-400 hover:text-red-500 text-xs px-2">✕</button>
+                        </div>
+                      </div>
+                    ))}
+                    <button onClick={() => { const u = [...faqSections]; u[sIdx].items = [...u[sIdx].items, { q: '', a: '' }]; setFaqSections(u); }}
+                      className="ml-4 text-xs font-bold text-orange-500 hover:text-orange-600">+ Add Question</button>
+                  </div>
+                ))}
+                <button onClick={() => setFaqSections([...faqSections, { category: '', items: [{ q: '', a: '' }] }])}
+                  className="w-full py-2.5 border-2 border-dashed border-orange-200 dark:border-orange-900/50 text-orange-500 rounded-xl text-sm font-bold hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors">
+                  + Add Category
+                </button>
+                <button onClick={async () => {
+                  setIsSavingFaq(true);
+                  try {
+                    const token = localStorage.getItem('adminToken');
+                    await fetch('/api/faq', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ sections: faqSections }) });
+                    toast.success('FAQ saved!');
+                  } catch { toast.error('Failed to save FAQ'); }
+                  finally { setIsSavingFaq(false); }
+                }} disabled={isSavingFaq}
+                  className="w-full py-3 bg-orange-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                  <Save size={14} /> {isSavingFaq ? 'Saving...' : 'Save FAQ'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        ) : activeTab === 'about' ? (
+          <div className="max-w-2xl mx-auto space-y-6">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 md:p-8 shadow-sm space-y-5">
+              <div className="flex items-center gap-3 pb-4 border-b border-black/5 dark:border-white/5">
+                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 text-orange-600 rounded-full flex items-center justify-center text-lg">📄</div>
+                <div>
+                  <h2 className="text-lg font-medium text-black dark:text-white">About Page Editor</h2>
+                  <p className="text-xs text-black/40 dark:text-white/40 mt-0.5">Edit the content shown on your About Us page</p>
+                </div>
+              </div>
+              {([
+                { key: 'tagline', label: 'Hero Tagline', placeholder: 'Short tagline under the main heading', multiline: false },
+                { key: 'storyTitle', label: 'Our Story — Title', placeholder: 'e.g. Built for everyday people.', multiline: false },
+                { key: 'storyP1', label: 'Our Story — Paragraph 1', placeholder: '', multiline: true },
+                { key: 'storyP2', label: 'Our Story — Paragraph 2', placeholder: '', multiline: true },
+                { key: 'ctaTitle', label: 'CTA Heading', placeholder: 'e.g. Ready to explore?', multiline: false },
+              ] as { key: keyof typeof aboutContent; label: string; placeholder: string; multiline: boolean }[]).map(({ key, label, placeholder, multiline }) => (
+                <div key={key} className="space-y-1.5">
+                  <label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">{label}</label>
+                  {multiline ? (
+                    <textarea rows={3} value={aboutContent[key] as string}
+                      onChange={e => setAboutContent(prev => ({ ...prev, [key]: e.target.value }))}
+                      placeholder={placeholder}
+                      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none resize-none" />
+                  ) : (
+                    <input value={aboutContent[key] as string}
+                      onChange={e => setAboutContent(prev => ({ ...prev, [key]: e.target.value }))}
+                      placeholder={placeholder}
+                      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none" />
+                  )}
+                </div>
+              ))}
+              <div className="space-y-3">
+                <label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Our Values (3 items)</label>
+                {aboutContent.values.map((v, i) => (
+                  <div key={i} className="border border-black/5 dark:border-white/5 rounded-xl p-3 space-y-2">
+                    <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest">0{i + 1}</p>
+                    <input value={v.title} onChange={e => { const vals = [...aboutContent.values]; vals[i] = { ...vals[i], title: e.target.value }; setAboutContent(prev => ({ ...prev, values: vals })); }}
+                      placeholder="Value title" className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm font-bold focus:border-orange-500 outline-none" />
+                    <textarea value={v.desc} rows={2} onChange={e => { const vals = [...aboutContent.values]; vals[i] = { ...vals[i], desc: e.target.value }; setAboutContent(prev => ({ ...prev, values: vals })); }}
+                      placeholder="Value description" className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-orange-500 outline-none resize-none" />
+                  </div>
+                ))}
+              </div>
+              <button onClick={async () => {
+                setIsSavingAbout(true);
+                try {
+                  const token = localStorage.getItem('adminToken');
+                  await fetch('/api/about', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ content: aboutContent }) });
+                  toast.success('About page saved!');
+                } catch { toast.error('Failed to save'); }
+                finally { setIsSavingAbout(false); }
+              }} disabled={isSavingAbout}
+                className="w-full py-3 bg-orange-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                <Save size={14} /> {isSavingAbout ? 'Saving...' : 'Save About Page'}
+              </button>
+            </motion.div>
+          </div>
         ) : (
           <div className="max-w-5xl mx-auto space-y-8">
 
@@ -3439,7 +3559,7 @@ export default function AdminDashboard() {
               </form>
             </motion.div>
           </div>
-        ) : activeTab === 'faq' ? (
+        )}
           <div className="max-w-3xl mx-auto space-y-6">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 md:p-8 shadow-sm">
@@ -3527,71 +3647,6 @@ export default function AdminDashboard() {
                   <Save size={14} /> {isSavingFaq ? 'Saving...' : 'Save FAQ'}
                 </button>
               </div>
-            </motion.div>
-          </div>
-        ) : activeTab === 'about' ? (
-          <div className="max-w-2xl mx-auto space-y-6">
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/5 rounded-2xl p-6 md:p-8 shadow-sm space-y-5">
-              <div className="flex items-center gap-3 pb-4 border-b border-black/5 dark:border-white/5">
-                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 text-orange-600 rounded-full flex items-center justify-center text-lg">📄</div>
-                <div>
-                  <h2 className="text-lg font-medium text-black dark:text-white">About Page Editor</h2>
-                  <p className="text-xs text-black/40 dark:text-white/40 mt-0.5">Edit the content shown on your About Us page</p>
-                </div>
-              </div>
-              {([
-                { key: 'tagline', label: 'Hero Tagline', placeholder: 'Short tagline under the main heading', multiline: false },
-                { key: 'storyTitle', label: 'Our Story — Title', placeholder: 'e.g. Built for everyday people.', multiline: false },
-                { key: 'storyP1', label: 'Our Story — Paragraph 1', placeholder: '', multiline: true },
-                { key: 'storyP2', label: 'Our Story — Paragraph 2', placeholder: '', multiline: true },
-                { key: 'ctaTitle', label: 'CTA Heading', placeholder: 'e.g. Ready to explore?', multiline: false },
-              ] as { key: keyof typeof aboutContent; label: string; placeholder: string; multiline: boolean }[]).map(({ key, label, placeholder, multiline }) => (
-                <div key={key} className="space-y-1.5">
-                  <label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">{label}</label>
-                  {multiline ? (
-                    <textarea rows={3} value={aboutContent[key] as string}
-                      onChange={e => setAboutContent(prev => ({ ...prev, [key]: e.target.value }))}
-                      placeholder={placeholder}
-                      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none resize-none" />
-                  ) : (
-                    <input value={aboutContent[key] as string}
-                      onChange={e => setAboutContent(prev => ({ ...prev, [key]: e.target.value }))}
-                      placeholder={placeholder}
-                      className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-orange-500 outline-none" />
-                  )}
-                </div>
-              ))}
-              <div className="space-y-3">
-                <label className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">Our Values (3 items)</label>
-                {aboutContent.values.map((v, i) => (
-                  <div key={i} className="border border-black/5 dark:border-white/5 rounded-xl p-3 space-y-2">
-                    <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest">0{i + 1}</p>
-                    <input value={v.title} onChange={e => {
-                      const vals = [...aboutContent.values];
-                      vals[i] = { ...vals[i], title: e.target.value };
-                      setAboutContent(prev => ({ ...prev, values: vals }));
-                    }} placeholder="Value title" className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm font-bold focus:border-orange-500 outline-none" />
-                    <textarea value={v.desc} rows={2} onChange={e => {
-                      const vals = [...aboutContent.values];
-                      vals[i] = { ...vals[i], desc: e.target.value };
-                      setAboutContent(prev => ({ ...prev, values: vals }));
-                    }} placeholder="Value description" className="w-full bg-gray-50 dark:bg-neutral-950 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-orange-500 outline-none resize-none" />
-                  </div>
-                ))}
-              </div>
-              <button onClick={async () => {
-                setIsSavingAbout(true);
-                try {
-                  const token = localStorage.getItem('adminToken');
-                  await fetch('/api/about', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ content: aboutContent }) });
-                  toast.success('About page saved!');
-                } catch { toast.error('Failed to save'); }
-                finally { setIsSavingAbout(false); }
-              }} disabled={isSavingAbout}
-                className="w-full py-3 bg-orange-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-                <Save size={14} /> {isSavingAbout ? 'Saving...' : 'Save About Page'}
-              </button>
             </motion.div>
           </div>
         )}
