@@ -294,10 +294,13 @@ export default function AdminDashboard() {
       .catch(() => {});
   }, []);
 
+  const MAX_RECOMMENDED = 12;
   const toggleRecommended = (id: string) => {
-    setRecommendedIds(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    );
+    setRecommendedIds(prev => {
+      if (prev.includes(id)) return prev.filter(x => x !== id);
+      if (prev.length >= MAX_RECOMMENDED) return prev; // cap at 12
+      return [...prev, id];
+    });
     setRecommendedSaved(false);
   };
 
@@ -1699,7 +1702,9 @@ export default function AdminDashboard() {
                   <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center text-lg">⭐</div>
                   <div>
                     <h2 className="text-lg font-medium text-black dark:text-white">Recommended For You</h2>
-                    <p className="text-xs text-black/40 dark:text-white/40 mt-0.5">Choose which products appear in the homepage recommended section. Selected: {recommendedIds.length}</p>
+                    <p className="text-xs text-black/40 dark:text-white/40 mt-0.5">
+                      Select up to <strong>12</strong> products to pin at the top of the homepage. The order you select them becomes their display order (#1 = top-left).
+                    </p>
                   </div>
                 </div>
                 <button onClick={saveRecommended}
@@ -1707,12 +1712,18 @@ export default function AdminDashboard() {
                   {recommendedSaved ? '✓ Saved' : 'Save'}
                 </button>
               </div>
-              {recommendedIds.length > 0 && (
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-black/40 dark:text-white/40">{recommendedIds.length} product{recommendedIds.length !== 1 ? 's' : ''} selected — drag to reorder coming soon</span>
+              <div className="flex items-center justify-between text-xs">
+                <span className={`font-bold ${recommendedIds.length >= MAX_RECOMMENDED ? 'text-orange-500' : 'text-black/40 dark:text-white/40'}`}>
+                  {recommendedIds.length} / {MAX_RECOMMENDED} selected
+                  {recommendedIds.length >= MAX_RECOMMENDED && ' — limit reached'}
+                </span>
+                {recommendedIds.length > 0 && (
                   <button onClick={() => { setRecommendedIds([]); setRecommendedSaved(false); }} className="text-red-400 hover:text-red-600 transition-colors font-bold">Clear all</button>
-                </div>
-              )}
+                )}
+              </div>
+              <p className="text-xs text-black/30 dark:text-white/30 -mt-2">
+                💡 Tap to select. The number shown on the image is the homepage position. After these 12, all other products appear below via a <em>Load More</em> button.
+              </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {products.filter(p => !p.isPreowned && p.category !== 'Pre-Owned').map((product: any) => {
                   const selected = recommendedIds.includes(product.id);

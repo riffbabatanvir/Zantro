@@ -124,6 +124,44 @@ app.get('/api/products', async (req, res) => {
   res.json(products.map((p: any) => ({ ...p, id: p._id.toString() })));
 });
 
+// ─── Paginated Browse Products (for homepage Load More) ───────────────────────
+// Returns non-pre-owned products excluding the IDs that are already shown as recommended.
+// Query params: skip (int, default 0), limit (int, default 20), excludeIds (comma-sep string)
+app.get('/api/products/browse', async (req, res) => {
+  try {
+    const skip = Math.max(0, parseInt(req.query.skip as string) || 0);
+    const limit = Math.min(40, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const excludeIdsRaw = (req.query.excludeIds as string) || '';
+    const excludeIds = excludeIdsRaw ? excludeIdsRaw.split(',').filter(Boolean) : [];
+
+    const filter: any = {
+      isPreowned: { $ne: true },
+      category: { $ne: 'Pre-Owned' },
+    };
+
+    if (excludeIds.length > 0) {
+      // excludeIds are string representations of ObjectId
+      const objectIds = excludeIds.map((id: string) => {
+        try { return new ObjectId(id); } catch { return null; }
+      }).filter(Boolean);
+      if (objectIds.length > 0) {
+        filter._id = { $nin: objectIds };
+      }
+    }
+
+    const total = await db.collection('products').countDocuments(filter);
+    const products = await db.collection('products').find(filter).skip(skip).limit(limit).toArray();
+    res.json({
+      products: products.map((p: any) => ({ ...p, id: p._id.toString() })),
+      total,
+      skip,
+      limit,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch products' });
+  }
+});
+
 app.post('/api/products', async (req, res) => {
   if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
   const product = req.body;
