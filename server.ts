@@ -120,7 +120,9 @@ app.post('/api/upload', upload.array('files', 10), async (req, res) => {
 
 // Products
 app.get('/api/products', async (req, res) => {
-  const products = await db.collection('products').find({}).toArray();
+  const showHidden = isAdmin(req);
+  const filter = showHidden ? {} : { isHidden: { $ne: true } };
+  const products = await db.collection('products').find(filter).toArray();
   res.json(products.map((p: any) => ({ ...p, id: p._id.toString() })));
 });
 
@@ -137,6 +139,7 @@ app.get('/api/products/browse', async (req, res) => {
     const filter: any = {
       isPreowned: { $ne: true },
       category: { $ne: 'Pre-Owned' },
+      isHidden: { $ne: true },
     };
 
     if (excludeIds.length > 0) {

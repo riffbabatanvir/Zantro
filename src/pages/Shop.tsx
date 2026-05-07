@@ -43,6 +43,7 @@ export default function Shop() {
 
   const filteredProducts = useMemo(() => {
     let result = products.filter((product) => {
+      if ((product as any).isHidden) return false;
       const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter;
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             product.description.toLowerCase().includes(searchQuery.toLowerCase());

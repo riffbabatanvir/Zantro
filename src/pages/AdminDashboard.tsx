@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Lock, LogOut, Package, CreditCard, MapPin, Phone, Mail, User, ShoppingCart, Clock, TrendingUp, CheckCircle, Banknote, XCircle, Trash2, MessageSquare, PlusCircle, Image as ImageIcon, Tag, FileText, DollarSign, Percent, Video, Upload, Edit2, Save, Zap, Users, Globe, Monitor, Smartphone, Tablet, Truck, ShieldOff, ShieldCheck } from 'lucide-react';
+import { Lock, LogOut, Package, CreditCard, MapPin, Phone, Mail, User, ShoppingCart, Clock, TrendingUp, CheckCircle, Banknote, XCircle, Trash2, MessageSquare, PlusCircle, Image as ImageIcon, Tag, FileText, DollarSign, Percent, Video, Upload, Edit2, Save, Zap, Users, Globe, Monitor, Smartphone, Tablet, Truck, ShieldOff, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProducts } from '../ProductContext';
 import { useCategoryImages } from '../useCategoryImages';
@@ -80,6 +80,15 @@ export default function AdminDashboard() {
     try {
       await updateProduct(product.id, { isFlashSale: !product.isFlashSale });
       toast.success(`${product.name} ${!product.isFlashSale ? 'added to' : 'removed from'} Flash Sale`);
+    } catch {
+      toast.error('Failed to update product');
+    }
+  };
+
+  const toggleHideProduct = async (product: any) => {
+    try {
+      await updateProduct(product.id, { isHidden: !product.isHidden });
+      toast.success(`${product.name} is now ${!product.isHidden ? 'hidden from' : 'visible on'} the frontend`);
     } catch {
       toast.error('Failed to update product');
     }
@@ -3358,6 +3367,7 @@ export default function AdminDashboard() {
                           <div className="flex items-center gap-2 mt-1">
                             {product.discount && <span className="inline-block px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold rounded">{product.discount}% OFF</span>}
                             {product.isFlashSale && <span className="inline-block px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-bold rounded">🔥 Flash Sale</span>}
+                            {product.isHidden && <span className="inline-block px-2 py-0.5 bg-gray-200 dark:bg-neutral-700 text-gray-500 dark:text-gray-400 text-[10px] font-bold rounded">🚫 Hidden</span>}
                           </div>
                         </div>
                       </div>
@@ -3381,6 +3391,12 @@ export default function AdminDashboard() {
                             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors ${product.isFlashSale ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-gray-100 dark:bg-neutral-800 text-black/40 dark:text-white/40 hover:bg-orange-100 hover:text-orange-600'}`}
                             title="Toggle Flash Sale">
                             <Zap size={10} /> Flash
+                          </button>
+                          <button onClick={() => toggleHideProduct(product)}
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors ${product.isHidden ? 'bg-gray-500 text-white hover:bg-gray-600' : 'bg-gray-100 dark:bg-neutral-800 text-black/40 dark:text-white/40 hover:bg-gray-200 dark:hover:bg-neutral-700 hover:text-black dark:hover:text-white'}`}
+                            title={product.isHidden ? 'Show on frontend' : 'Hide from frontend'}>
+                            {product.isHidden ? <EyeOff size={10} /> : <Eye size={10} />}
+                            {product.isHidden ? 'Hidden' : 'Visible'}
                           </button>
                           <button onClick={() => { setEditingProduct(product.id); setEditProductData({ name: product.name, price: product.price, discount: product.discount || '', description: product.description, category: product.category, image: product.image, images: (product as any).images || [], video: (product as any).video || undefined, videos: (product as any).videos || [], rating: product.rating || '', soldCount: (product as any).soldCount || '', reviewCount: (product as any).reviewCount || '', stock: (product as any).stock ?? '', sizes: ((product as any).variants?.find((v: any) => v.type === 'size')?.options || []).join(', '), colors: ((product as any).variants?.find((v: any) => v.type === 'color')?.options || []).join(', '), isPreorder: (product as any).isPreorder || false, preorderPriceTiers: (product as any).preorderPriceTiers || [] }); setEditImageFiles([]); setEditVideoFiles([]); if (editImageInputRef.current) editImageInputRef.current.value = ''; if (editVideoInputRef.current) editVideoInputRef.current.value = ''; }}
                             className="p-2 text-black/40 dark:text-white/40 hover:text-orange-600 dark:hover:text-orange-400 transition-colors rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20" title="Edit Product">

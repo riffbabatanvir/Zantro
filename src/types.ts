@@ -38,6 +38,7 @@ export interface Product {
   yearsUsed?: number;
   percentNew?: number;
   preorderPriceTiers?: PreorderPriceTier[];   // bulk pricing for preorder
+  isHidden?: boolean;
   stock?: number;
   variants?: ProductVariant[];
   customerReviews?: CustomerReview[];
