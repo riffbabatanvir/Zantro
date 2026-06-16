@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
-import { useCategoryImages } from '../useCategoryImages';
+import { useCategoryImages, getStorefrontCategories } from '../useCategoryImages';
 import { motion } from 'motion/react';
 import { useLanguage } from '../LanguageContext';
 import { useRef, useState, useEffect } from 'react';
 
 export default function CategorySection() {
-  const { images, categories, isLoading } = useCategoryImages();
+  const { images, categories: allCategories, isLoading } = useCategoryImages();
+  const categories = getStorefrontCategories(allCategories);
   const { t } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showHint, setShowHint] = useState(true);

@@ -1,0 +1,5 @@
+Open git bash in that folder, and then,
+
+git add .
+git commit -m "anything"
+git push

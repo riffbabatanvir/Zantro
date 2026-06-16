@@ -38,6 +38,7 @@ export interface Product {
   yearsUsed?: number;
   percentNew?: number;
   preorderPriceTiers?: PreorderPriceTier[];   // bulk pricing for preorder
+  isHidden?: boolean;
   stock?: number;
   variants?: ProductVariant[];
   customerReviews?: CustomerReview[];
@@ -62,6 +63,8 @@ export interface Category {
   id: string;
   name: string;
   image: string;
+  isHidden?: boolean;     // hide this category from the storefront entirely (still reachable via direct link)
+  isSensitive?: boolean;  // sensitive category: excluded from "All Products" browsing, sorted to bottom of nav, images blurred by default
 }
 
 export interface Coupon {

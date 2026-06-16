@@ -6,7 +6,7 @@ import { useWishlist } from '../WishlistContext';
 import { motion } from 'motion/react';
 import { useLanguage } from '../LanguageContext';
 
-export default function ProductCard({ product }: { product: Product; key?: string | number }) {
+export default function ProductCard({ product, blurred = false }: { product: Product; blurred?: boolean; key?: string | number }) {
   const { addToCart, cart } = useCart();
   const { toggle, isWishlisted } = useWishlist();
   const navigate = useNavigate();
@@ -33,10 +33,17 @@ export default function ProductCard({ product }: { product: Product; key?: strin
             src={product.image} alt={product.name}
             loading="lazy"
             decoding="async"
-            className={`w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 p-4 ${isOutOfStock ? 'opacity-50' : ''}`}
+            className={`w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 p-4 ${isOutOfStock ? 'opacity-50' : ''} ${blurred ? 'blur-xl scale-110' : ''}`}
             referrerPolicy="no-referrer"
           />
         </Link>
+        {blurred && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="bg-black/60 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
+              Blurred
+            </span>
+          </div>
+        )}
 
         {/* Out of stock overlay */}
         {isOutOfStock && (

@@ -1,10 +1,10 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useLanguage } from '../LanguageContext';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { useProducts } from '../ProductContext';
-import { useCategoryImages } from '../useCategoryImages';
-import { X } from 'lucide-react';
+import { useCategoryImages, getStorefrontCategories } from '../useCategoryImages';
+import { X, Eye, EyeOff } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -12,10 +12,30 @@ import { cn } from '../lib/utils';
 export default function Shop() {
   const { products, isLoading } = useProducts();
   const { t } = useLanguage();
-  const { categories } = useCategoryImages();
+  const { categories: allCategories } = useCategoryImages();
+  const categories = useMemo(() => getStorefrontCategories(allCategories), [allCategories]);
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryFilter = searchParams.get('category') || 'All';
   const searchQuery = searchParams.get('q') || '';
+
+  // Categories that should never appear in the "All Products" browse view
+  // (sensitive categories, or categories an admin has fully hidden from the storefront).
+  const restrictedCategoryNames = useMemo(
+    () => allCategories.filter(c => c.isSensitive || c.isHidden).map(c => c.name),
+    [allCategories]
+  );
+
+  const activeCategory = useMemo(
+    () => allCategories.find(c => c.name === categoryFilter),
+    [allCategories, categoryFilter]
+  );
+  const isSensitiveView = categoryFilter !== 'All' && !!activeCategory?.isSensitive;
+
+  // Images are blurred by default whenever you land on a sensitive category.
+  const [imagesBlurred, setImagesBlurred] = useState(true);
+  useEffect(() => {
+    if (isSensitiveView) setImagesBlurred(true);
+  }, [categoryFilter, isSensitiveView]);
 
   const categoryScrollRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -43,7 +63,10 @@ export default function Shop() {
 
   const filteredProducts = useMemo(() => {
     let result = products.filter((product) => {
-      const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter;
+      if ((product as any).isHidden) return false;
+      const matchesCategory = categoryFilter === 'All'
+        ? !restrictedCategoryNames.includes(product.category)
+        : product.category === categoryFilter;
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             product.description.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesMin = appliedMin === null || product.price >= appliedMin;
@@ -71,7 +94,7 @@ export default function Shop() {
     }
 
     return result;
-  }, [products, categoryFilter, searchQuery, appliedMin, appliedMax, sortBy]);
+  }, [products, categoryFilter, searchQuery, appliedMin, appliedMax, sortBy, restrictedCategoryNames]);
 
   const clearSearch = () => {
     const newParams = new URLSearchParams(searchParams);
@@ -224,6 +247,20 @@ export default function Shop() {
                   </button>
                 </div>
               )}
+
+              {isSensitiveView && (
+                <div className="flex items-center justify-between gap-3 bg-gray-50 dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-xl px-4 py-3">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Images in this category are blurred by default for privacy.
+                  </p>
+                  <button
+                    onClick={() => setImagesBlurred(b => !b)}
+                    className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-900 dark:bg-white text-white dark:text-black hover:opacity-90 transition-opacity"
+                  >
+                    {imagesBlurred ? <><Eye size={13} /> Unblur images</> : <><EyeOff size={13} /> Blur images</>}
+                  </button>
+                </div>
+              )}
             </div>
 
             {isLoading ? (
@@ -242,7 +279,7 @@ export default function Shop() {
             ) : filteredProducts.length > 0 ? (
               <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-8">
                 {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product.id} product={product} blurred={isSensitiveView && imagesBlurred} />
                 ))}
               </div>
             ) : (

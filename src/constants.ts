@@ -4,20 +4,22 @@ export const CATEGORIES: Category[] = [
   { id: '1',  name: "Men's Clothing",          image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '2',  name: "Women's Clothing",         image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '3',  name: "Kids' Clothing",           image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?auto=format&fit=crop&q=80&w=400&h=400' },
-  { id: '4',  name: "Lingerie",               image: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '5',  name: 'Fashion',                  image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '6',  name: 'Gadgets & Accessories',    image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '7',  name: 'Home & Living',            image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '8',  name: 'Toys & Accessories',       image: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '9',  name: 'Miscellaneous',            image: 'https://images.unsplash.com/photo-1553481187-be93c21490a9?auto=format&fit=crop&q=80&w=400&h=400' },
   { id: '10', name: 'Pre-Owned',                 image: 'https://images.unsplash.com/photo-1558618047-f4e60cde5ea5?auto=format&fit=crop&q=80&w=400&h=400' },
+  // Sensitive category: kept last so it always renders at the bottom of category lists,
+  // excluded from "All Products" browsing, and blurred by default in the Shop (see isSensitive).
+  { id: '4',  name: 'Cosplay, Lingerie & Accessories', image: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&q=80&w=400&h=400', isSensitive: true },
 ];
 
 // Groups used in the Shop sidebar
 export const CATEGORY_GROUPS = [
   {
     label: 'Clothing & Apparel',
-    categories: ["Men's Clothing", "Women's Clothing", "Kids' Clothing", "Lingerie"],
+    categories: ["Men's Clothing", "Women's Clothing", "Kids' Clothing", "Cosplay, Lingerie & Accessories"],
   },
   {
     label: 'Fashion',

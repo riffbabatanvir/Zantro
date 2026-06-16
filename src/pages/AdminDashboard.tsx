@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Lock, LogOut, Package, CreditCard, MapPin, Phone, Mail, User, ShoppingCart, Clock, TrendingUp, CheckCircle, Banknote, XCircle, Trash2, MessageSquare, PlusCircle, Image as ImageIcon, Tag, FileText, DollarSign, Percent, Video, Upload, Edit2, Save, Zap, Users, Globe, Monitor, Smartphone, Tablet, Truck, ShieldOff, ShieldCheck } from 'lucide-react';
+import { Lock, LogOut, Package, CreditCard, MapPin, Phone, Mail, User, ShoppingCart, Clock, TrendingUp, CheckCircle, Banknote, XCircle, Trash2, MessageSquare, PlusCircle, Image as ImageIcon, Tag, FileText, DollarSign, Percent, Video, Upload, Edit2, Save, Zap, Users, Globe, Monitor, Smartphone, Tablet, Truck, ShieldOff, ShieldCheck, ShieldAlert, Eye, EyeOff, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProducts } from '../ProductContext';
 import { useCategoryImages } from '../useCategoryImages';
@@ -85,6 +85,15 @@ export default function AdminDashboard() {
     }
   };
 
+  const toggleHideProduct = async (product: any) => {
+    try {
+      await updateProduct(product.id, { isHidden: !product.isHidden });
+      toast.success(`${product.name} is now ${!product.isHidden ? 'hidden from' : 'visible on'} the frontend`);
+    } catch {
+      toast.error('Failed to update product');
+    }
+  };
+
   const [newProduct, setNewProduct] = useState({
     name: '', price: '', discount: '', description: '',
     category: CATEGORIES[0]?.name || 'Fashion',
@@ -115,12 +124,13 @@ export default function AdminDashboard() {
   const { images: categoryImages, refetch: refetchCategoryImages } = useCategoryImages();
 
   // Category name management
-  const [categoryList, setCategoryList] = useState<Array<{id: string; name: string; image: string}>>([...CATEGORIES]);
+  const [categoryList, setCategoryList] = useState<Array<{id: string; name: string; image: string; isHidden?: boolean; isSensitive?: boolean}>>([...CATEGORIES]);
   const [isSavingCatList, setIsSavingCatList] = useState(false);
   const [catNameEditId, setCatNameEditId] = useState<string | null>(null);
   const [catNameInput, setCatNameInput] = useState('');
   const [newCatName, setNewCatName] = useState('');
   const [isAddingCat, setIsAddingCat] = useState(false);
+  const [copiedCatLinkId, setCopiedCatLinkId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/category-list').then(r => r.json()).then(data => {
@@ -166,6 +176,32 @@ export default function AdminDashboard() {
     if (!window.confirm('Delete this category? Products assigned to it will become uncategorized.')) return;
     const updated = categoryList.filter(c => c.id !== id);
     await saveCategoryList(updated);
+  };
+
+  const handleToggleCategoryHidden = async (id: string) => {
+    const cat = categoryList.find(c => c.id === id);
+    const updated = categoryList.map(c => c.id === id ? { ...c, isHidden: !c.isHidden } : c);
+    await saveCategoryList(updated);
+    toast.success(`${cat?.name} is now ${!cat?.isHidden ? 'hidden from' : 'visible on'} the storefront`);
+  };
+
+  const handleToggleCategorySensitive = async (id: string) => {
+    const cat = categoryList.find(c => c.id === id);
+    const updated = categoryList.map(c => c.id === id ? { ...c, isSensitive: !c.isSensitive } : c);
+    await saveCategoryList(updated);
+    toast.success(`${cat?.name} is now ${!cat?.isSensitive ? 'marked as sensitive (blurred + hidden from All Products)' : 'a normal category'}`);
+  };
+
+  const handleCopyCategoryLink = async (cat: { id: string; name: string }) => {
+    const url = `${window.location.origin}/shop?category=${encodeURIComponent(cat.name)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedCatLinkId(cat.id);
+      toast.success('Category link copied!');
+      setTimeout(() => setCopiedCatLinkId(null), 2000);
+    } catch {
+      toast.error('Failed to copy link');
+    }
   };
 
   // Coupons
@@ -1476,7 +1512,15 @@ export default function AdminDashboard() {
                         autoFocus
                       />
                     ) : (
-                      <span className="flex-1 text-sm font-medium text-black dark:text-white">{cat.name}</span>
+                      <div className="flex-1 flex items-center gap-2 min-w-0">
+                        <span className="text-sm font-medium text-black dark:text-white truncate">{cat.name}</span>
+                        {cat.isSensitive && (
+                          <span className="shrink-0 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400">Sensitive</span>
+                        )}
+                        {cat.isHidden && (
+                          <span className="shrink-0 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400">Hidden</span>
+                        )}
+                      </div>
                     )}
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       {catNameEditId === cat.id ? (
@@ -1500,6 +1544,29 @@ export default function AdminDashboard() {
                       ) : (
                         <>
                           <button
+                            onClick={() => handleCopyCategoryLink(cat)}
+                            className="p-1.5 rounded-lg text-black/40 dark:text-white/40 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                            title="Copy shareable link to this category"
+                          >
+                            {copiedCatLinkId === cat.id ? <CheckCircle size={13} className="text-green-500" /> : <Copy size={13} />}
+                          </button>
+                          <button
+                            onClick={() => handleToggleCategorySensitive(cat.id)}
+                            disabled={isSavingCatList}
+                            className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${cat.isSensitive ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20' : 'text-black/40 dark:text-white/40 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20'}`}
+                            title={cat.isSensitive ? 'Unmark as sensitive' : 'Mark as sensitive (blurred, excluded from All Products, sorted to bottom)'}
+                          >
+                            <ShieldAlert size={13} />
+                          </button>
+                          <button
+                            onClick={() => handleToggleCategoryHidden(cat.id)}
+                            disabled={isSavingCatList}
+                            className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${cat.isHidden ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-black/40 dark:text-white/40 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'}`}
+                            title={cat.isHidden ? 'Show on storefront' : 'Hide from storefront (still reachable via direct link)'}
+                          >
+                            {cat.isHidden ? <EyeOff size={13} /> : <Eye size={13} />}
+                          </button>
+                          <button
                             onClick={() => { setCatNameEditId(cat.id); setCatNameInput(cat.name); }}
                             className="p-1.5 rounded-lg text-black/40 dark:text-white/40 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
                             title="Rename"
@@ -1522,6 +1589,12 @@ export default function AdminDashboard() {
                   <p className="text-center text-sm text-black/30 dark:text-white/30 py-8">No categories yet. Click "Add Category" to create one.</p>
                 )}
               </div>
+              <p className="text-[11px] text-black/30 dark:text-white/30 mt-4 leading-relaxed">
+                <ShieldAlert size={11} className="inline -mt-0.5 mr-1" />
+                <strong className="font-bold">Sensitive</strong> categories are blurred by default in Shop, excluded from "All Products" browsing, and always sorted to the bottom of the category list. &nbsp;
+                <EyeOff size={11} className="inline -mt-0.5 mr-1" />
+                <strong className="font-bold">Hidden</strong> categories are removed from the storefront entirely — use the copy-link button to share them directly.
+              </p>
             </motion.div>
 
             {/* ── Category Images ── */}
@@ -3358,6 +3431,7 @@ export default function AdminDashboard() {
                           <div className="flex items-center gap-2 mt-1">
                             {product.discount && <span className="inline-block px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold rounded">{product.discount}% OFF</span>}
                             {product.isFlashSale && <span className="inline-block px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-bold rounded">🔥 Flash Sale</span>}
+                            {product.isHidden && <span className="inline-block px-2 py-0.5 bg-gray-200 dark:bg-neutral-700 text-gray-500 dark:text-gray-400 text-[10px] font-bold rounded">🚫 Hidden</span>}
                           </div>
                         </div>
                       </div>
@@ -3381,6 +3455,12 @@ export default function AdminDashboard() {
                             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors ${product.isFlashSale ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-gray-100 dark:bg-neutral-800 text-black/40 dark:text-white/40 hover:bg-orange-100 hover:text-orange-600'}`}
                             title="Toggle Flash Sale">
                             <Zap size={10} /> Flash
+                          </button>
+                          <button onClick={() => toggleHideProduct(product)}
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors ${product.isHidden ? 'bg-gray-500 text-white hover:bg-gray-600' : 'bg-gray-100 dark:bg-neutral-800 text-black/40 dark:text-white/40 hover:bg-gray-200 dark:hover:bg-neutral-700 hover:text-black dark:hover:text-white'}`}
+                            title={product.isHidden ? 'Show on frontend' : 'Hide from frontend'}>
+                            {product.isHidden ? <EyeOff size={10} /> : <Eye size={10} />}
+                            {product.isHidden ? 'Hidden' : 'Visible'}
                           </button>
                           <button onClick={() => { setEditingProduct(product.id); setEditProductData({ name: product.name, price: product.price, discount: product.discount || '', description: product.description, category: product.category, image: product.image, images: (product as any).images || [], video: (product as any).video || undefined, videos: (product as any).videos || [], rating: product.rating || '', soldCount: (product as any).soldCount || '', reviewCount: (product as any).reviewCount || '', stock: (product as any).stock ?? '', sizes: ((product as any).variants?.find((v: any) => v.type === 'size')?.options || []).join(', '), colors: ((product as any).variants?.find((v: any) => v.type === 'color')?.options || []).join(', '), isPreorder: (product as any).isPreorder || false, preorderPriceTiers: (product as any).preorderPriceTiers || [] }); setEditImageFiles([]); setEditVideoFiles([]); if (editImageInputRef.current) editImageInputRef.current.value = ''; if (editVideoInputRef.current) editVideoInputRef.current.value = ''; }}
                             className="p-2 text-black/40 dark:text-white/40 hover:text-orange-600 dark:hover:text-orange-400 transition-colors rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20" title="Edit Product">

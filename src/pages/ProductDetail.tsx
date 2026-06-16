@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useProducts } from '../ProductContext';
 import { useCart } from '../CartContext';
-import { Star, ShoppingCart, Truck, ChevronRight, ChevronLeft, Minus, Plus, Play, Send, Trash2, Share2, Heart, X, ZoomIn } from 'lucide-react';
+import { Star, ShoppingCart, Truck, ChevronRight, ChevronLeft, Minus, Plus, Play, Send, Trash2, Share2, Heart, X, ZoomIn, Eye, EyeOff } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '../LanguageContext';
 import { motion } from 'motion/react';
@@ -9,6 +9,7 @@ import ProductCard from '../components/ProductCard';
 import { toast } from 'sonner';
 import { useWishlist } from '../WishlistContext';
 import { Helmet } from 'react-helmet-async';
+import { useCategoryImages } from '../useCategoryImages';
 
 
 // Renders description text that supports:
@@ -159,6 +160,16 @@ export default function ProductDetail() {
 
   const product = useMemo(() => products.find((p) => p.id === id), [id, products]);
   const isInCart = product ? cart.some((item) => item.id === product.id) : false;
+
+  const { categories } = useCategoryImages();
+  const isSensitiveProduct = useMemo(
+    () => !!product && !!categories.find(c => c.name === product.category)?.isSensitive,
+    [product, categories]
+  );
+  const [imagesBlurred, setImagesBlurred] = useState(true);
+  useEffect(() => {
+    if (isSensitiveProduct) setImagesBlurred(true);
+  }, [id, isSensitiveProduct]);
 
   const [selectedMedia, setSelectedMedia] = useState<{ type: 'image' | 'video', url: string }>({ type: 'image', url: '' });
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
@@ -460,7 +471,7 @@ export default function ProductDetail() {
                 <img
                   src={zoomedImage}
                   alt="Zoomed"
-                  className="max-w-[95vw] max-h-[90vh] object-contain rounded-xl select-none"
+                  className={`max-w-[95vw] max-h-[90vh] object-contain rounded-xl select-none ${isSensitiveProduct && imagesBlurred ? 'blur-2xl' : ''}`}
                   referrerPolicy="no-referrer"
                   onClick={e => e.stopPropagation()}
                   draggable={false}
@@ -492,18 +503,30 @@ export default function ProductDetail() {
             )}
 
             <div className="bg-white dark:bg-neutral-950 md:rounded-3xl overflow-hidden shadow-sm dark:shadow-none border border-gray-100 dark:border-neutral-800 relative group/img">
+              {isSensitiveProduct && (
+                <button
+                  onClick={() => setImagesBlurred(b => !b)}
+                  className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-black/70 text-white hover:bg-black/85 transition-colors"
+                >
+                  {imagesBlurred ? <><Eye size={13} /> Unblur</> : <><EyeOff size={13} /> Blur</>}
+                </button>
+              )}
               <div className="aspect-square md:aspect-[4/5] overflow-hidden p-4 md:p-12 flex items-center justify-center">
                 {selectedMedia.type === 'video' ? (
                   <video src={selectedMedia.url} controls autoPlay poster={product.image} className="w-full h-full object-contain" />
                 ) : (
                   <>
                     <motion.img key={selectedMedia.url} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                      src={selectedMedia.url} alt={product.name} className="w-full h-full object-contain cursor-zoom-in" referrerPolicy="no-referrer"
-                      onClick={() => setZoomedImage(selectedMedia.url)} />
-                    <button onClick={() => setZoomedImage(selectedMedia.url)}
-                      className="absolute top-3 right-3 w-8 h-8 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity shadow-sm">
-                      <ZoomIn size={15} className="text-gray-600 dark:text-gray-300" />
-                    </button>
+                      src={selectedMedia.url} alt={product.name}
+                      className={`w-full h-full object-contain cursor-zoom-in ${isSensitiveProduct && imagesBlurred ? 'blur-xl scale-110' : ''}`}
+                      referrerPolicy="no-referrer"
+                      onClick={() => { if (!(isSensitiveProduct && imagesBlurred)) setZoomedImage(selectedMedia.url); }} />
+                    {!(isSensitiveProduct && imagesBlurred) && (
+                      <button onClick={() => setZoomedImage(selectedMedia.url)}
+                        className="absolute top-3 right-3 w-8 h-8 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity shadow-sm">
+                        <ZoomIn size={15} className="text-gray-600 dark:text-gray-300" />
+                      </button>
+                    )}
                   </>
                 )}
               </div>
@@ -523,7 +546,7 @@ export default function ProductDetail() {
                         </div>
                       </div>
                     ) : (
-                      <img src={media.url} alt={`${product.name} ${idx}`} className="w-full h-full object-cover" />
+                      <img src={media.url} alt={`${product.name} ${idx}`} className={`w-full h-full object-cover ${isSensitiveProduct && imagesBlurred ? 'blur-md' : ''}`} />
                     )}
                   </button>
                 ))}
@@ -835,7 +858,7 @@ export default function ProductDetail() {
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
               {relatedProducts.map((p) => (
-                <ProductCard key={p.id} product={p} />
+                <ProductCard key={p.id} product={p} blurred={isSensitiveProduct && imagesBlurred} />
               ))}
             </div>
           </section>

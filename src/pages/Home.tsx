@@ -26,8 +26,8 @@ export default function Home() {
 
   // The top 12 recommended products shown first
   const featuredProducts = recommendedIds.length > 0
-    ? recommendedIds.slice(0, 12).map(id => products.find(p => p.id === id)).filter(Boolean) as typeof products
-    : products.filter(p => !p.isPreowned && p.category !== 'Pre-Owned').slice(0, 12);
+    ? recommendedIds.slice(0, 12).map(id => products.find(p => p.id === id && !(p as any).isHidden)).filter(Boolean) as typeof products
+    : products.filter(p => !p.isPreowned && p.category !== 'Pre-Owned' && !(p as any).isHidden).slice(0, 12);
 
   // ── Load More state ───────────────────────────────────────────────────────
   const [extraProducts, setExtraProducts] = useState<typeof products>([]);
@@ -63,7 +63,7 @@ export default function Home() {
   }, [isLoadingMore, hasMore, loadMoreSkip, featuredProducts]);
 
   // ── Flash Sale ────────────────────────────────────────────────────────────
-  const flashSaleProducts = products.filter(p => p.isFlashSale);
+  const flashSaleProducts = products.filter(p => p.isFlashSale && !(p as any).isHidden);
   const [flashSaleEnabled, setFlashSaleEnabled] = useState(true);
 
   useEffect(() => {
