@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useWishlist } from '../WishlistContext';
 import { Helmet } from 'react-helmet-async';
 import { useCategoryImages } from '../useCategoryImages';
+import { isCategoryUnblurred, setCategoryUnblurred } from '../blurPreference';
 
 
 // Renders description text that supports:
@@ -168,8 +169,14 @@ export default function ProductDetail() {
   );
   const [imagesBlurred, setImagesBlurred] = useState(true);
   useEffect(() => {
-    if (isSensitiveProduct) setImagesBlurred(true);
-  }, [id, isSensitiveProduct]);
+    if (isSensitiveProduct && product) setImagesBlurred(!isCategoryUnblurred(product.category));
+  }, [id, isSensitiveProduct, product]);
+
+  const toggleImagesBlurred = () => {
+    const next = !imagesBlurred;
+    setImagesBlurred(next);
+    if (product) setCategoryUnblurred(product.category, !next);
+  };
 
   const [selectedMedia, setSelectedMedia] = useState<{ type: 'image' | 'video', url: string }>({ type: 'image', url: '' });
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
@@ -505,7 +512,7 @@ export default function ProductDetail() {
             <div className="bg-white dark:bg-neutral-950 md:rounded-3xl overflow-hidden shadow-sm dark:shadow-none border border-gray-100 dark:border-neutral-800 relative group/img">
               {isSensitiveProduct && (
                 <button
-                  onClick={() => setImagesBlurred(b => !b)}
+                  onClick={toggleImagesBlurred}
                   className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-black/70 text-white hover:bg-black/85 transition-colors"
                 >
                   {imagesBlurred ? <><Eye size={13} /> Unblur</> : <><EyeOff size={13} /> Blur</>}

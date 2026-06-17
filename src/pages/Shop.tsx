@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { useProducts } from '../ProductContext';
 import { useCategoryImages, getStorefrontCategories } from '../useCategoryImages';
+import { isCategoryUnblurred, setCategoryUnblurred } from '../blurPreference';
 import { X, Eye, EyeOff } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
@@ -31,11 +32,18 @@ export default function Shop() {
   );
   const isSensitiveView = categoryFilter !== 'All' && !!activeCategory?.isSensitive;
 
-  // Images are blurred by default whenever you land on a sensitive category.
+  // Images are blurred by default whenever you land on a sensitive category,
+  // unless this browser previously chose to unblur that specific category.
   const [imagesBlurred, setImagesBlurred] = useState(true);
   useEffect(() => {
-    if (isSensitiveView) setImagesBlurred(true);
+    if (isSensitiveView) setImagesBlurred(!isCategoryUnblurred(categoryFilter));
   }, [categoryFilter, isSensitiveView]);
+
+  const toggleImagesBlurred = () => {
+    const next = !imagesBlurred;
+    setImagesBlurred(next);
+    setCategoryUnblurred(categoryFilter, !next);
+  };
 
   const categoryScrollRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -254,7 +262,7 @@ export default function Shop() {
                     Images in this category are blurred by default for privacy.
                   </p>
                   <button
-                    onClick={() => setImagesBlurred(b => !b)}
+                    onClick={toggleImagesBlurred}
                     className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-900 dark:bg-white text-white dark:text-black hover:opacity-90 transition-opacity"
                   >
                     {imagesBlurred ? <><Eye size={13} /> Unblur images</> : <><EyeOff size={13} /> Blur images</>}
