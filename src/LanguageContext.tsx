@@ -167,7 +167,7 @@ export const DEFAULT_TRANSLATIONS: Record<string, string> = {
   'bKash': 'বিকাশ',
   'Nagad': 'নগদ',
   'Crypto': 'ক্রিপ্টো',
-  'COD': 'ক্যাশ অন ডেলিভারি',
+  'Cash On Delivery': 'ক্যাশ অন ডেলিভারি',
   'Bank': 'ব্যাংক',
   'Card Number': 'কার্ড নম্বর',
   'Name on Card': 'কার্ডে নাম',

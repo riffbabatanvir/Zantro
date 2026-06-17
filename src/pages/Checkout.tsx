@@ -288,7 +288,7 @@ export default function Checkout() {
                     ...(bkashEnabled ? [{ id: 'bkash', name: t('bKash'), icon: Smartphone }] : []),
                     ...(nagadEnabled ? [{ id: 'nagad', name: t('Nagad'), icon: Smartphone }] : []),
                     ...(cryptoEnabled ? [{ id: 'crypto', name: t('Crypto'), icon: Bitcoin }] : []),
-                    ...(!codEnabled || (isPreorderCart && codDisabledForPreorder) ? [] : [{ id: 'cod', name: t('COD'), icon: Banknote }]),
+                    ...(!codEnabled || (isPreorderCart && codDisabledForPreorder) ? [] : [{ id: 'cod', name: t('Cash On Delivery'), icon: Banknote }]),
                     ...(bankEnabled ? [{ id: 'bank', name: t('Bank'), icon: Landmark }] : [])
                   ].map((method) => {
                     const Icon = method.icon;
